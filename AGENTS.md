@@ -91,6 +91,10 @@ Current Phase: **Phase 5 - Keyboard Shortcuts & Polish** (Complete)
 - ✅ Updated stores to load/save settings automatically
 - ✅ TypeScript compilation passes with no errors
 - ✅ Phase 5 is complete!
+- ✅ Added native File and View menus in Tauri
+- ✅ Menu items mirror keyboard shortcuts (New, Open, Save, Close Tab, Toggle Sidebar, Search)
+- ✅ Integrated menu event listeners in Layout component
+- ✅ Menu accelerators match keyboard shortcuts
 
 ### 2026-01-31 (Session 5)
 - ✅ Installed prismjs for code syntax highlighting

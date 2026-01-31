@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useEffect } from 'react';
+import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow';
 import IconBar from '../IconBar/IconBar';
 import Sidebar from '../Sidebar/Sidebar';
 import EditorArea from '../EditorArea/EditorArea';
@@ -147,6 +148,27 @@ const Layout: React.FC = () => {
       },
     },
   ]);
+
+  // Listen for menu events from Tauri
+  useEffect(() => {
+    const appWindow = getCurrentWebviewWindow();
+
+    const unlistenPromises = [
+      appWindow.listen('menu:new-file', () => handleNewFile()),
+      appWindow.listen('menu:open-file', () => handleOpenFile()),
+      appWindow.listen('menu:save', () => handleSave()),
+      appWindow.listen('menu:close-tab', () => handleCloseTab()),
+      appWindow.listen('menu:toggle-sidebar', () => toggleSidebar()),
+      appWindow.listen('menu:search', () => handleSearch()),
+    ];
+
+    // Cleanup listeners on unmount
+    return () => {
+      Promise.all(unlistenPromises).then((unlisteners) => {
+        unlisteners.forEach((unlisten) => unlisten());
+      });
+    };
+  }, [activeTab]); // Re-setup listeners when active tab changes
 
   return (
     <div className="layout">

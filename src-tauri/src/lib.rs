@@ -88,6 +88,8 @@ fn write_file_content(path: String, content: String) -> Result<(), String> {
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
+    use tauri::menu::{MenuBuilder, MenuItemBuilder, SubmenuBuilder};
+
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_fs::init())
@@ -97,6 +99,81 @@ pub fn run() {
             read_file_content,
             write_file_content
         ])
+        .setup(|app| {
+            // Build the menu
+            let new_file = MenuItemBuilder::with_id("new_file", "New File")
+                .accelerator("CmdOrCtrl+N")
+                .build(app)?;
+
+            let open_file = MenuItemBuilder::with_id("open_file", "Open File...")
+                .accelerator("CmdOrCtrl+O")
+                .build(app)?;
+
+            let save = MenuItemBuilder::with_id("save", "Save")
+                .accelerator("CmdOrCtrl+S")
+                .build(app)?;
+
+            let close_tab = MenuItemBuilder::with_id("close_tab", "Close Tab")
+                .accelerator("CmdOrCtrl+W")
+                .build(app)?;
+
+            let file_menu = SubmenuBuilder::new(app, "File")
+                .item(&new_file)
+                .item(&open_file)
+                .item(&save)
+                .separator()
+                .item(&close_tab)
+                .build()?;
+
+            let toggle_sidebar = MenuItemBuilder::with_id("toggle_sidebar", "Toggle Sidebar")
+                .accelerator("CmdOrCtrl+B")
+                .build(app)?;
+
+            let search = MenuItemBuilder::with_id("search", "Search in Files")
+                .accelerator("CmdOrCtrl+Shift+F")
+                .build(app)?;
+
+            let view_menu = SubmenuBuilder::new(app, "View")
+                .item(&toggle_sidebar)
+                .item(&search)
+                .build()?;
+
+            let menu = MenuBuilder::new(app)
+                .item(&file_menu)
+                .item(&view_menu)
+                .build()?;
+
+            app.set_menu(menu)?;
+
+            // Handle menu events
+            app.on_menu_event(|app, event| {
+                let window = app.get_webview_window("main").unwrap();
+
+                match event.id().as_ref() {
+                    "new_file" => {
+                        let _ = window.emit("menu:new-file", ());
+                    }
+                    "open_file" => {
+                        let _ = window.emit("menu:open-file", ());
+                    }
+                    "save" => {
+                        let _ = window.emit("menu:save", ());
+                    }
+                    "close_tab" => {
+                        let _ = window.emit("menu:close-tab", ());
+                    }
+                    "toggle_sidebar" => {
+                        let _ = window.emit("menu:toggle-sidebar", ());
+                    }
+                    "search" => {
+                        let _ = window.emit("menu:search", ());
+                    }
+                    _ => {}
+                }
+            });
+
+            Ok(())
+        })
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
