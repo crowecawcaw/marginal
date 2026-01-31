@@ -144,14 +144,6 @@ const Layout: React.FC = () => {
       },
     },
     {
-      key: 'b',
-      ctrlOrCmd: true,
-      handler: (e) => {
-        e.preventDefault();
-        toggleSidebar();
-      },
-    },
-    {
       key: '\\',
       ctrlOrCmd: true,
       handler: (e) => {
@@ -187,7 +179,6 @@ const Layout: React.FC = () => {
       appWindow.listen('menu:open-file', () => handleOpenFile()),
       appWindow.listen('menu:save', () => handleSave()),
       appWindow.listen('menu:close-tab', () => handleCloseTab()),
-      appWindow.listen('menu:toggle-sidebar', () => toggleSidebar()),
       appWindow.listen('menu:toggle-outline', () => toggleOutline()),
       appWindow.listen('menu:view-readme', () => handleViewReadme()),
     ];

@@ -140,10 +140,6 @@ pub fn run() {
                 .item(&close_tab)
                 .build()?;
 
-            let toggle_sidebar = MenuItemBuilder::with_id("toggle_sidebar", "Toggle Sidebar")
-                .accelerator("CmdOrCtrl+B")
-                .build(app)?;
-
             let toggle_outline = MenuItemBuilder::with_id("toggle_outline", "Toggle Outline")
                 .accelerator("CmdOrCtrl+\\")
                 .build(app)?;
@@ -157,7 +153,6 @@ pub fn run() {
                 .build(app)?;
 
             let view_menu = SubmenuBuilder::new(app, "View")
-                .item(&toggle_sidebar)
                 .item(&toggle_outline)
                 .separator()
                 .item(&view_rendered)
@@ -191,9 +186,6 @@ pub fn run() {
                     }
                     "format_document" => {
                         let _ = window.emit("menu:format-document", ());
-                    }
-                    "toggle_sidebar" => {
-                        let _ = window.emit("menu:toggle-sidebar", ());
                     }
                     "toggle_outline" => {
                         let _ = window.emit("menu:toggle-outline", ());
