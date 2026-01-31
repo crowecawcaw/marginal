@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { LexicalComposer } from '@lexical/react/LexicalComposer';
 import { RichTextPlugin } from '@lexical/react/LexicalRichTextPlugin';
 import { ContentEditable } from '@lexical/react/LexicalContentEditable';
@@ -10,6 +10,7 @@ import { LinkPlugin } from '@lexical/react/LexicalLinkPlugin';
 import { TabIndentationPlugin } from '@lexical/react/LexicalTabIndentationPlugin';
 import { LexicalErrorBoundary } from '@lexical/react/LexicalErrorBoundary';
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
+import { registerCodeHighlighting } from '@lexical/code';
 import { HeadingNode, QuoteNode } from '@lexical/rich-text';
 import { ListItemNode, ListNode } from '@lexical/list';
 import { CodeNode, CodeHighlightNode } from '@lexical/code';
@@ -17,6 +18,61 @@ import { LinkNode, AutoLinkNode } from '@lexical/link';
 import { TableNode, TableCellNode, TableRowNode } from '@lexical/table';
 import { EditorState } from 'lexical';
 import { $convertFromMarkdownString, $convertToMarkdownString, TRANSFORMERS } from '@lexical/markdown';
+import { EditorView } from '@codemirror/view';
+import { EditorState as CMEditorState } from '@codemirror/state';
+import { markdown } from '@codemirror/lang-markdown';
+import { basicSetup } from 'codemirror';
+// Import comprehensive Prism language support
+import 'prismjs/components/prism-markup';
+import 'prismjs/components/prism-markup-templating';
+import 'prismjs/components/prism-css';
+import 'prismjs/components/prism-clike';
+import 'prismjs/components/prism-javascript';
+import 'prismjs/components/prism-typescript';
+import 'prismjs/components/prism-jsx';
+import 'prismjs/components/prism-tsx';
+import 'prismjs/components/prism-python';
+import 'prismjs/components/prism-rust';
+import 'prismjs/components/prism-go';
+import 'prismjs/components/prism-java';
+import 'prismjs/components/prism-c';
+import 'prismjs/components/prism-cpp';
+import 'prismjs/components/prism-csharp';
+import 'prismjs/components/prism-bash';
+import 'prismjs/components/prism-shell-session';
+import 'prismjs/components/prism-json';
+import 'prismjs/components/prism-yaml';
+import 'prismjs/components/prism-toml';
+import 'prismjs/components/prism-sql';
+import 'prismjs/components/prism-graphql';
+import 'prismjs/components/prism-docker';
+import 'prismjs/components/prism-git';
+import 'prismjs/components/prism-diff';
+import 'prismjs/components/prism-regex';
+import 'prismjs/components/prism-markdown';
+import 'prismjs/components/prism-ruby';
+import 'prismjs/components/prism-php';
+import 'prismjs/components/prism-swift';
+import 'prismjs/components/prism-kotlin';
+import 'prismjs/components/prism-scala';
+import 'prismjs/components/prism-haskell';
+import 'prismjs/components/prism-elixir';
+import 'prismjs/components/prism-erlang';
+import 'prismjs/components/prism-clojure';
+import 'prismjs/components/prism-lua';
+import 'prismjs/components/prism-vim';
+import 'prismjs/components/prism-r';
+import 'prismjs/components/prism-matlab';
+import 'prismjs/components/prism-julia';
+import 'prismjs/components/prism-latex';
+import 'prismjs/components/prism-makefile';
+import 'prismjs/components/prism-nginx';
+import 'prismjs/components/prism-apache';
+import 'prismjs/components/prism-http';
+import 'prismjs/components/prism-protobuf';
+import 'prismjs/components/prism-wasm';
+import 'prismjs/components/prism-webmanifest';
+import 'prismjs/components/prism-xml-doc';
 import './MarkdownEditor.css';
 
 interface MarkdownEditorProps {
@@ -43,9 +99,21 @@ function ContentSyncPlugin({ content }: { content: string }) {
   return null;
 }
 
+// Plugin to enable code syntax highlighting with Prism
+function CodeHighlightPlugin() {
+  const [editor] = useLexicalComposerContext();
+
+  useEffect(() => {
+    return registerCodeHighlighting(editor);
+  }, [editor]);
+
+  return null;
+}
+
 const MarkdownEditor: React.FC<MarkdownEditorProps> = ({ initialContent, viewMode, onChange }) => {
   const [content, setContent] = useState(initialContent);
-  const textareaRef = React.useRef<HTMLTextAreaElement>(null);
+  const editorContainerRef = useRef<HTMLDivElement>(null);
+  const editorViewRef = useRef<EditorView | null>(null);
 
   // Sync content when initialContent changes (e.g., switching tabs)
   useEffect(() => {
@@ -57,60 +125,57 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({ initialContent, viewMod
     onChange(newContent);
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    const textarea = textareaRef.current;
-    if (!textarea) return;
+  // Set up CodeMirror for code view
+  useEffect(() => {
+    if (viewMode === 'code' && editorContainerRef.current && !editorViewRef.current) {
+      const startState = CMEditorState.create({
+        doc: content,
+        extensions: [
+          basicSetup,
+          markdown(),
+          EditorView.updateListener.of((update) => {
+            if (update.docChanged) {
+              handleContentChange(update.state.doc.toString());
+            }
+          }),
+        ],
+      });
 
-    const { selectionStart, selectionEnd, value } = textarea;
-    const pairs: { [key: string]: string } = {
-      '[': ']',
-      '(': ')',
-    };
-
-    // Check if typing a closing character and next char is the same - skip over it
-    if ((e.key === ']' || e.key === ')') && value[selectionEnd] === e.key) {
-      e.preventDefault();
-      setTimeout(() => {
-        textarea.selectionStart = textarea.selectionEnd = selectionEnd + 1;
-      }, 0);
-      return;
+      editorViewRef.current = new EditorView({
+        state: startState,
+        parent: editorContainerRef.current,
+      });
     }
 
-    // Check if the pressed key has a closing pair
-    if (e.key in pairs) {
-      const nextChar = value[selectionEnd];
-      const closingChar = pairs[e.key];
+    return () => {
+      if (editorViewRef.current) {
+        editorViewRef.current.destroy();
+        editorViewRef.current = null;
+      }
+    };
+  }, [viewMode]);
 
-      // Only auto-pair if the next character is not the closing character
-      if (nextChar !== closingChar) {
-        e.preventDefault();
-        const beforeCursor = value.substring(0, selectionStart);
-        const afterCursor = value.substring(selectionEnd);
-        const newValue = beforeCursor + e.key + closingChar + afterCursor;
-
-        handleContentChange(newValue);
-
-        // Move cursor between the pair
-        setTimeout(() => {
-          textarea.selectionStart = textarea.selectionEnd = selectionStart + 1;
-        }, 0);
+  // Update CodeMirror content when initialContent changes
+  useEffect(() => {
+    if (viewMode === 'code' && editorViewRef.current) {
+      const currentContent = editorViewRef.current.state.doc.toString();
+      if (currentContent !== initialContent) {
+        editorViewRef.current.dispatch({
+          changes: {
+            from: 0,
+            to: currentContent.length,
+            insert: initialContent,
+          },
+        });
       }
     }
-  };
+  }, [initialContent, viewMode]);
 
-  // For code view, use a simple textarea
+  // For code view, use CodeMirror
   if (viewMode === 'code') {
     return (
       <div className="markdown-editor-container">
-        <textarea
-          ref={textareaRef}
-          className="markdown-code-editor"
-          value={content}
-          onChange={(e) => handleContentChange(e.target.value)}
-          onKeyDown={handleKeyDown}
-          placeholder="Untitled"
-          spellCheck={false}
-        />
+        <div ref={editorContainerRef} className="markdown-code-editor" />
       </div>
     );
   }
@@ -217,6 +282,7 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({ initialContent, viewMod
         <LinkPlugin />
         <TabIndentationPlugin />
         <ContentSyncPlugin content={content} />
+        <CodeHighlightPlugin />
       </div>
     </LexicalComposer>
   );
