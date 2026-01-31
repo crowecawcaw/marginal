@@ -1,6 +1,7 @@
 use serde::{Deserialize, Serialize};
 use std::fs;
 use std::path::Path;
+use tauri::{Emitter, Manager};
 
 #[derive(Debug, Serialize, Deserialize)]
 struct FileNode {
