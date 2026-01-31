@@ -1,0 +1,88 @@
+.table-of-contents {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.toc-title {
+  padding: 1rem;
+  margin: 0;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.toc-nav {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0.5rem 0;
+}
+
+.toc-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.toc-item {
+  margin: 0;
+  padding: 0;
+}
+
+.toc-link {
+  display: block;
+  width: 100%;
+  padding: 0.5rem 1rem;
+  text-align: left;
+  background: none;
+  border: none;
+  color: var(--text-primary);
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.toc-link:hover {
+  background-color: var(--hover-bg, rgba(0, 0, 0, 0.05));
+  color: var(--accent-color, #0066cc);
+}
+
+.toc-link:active {
+  background-color: var(--active-bg, rgba(0, 0, 0, 0.1));
+}
+
+/* Different heading levels */
+.toc-level-1 .toc-link {
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.toc-level-2 .toc-link {
+  font-weight: 500;
+  font-size: 0.875rem;
+}
+
+.toc-level-3 .toc-link,
+.toc-level-4 .toc-link,
+.toc-level-5 .toc-link,
+.toc-level-6 .toc-link {
+  font-weight: 400;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+.table-of-contents-empty {
+  padding: 2rem 1rem;
+  text-align: center;
+}
+
+.table-of-contents-empty p {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+}
