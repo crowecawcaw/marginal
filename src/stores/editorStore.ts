@@ -4,6 +4,7 @@ import { EditorTab } from '../types';
 interface EditorState {
   tabs: EditorTab[];
   activeTabId: string | null;
+  openTab: (tab: EditorTab) => void;
   addTab: (tab: EditorTab) => void;
   removeTab: (id: string) => void;
   setActiveTab: (id: string) => void;
@@ -14,6 +15,17 @@ interface EditorState {
 export const useEditorStore = create<EditorState>((set) => ({
   tabs: [],
   activeTabId: null,
+  openTab: (tab) =>
+    set((state) => {
+      const existingTab = state.tabs.find((t) => t.id === tab.id);
+      if (existingTab) {
+        return { activeTabId: tab.id };
+      }
+      return {
+        tabs: [...state.tabs, tab],
+        activeTabId: tab.id,
+      };
+    }),
   addTab: (tab) =>
     set((state) => ({
       tabs: [...state.tabs, tab],

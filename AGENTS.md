@@ -14,7 +14,7 @@ When working on this project:
 
 ## Development Status
 
-Current Phase: **Phase 2 - File System & Sidebar** (In Progress)
+Current Phase: **Phase 3 - Lexical Editor Integration** (Ready to Start)
 
 ## Tasks
 
@@ -31,11 +31,11 @@ Current Phase: **Phase 2 - File System & Sidebar** (In Progress)
 ### Phase 2: File System & Sidebar
 - [x] Create Sidebar layout component (collapsible, resizable)
 - [x] Implement icon bar navigation (files, search, TOC tabs)
-- [ ] Create FileTree component
-- [ ] Implement Tauri file system commands (read, write, dialog)
-- [ ] Add recent files tracking
-- [ ] Create file operations hooks (useFileSystem)
-- [ ] Test file tree navigation and file operations
+- [x] Create FileTree component
+- [x] Implement Tauri file system commands (read, write, dialog)
+- [x] Add recent files tracking
+- [x] Create file operations hooks (useFileSystem)
+- [x] Test file tree navigation and file operations
 
 ### Phase 3: Lexical Editor Integration
 - [ ] Set up Lexical editor with React integration
@@ -71,6 +71,19 @@ Current Phase: **Phase 2 - File System & Sidebar** (In Progress)
 - [ ] Write integration tests for key user flows
 
 ## Current Work Log
+
+### 2026-01-31 (Session 3)
+- ✅ Created FileTree component with expand/collapse folder functionality
+- ✅ Implemented Tauri file system commands in Rust (read_dir_tree, read_file_content, write_file_content)
+- ✅ Added tauri-plugin-fs and tauri-plugin-dialog to Cargo.toml
+- ✅ Created useFileSystem hook for file operations (openFolder, openFile, saveFile, readFile)
+- ✅ Integrated FileTree with Sidebar component
+- ✅ Added file tree navigation with click-to-open functionality
+- ✅ Enhanced EditorArea to display tabs and file content
+- ✅ Implemented tab management (switch, close)
+- ✅ Added openTab method to editorStore (checks for existing tabs)
+- ✅ Updated UI styling for tabs, file tree, and editor content
+- ✅ Phase 2 is now complete - ready for Lexical editor integration
 
 ### 2026-01-31 (Session 2)
 - ✅ Installed React 19, Lexical, Zustand, and all core dependencies
