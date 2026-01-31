@@ -117,10 +117,61 @@ export const useFileSystem = () => {
     }
   };
 
+  const newFile = () => {
+    const timestamp = Date.now();
+    const newTabId = `untitled-${timestamp}`;
+
+    openTab({
+      id: newTabId,
+      filePath: '', // Empty path means unsaved file
+      fileName: 'Untitled.md',
+      content: '',
+      isDirty: false,
+      frontmatter: undefined,
+    });
+  };
+
+  const saveFileAs = async (content: string, frontmatter?: Record<string, any>) => {
+    try {
+      const selected = await open({
+        directory: false,
+        multiple: false,
+        filters: [
+          {
+            name: 'Markdown',
+            extensions: ['md', 'markdown'],
+          },
+        ],
+      });
+
+      if (!selected || typeof selected !== 'string') {
+        return null;
+      }
+
+      const finalContent = frontmatter
+        ? serializeFrontmatter(content, frontmatter)
+        : content;
+
+      await invoke('write_file_content', {
+        path: selected,
+        content: finalContent,
+      });
+
+      const fileName = selected.split('/').pop() || selected.split('\\').pop() || 'Untitled.md';
+
+      return { path: selected, fileName };
+    } catch (error) {
+      console.error('Failed to save file as:', error);
+      throw error;
+    }
+  };
+
   return {
     openFolder,
     openFile,
     saveFile,
+    saveFileAs,
     readFile,
+    newFile,
   };
 };

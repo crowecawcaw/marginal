@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { FileNode } from '../types';
+import { loadSettings, saveSettings } from '../utils/settings';
 
 interface FileState {
   rootPath: string | null;
@@ -10,14 +11,22 @@ interface FileState {
   addRecentFile: (path: string) => void;
 }
 
+// Load initial settings from localStorage
+const settings = loadSettings();
+
 export const useFileStore = create<FileState>((set) => ({
-  rootPath: null,
+  rootPath: settings.lastOpenedFolder,
   fileTree: [],
-  recentFiles: [],
-  setRootPath: (path) => set({ rootPath: path }),
+  recentFiles: settings.recentFiles,
+  setRootPath: (path) => {
+    saveSettings({ lastOpenedFolder: path });
+    set({ rootPath: path });
+  },
   setFileTree: (tree) => set({ fileTree: tree }),
   addRecentFile: (path) =>
-    set((state) => ({
-      recentFiles: [path, ...state.recentFiles.filter((p) => p !== path)].slice(0, 10),
-    })),
+    set((state) => {
+      const newRecentFiles = [path, ...state.recentFiles.filter((p) => p !== path)].slice(0, 10);
+      saveSettings({ recentFiles: newRecentFiles });
+      return { recentFiles: newRecentFiles };
+    }),
 }));

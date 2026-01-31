@@ -2,6 +2,7 @@ import React from 'react';
 import { useUIStore } from '../../stores/uiStore';
 import { useFileStore } from '../../stores/fileStore';
 import { useEditorStore } from '../../stores/editorStore';
+import { useNotificationStore } from '../../stores/notificationStore';
 import { useFileSystem } from '../../hooks/useFileSystem';
 import FileTree from './FileTree/FileTree';
 import TableOfContents from './TableOfContents/TableOfContents';
@@ -9,9 +10,10 @@ import Search from './Search/Search';
 import './Sidebar.css';
 
 const Sidebar: React.FC = () => {
-  const { sidebarVisible, currentSidebarView, sidebarWidth } = useUIStore();
+  const { sidebarVisible, currentSidebarView, sidebarWidth, setLoading } = useUIStore();
   const { fileTree, rootPath } = useFileStore();
   const { tabs, activeTabId } = useEditorStore();
+  const { addNotification } = useNotificationStore();
   const { openFolder, openFile } = useFileSystem();
 
   // Get the active tab's content for TOC
@@ -22,17 +24,26 @@ const Sidebar: React.FC = () => {
 
   const handleOpenFolder = async () => {
     try {
+      setLoading(true, 'Opening folder...');
       await openFolder();
+      addNotification('Folder opened successfully', 'success');
     } catch (error) {
       console.error('Error opening folder:', error);
+      addNotification('Failed to open folder', 'error');
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleFileClick = async (filePath: string) => {
     try {
+      setLoading(true, 'Opening file...');
       await openFile(filePath);
     } catch (error) {
       console.error('Error opening file:', error);
+      addNotification('Failed to open file', 'error');
+    } finally {
+      setLoading(false);
     }
   };
 
