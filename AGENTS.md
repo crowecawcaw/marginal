@@ -14,7 +14,7 @@ When working on this project:
 
 ## Development Status
 
-Current Phase: **Phase 4 - Markdown Features** (Ready to Start)
+Current Phase: **Phase 5 - Keyboard Shortcuts & Polish** (Ready to Start)
 
 ## Tasks
 
@@ -48,12 +48,12 @@ Current Phase: **Phase 4 - Markdown Features** (Ready to Start)
 - [x] Create keyboard shortcuts hook
 
 ### Phase 4: Markdown Features
-- [ ] Add syntax highlighting for code blocks
-- [ ] Implement table of contents generation from headers
-- [ ] Create MermaidBlock component
-- [ ] Integrate mermaid.js for diagram rendering
-- [ ] Add search functionality across files
-- [ ] Test all markdown rendering features
+- [x] Add syntax highlighting for code blocks
+- [x] Implement table of contents generation from headers
+- [x] Create MermaidBlock component
+- [x] Integrate mermaid.js for diagram rendering
+- [x] Add search functionality across files
+- [x] Test all markdown rendering features
 
 ### Phase 5: Keyboard Shortcuts & Polish
 - [ ] Implement global keyboard shortcuts via Tauri
@@ -72,7 +72,23 @@ Current Phase: **Phase 4 - Markdown Features** (Ready to Start)
 
 ## Current Work Log
 
-### 2026-01-31 (Session 4 - Current)
+### 2026-01-31 (Session 5 - Current)
+- ✅ Installed prismjs for code syntax highlighting
+- ✅ Added code syntax highlighting token styles to MarkdownEditor.css
+- ✅ Integrated CodeNode and CodeHighlightNode into Lexical editor
+- ✅ Created MermaidBlock component with mermaid.js integration
+- ✅ Added error handling for Mermaid diagram rendering
+- ✅ Created TableOfContents component with heading extraction
+- ✅ Integrated TableOfContents into Sidebar (TOC tab)
+- ✅ Created Search component with case-sensitive search option
+- ✅ Implemented search across all open tabs with line-level results
+- ✅ Added result highlighting in Search component
+- ✅ Integrated Search component into Sidebar (Search tab)
+- ✅ Fixed TypeScript errors in Search component (fileName property)
+- ✅ Build succeeds - Phase 4 is complete!
+- ✅ Ready for Phase 5: Keyboard Shortcuts & Polish
+
+### 2026-01-31 (Session 4)
 - ✅ Created MarkdownEditor component with full Lexical integration
 - ✅ Configured Lexical with all markdown plugins (RichText, List, Link, Code, Table, History)
 - ✅ Added MarkdownShortcutPlugin for markdown syntax shortcuts

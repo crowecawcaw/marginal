@@ -1,14 +1,22 @@
 import React from 'react';
 import { useUIStore } from '../../stores/uiStore';
 import { useFileStore } from '../../stores/fileStore';
+import { useEditorStore } from '../../stores/editorStore';
 import { useFileSystem } from '../../hooks/useFileSystem';
 import FileTree from './FileTree/FileTree';
+import TableOfContents from './TableOfContents/TableOfContents';
+import Search from './Search/Search';
 import './Sidebar.css';
 
 const Sidebar: React.FC = () => {
   const { sidebarVisible, currentSidebarView, sidebarWidth } = useUIStore();
   const { fileTree, rootPath } = useFileStore();
+  const { tabs, activeTabId } = useEditorStore();
   const { openFolder, openFile } = useFileSystem();
+
+  // Get the active tab's content for TOC
+  const activeTab = tabs.find((tab) => tab.id === activeTabId);
+  const activeContent = activeTab?.content || '';
 
   if (!sidebarVisible) return null;
 
@@ -62,24 +70,13 @@ const Sidebar: React.FC = () => {
       case 'search':
         return (
           <div className="sidebar-content">
-            <div className="sidebar-header">SEARCH</div>
-            <div className="sidebar-body">
-              <input
-                type="text"
-                className="search-input"
-                placeholder="Search..."
-              />
-              <div className="placeholder-text">No results</div>
-            </div>
+            <Search />
           </div>
         );
       case 'toc':
         return (
           <div className="sidebar-content">
-            <div className="sidebar-header">TABLE OF CONTENTS</div>
-            <div className="sidebar-body">
-              <div className="placeholder-text">No headings found</div>
-            </div>
+            <TableOfContents content={activeContent} />
           </div>
         );
       default:
