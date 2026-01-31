@@ -118,13 +118,31 @@ export const useFileSystem = () => {
   };
 
   const newFile = () => {
+    const currentTabs = useEditorStore.getState().tabs;
+    const untitledPattern = /^Untitled(\d*)\.md$/;
+
+    const existingNumbers = currentTabs
+      .map(tab => {
+        const match = tab.fileName.match(untitledPattern);
+        return match ? (match[1] === '' ? 1 : parseInt(match[1], 10)) : 0;
+      })
+      .filter(num => num > 0);
+
+    let nextNumber = 1;
+    if (existingNumbers.length > 0) {
+      const maxNumber = Math.max(...existingNumbers);
+      const hasUntitled = currentTabs.some(tab => tab.fileName === 'Untitled.md');
+      nextNumber = hasUntitled ? maxNumber + 1 : 1;
+    }
+
+    const fileName = nextNumber === 1 ? 'Untitled.md' : `Untitled${nextNumber}.md`;
     const timestamp = Date.now();
     const newTabId = `untitled-${timestamp}`;
 
     openTab({
       id: newTabId,
       filePath: '', // Empty path means unsaved file
-      fileName: 'Untitled.md',
+      fileName,
       content: '',
       isDirty: false,
       frontmatter: undefined,

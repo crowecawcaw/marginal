@@ -1,6 +1,19 @@
 import { create } from 'zustand';
 import { EditorTab } from '../types';
 
+// Extract first header from markdown content
+const extractFirstHeader = (content: string): string | null => {
+  const lines = content.split('\n');
+  for (const line of lines) {
+    const trimmed = line.trim();
+    if (trimmed.startsWith('#')) {
+      // Remove the # symbols and any extra whitespace
+      return trimmed.replace(/^#+\s*/, '').trim();
+    }
+  }
+  return null;
+};
+
 interface EditorState {
   tabs: EditorTab[];
   activeTabId: string | null;
@@ -45,7 +58,19 @@ export const useEditorStore = create<EditorState>((set) => ({
   setActiveTab: (id) => set({ activeTabId: id }),
   updateTabContent: (id, content) =>
     set((state) => ({
-      tabs: state.tabs.map((tab) => (tab.id === id ? { ...tab, content } : tab)),
+      tabs: state.tabs.map((tab) => {
+        if (tab.id === id) {
+          // For unsaved files, update fileName based on first header
+          if (!tab.filePath) {
+            const firstHeader = extractFirstHeader(content);
+            if (firstHeader) {
+              return { ...tab, content, fileName: firstHeader };
+            }
+          }
+          return { ...tab, content };
+        }
+        return tab;
+      }),
     })),
   markTabDirty: (id, isDirty) =>
     set((state) => ({

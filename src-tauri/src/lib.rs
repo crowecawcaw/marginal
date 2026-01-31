@@ -102,6 +102,14 @@ pub fn run() {
         ])
         .setup(|app| {
             // Build the menu
+            // On macOS, the first submenu becomes the app menu, so we create it explicitly
+            let view_readme = MenuItemBuilder::with_id("view_readme", "View README")
+                .build(app)?;
+
+            let app_menu = SubmenuBuilder::new(app, "Marginal")
+                .item(&view_readme)
+                .build()?;
+
             let new_file = MenuItemBuilder::with_id("new_file", "New File")
                 .accelerator("CmdOrCtrl+N")
                 .build(app)?;
@@ -118,10 +126,16 @@ pub fn run() {
                 .accelerator("CmdOrCtrl+W")
                 .build(app)?;
 
+            let format_document = MenuItemBuilder::with_id("format_document", "Format Document")
+                .accelerator("Shift+Alt+F")
+                .build(app)?;
+
             let file_menu = SubmenuBuilder::new(app, "File")
                 .item(&new_file)
                 .item(&open_file)
                 .item(&save)
+                .separator()
+                .item(&format_document)
                 .separator()
                 .item(&close_tab)
                 .build()?;
@@ -130,16 +144,28 @@ pub fn run() {
                 .accelerator("CmdOrCtrl+B")
                 .build(app)?;
 
-            let search = MenuItemBuilder::with_id("search", "Search in Files")
-                .accelerator("CmdOrCtrl+Shift+F")
+            let toggle_outline = MenuItemBuilder::with_id("toggle_outline", "Toggle Outline")
+                .accelerator("CmdOrCtrl+\\")
+                .build(app)?;
+
+            let view_rendered = MenuItemBuilder::with_id("view_rendered", "View Rendered Document")
+                .accelerator("CmdOrCtrl+Shift+R")
+                .build(app)?;
+
+            let view_code = MenuItemBuilder::with_id("view_code", "View Markdown Code")
+                .accelerator("CmdOrCtrl+Shift+M")
                 .build(app)?;
 
             let view_menu = SubmenuBuilder::new(app, "View")
                 .item(&toggle_sidebar)
-                .item(&search)
+                .item(&toggle_outline)
+                .separator()
+                .item(&view_rendered)
+                .item(&view_code)
                 .build()?;
 
             let menu = MenuBuilder::new(app)
+                .item(&app_menu)
                 .item(&file_menu)
                 .item(&view_menu)
                 .build()?;
@@ -163,11 +189,23 @@ pub fn run() {
                     "close_tab" => {
                         let _ = window.emit("menu:close-tab", ());
                     }
+                    "format_document" => {
+                        let _ = window.emit("menu:format-document", ());
+                    }
                     "toggle_sidebar" => {
                         let _ = window.emit("menu:toggle-sidebar", ());
                     }
-                    "search" => {
-                        let _ = window.emit("menu:search", ());
+                    "toggle_outline" => {
+                        let _ = window.emit("menu:toggle-outline", ());
+                    }
+                    "view_rendered" => {
+                        let _ = window.emit("menu:view-rendered", ());
+                    }
+                    "view_code" => {
+                        let _ = window.emit("menu:view-code", ());
+                    }
+                    "view_readme" => {
+                        let _ = window.emit("menu:view-readme", ());
                     }
                     _ => {}
                 }

@@ -1,73 +1,138 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow';
 import { useEditorStore } from '../../stores/editorStore';
 import MarkdownEditor from './MarkdownEditor';
+import FindInDocument from './FindInDocument';
 import './EditorArea.css';
+import prettier from 'prettier/standalone';
+import prettierMarkdown from 'prettier/plugins/markdown';
 
 type ViewMode = 'rendered' | 'code';
 
 const EditorArea: React.FC = () => {
   const { tabs, activeTabId, setActiveTab, removeTab, updateTabContent, markTabDirty } = useEditorStore();
   const [viewMode, setViewMode] = useState<ViewMode>('code');
+  const [findVisible, setFindVisible] = useState(false);
 
   const activeTab = tabs.find((tab) => tab.id === activeTabId);
 
+  // Handle format document
+  const handleFormat = async () => {
+    if (!activeTab || viewMode !== 'code') return;
+
+    try {
+      const formatted = await prettier.format(activeTab.content, {
+        parser: 'markdown',
+        plugins: [prettierMarkdown],
+        proseWrap: 'preserve',
+      });
+      updateTabContent(activeTab.id, formatted);
+      if (!activeTab.isDirty) {
+        markTabDirty(activeTab.id, true);
+      }
+    } catch (error) {
+      console.error('Failed to format document:', error);
+    }
+  };
+
+  // Handle Cmd+F keyboard shortcut for find
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'f') {
+        e.preventDefault();
+        setFindVisible(true);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
+  // Listen for format menu event
+  useEffect(() => {
+    const appWindow = getCurrentWebviewWindow();
+
+    const unlistenPromises = [
+      appWindow.listen('menu:format-document', () => handleFormat()),
+      appWindow.listen('menu:view-rendered', () => setViewMode('rendered')),
+      appWindow.listen('menu:view-code', () => setViewMode('code')),
+    ];
+
+    return () => {
+      Promise.all(unlistenPromises).then((unlisteners) => {
+        unlisteners.forEach((unlisten) => unlisten());
+      });
+    };
+  }, [activeTab, viewMode]);
+
   return (
     <div className="editor-area">
-      <div className="editor-tabs">
-        <div className="editor-tabs-left">
-          {tabs.map((tab) => (
-            <div
-              key={tab.id}
-              className={`editor-tab ${tab.id === activeTabId ? 'active' : ''}`}
-              onClick={() => setActiveTab(tab.id)}
-            >
-              <span className="editor-tab-name">
-                {tab.isDirty && '• '}
-                {tab.fileName}
-              </span>
-              <button
-                className="editor-tab-close"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  removeTab(tab.id);
-                }}
+      {tabs.length > 1 && (
+        <div className="editor-tabs">
+          <div className="editor-tabs-left">
+            {tabs.map((tab) => (
+              <div
+                key={tab.id}
+                className={`editor-tab ${tab.id === activeTabId ? 'active' : ''}`}
+                onClick={() => setActiveTab(tab.id)}
               >
-                ×
+                <span className="editor-tab-name">
+                  {tab.isDirty && '• '}
+                  {tab.fileName}
+                </span>
+                <button
+                  className="editor-tab-close"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    removeTab(tab.id);
+                  }}
+                >
+                  ×
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+      <div className="editor-content" style={{ position: 'relative' }}>
+        {activeTab && (
+          <>
+            <MarkdownEditor
+              key={`${activeTab.id}-${viewMode}`}
+              initialContent={activeTab.content}
+              viewMode={viewMode}
+              onChange={(content) => {
+                const hasChanged = content !== activeTab.content;
+                updateTabContent(activeTab.id, content);
+                if (hasChanged && !activeTab.isDirty) {
+                  markTabDirty(activeTab.id, true);
+                }
+              }}
+            />
+            <div className="editor-view-toggle">
+              <button
+                className={`view-toggle-btn ${viewMode === 'rendered' ? 'active' : ''}`}
+                onClick={() => setViewMode('rendered')}
+                title="Rendered view"
+              >
+                Aa
+              </button>
+              <button
+                className={`view-toggle-btn ${viewMode === 'code' ? 'active' : ''}`}
+                onClick={() => setViewMode('code')}
+                title="Code view"
+              >
+                &lt;/&gt;
               </button>
             </div>
-          ))}
-        </div>
-        <div className="editor-view-toggle">
-          <button
-            className={`view-toggle-btn ${viewMode === 'rendered' ? 'active' : ''}`}
-            onClick={() => setViewMode('rendered')}
-            title="Rendered view"
-          >
-            Aa
-          </button>
-          <button
-            className={`view-toggle-btn ${viewMode === 'code' ? 'active' : ''}`}
-            onClick={() => setViewMode('code')}
-            title="Code view"
-          >
-            &lt;/&gt;
-          </button>
-        </div>
-      </div>
-      <div className="editor-content">
-        {activeTab && (
-          <MarkdownEditor
-            key={`${activeTab.id}-${viewMode}`}
-            initialContent={activeTab.content}
-            viewMode={viewMode}
-            onChange={(content) => {
-              const hasChanged = content !== activeTab.content;
-              updateTabContent(activeTab.id, content);
-              if (hasChanged && !activeTab.isDirty) {
-                markTabDirty(activeTab.id, true);
-              }
-            }}
-          />
+            {findVisible && (
+              <FindInDocument
+                content={activeTab.content}
+                viewMode={viewMode}
+                onClose={() => setFindVisible(false)}
+              />
+            )}
+          </>
         )}
       </div>
     </div>

@@ -1,0 +1,88 @@
+.outline {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.outline-title {
+  padding: 1rem;
+  margin: 0;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.outline-nav {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0.5rem 0;
+}
+
+.outline-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.outline-item {
+  margin: 0;
+  padding: 0;
+}
+
+.outline-link {
+  display: block;
+  width: 100%;
+  padding: 0.5rem 1rem;
+  text-align: left;
+  background: none;
+  border: none;
+  color: var(--text-primary);
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.outline-link:hover {
+  background-color: var(--hover-bg, rgba(0, 0, 0, 0.05));
+  color: var(--accent-color, #0066cc);
+}
+
+.outline-link:active {
+  background-color: var(--active-bg, rgba(0, 0, 0, 0.1));
+}
+
+/* Different heading levels */
+.outline-level-1 .outline-link {
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.outline-level-2 .outline-link {
+  font-weight: 500;
+  font-size: 0.875rem;
+}
+
+.outline-level-3 .outline-link,
+.outline-level-4 .outline-link,
+.outline-level-5 .outline-link,
+.outline-level-6 .outline-link {
+  font-weight: 400;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+.outline-empty {
+  padding: 2rem 1rem;
+  text-align: center;
+}
+
+.outline-empty p {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+}

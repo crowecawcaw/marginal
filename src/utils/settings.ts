@@ -1,6 +1,8 @@
 interface AppSettings {
   sidebarVisible: boolean;
   sidebarWidth: number;
+  outlineVisible: boolean;
+  outlineWidth: number;
   recentFiles: string[];
   lastOpenedFolder: string | null;
 }
@@ -8,8 +10,10 @@ interface AppSettings {
 const SETTINGS_KEY = 'marginal-settings';
 
 const defaultSettings: AppSettings = {
-  sidebarVisible: true,
+  sidebarVisible: false,
   sidebarWidth: 250,
+  outlineVisible: false,
+  outlineWidth: 250,
   recentFiles: [],
   lastOpenedFolder: null,
 };

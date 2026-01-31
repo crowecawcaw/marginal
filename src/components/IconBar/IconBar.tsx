@@ -29,24 +29,14 @@ const IconBar: React.FC = () => {
         </svg>
       </button>
       <button
-        className={`icon-button ${currentSidebarView === 'search' && sidebarVisible ? 'active' : ''}`}
-        onClick={() => handleViewClick('search')}
-        title="Search"
+        className={`icon-button ${currentSidebarView === 'outline' && sidebarVisible ? 'active' : ''}`}
+        onClick={() => handleViewClick('outline')}
+        title="Outline"
       >
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <circle cx="11" cy="11" r="8" />
-          <path d="M21 21l-4.35-4.35" />
-        </svg>
-      </button>
-      <button
-        className={`icon-button ${currentSidebarView === 'toc' && sidebarVisible ? 'active' : ''}`}
-        onClick={() => handleViewClick('toc')}
-        title="Table of Contents"
-      >
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <line x1="3" y1="6" x2="21" y2="6" />
-          <line x1="3" y1="12" x2="21" y2="12" />
-          <line x1="3" y1="18" x2="21" y2="18" />
+          <line x1="4" y1="6" x2="20" y2="6" />
+          <line x1="4" y1="12" x2="14" y2="12" />
+          <line x1="4" y1="18" x2="20" y2="18" />
         </svg>
       </button>
     </div>

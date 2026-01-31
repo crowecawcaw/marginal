@@ -15,7 +15,7 @@ import { ListItemNode, ListNode } from '@lexical/list';
 import { CodeNode, CodeHighlightNode } from '@lexical/code';
 import { LinkNode, AutoLinkNode } from '@lexical/link';
 import { TableNode, TableCellNode, TableRowNode } from '@lexical/table';
-import { $getRoot, EditorState } from 'lexical';
+import { EditorState } from 'lexical';
 import { $convertFromMarkdownString, $convertToMarkdownString, TRANSFORMERS } from '@lexical/markdown';
 import './MarkdownEditor.css';
 
@@ -45,6 +45,7 @@ function ContentSyncPlugin({ content }: { content: string }) {
 
 const MarkdownEditor: React.FC<MarkdownEditorProps> = ({ initialContent, viewMode, onChange }) => {
   const [content, setContent] = useState(initialContent);
+  const textareaRef = React.useRef<HTMLTextAreaElement>(null);
 
   // Sync content when initialContent changes (e.g., switching tabs)
   useEffect(() => {
@@ -56,15 +57,58 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({ initialContent, viewMod
     onChange(newContent);
   };
 
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    const textarea = textareaRef.current;
+    if (!textarea) return;
+
+    const { selectionStart, selectionEnd, value } = textarea;
+    const pairs: { [key: string]: string } = {
+      '[': ']',
+      '(': ')',
+    };
+
+    // Check if typing a closing character and next char is the same - skip over it
+    if ((e.key === ']' || e.key === ')') && value[selectionEnd] === e.key) {
+      e.preventDefault();
+      setTimeout(() => {
+        textarea.selectionStart = textarea.selectionEnd = selectionEnd + 1;
+      }, 0);
+      return;
+    }
+
+    // Check if the pressed key has a closing pair
+    if (e.key in pairs) {
+      const nextChar = value[selectionEnd];
+      const closingChar = pairs[e.key];
+
+      // Only auto-pair if the next character is not the closing character
+      if (nextChar !== closingChar) {
+        e.preventDefault();
+        const beforeCursor = value.substring(0, selectionStart);
+        const afterCursor = value.substring(selectionEnd);
+        const newValue = beforeCursor + e.key + closingChar + afterCursor;
+
+        handleContentChange(newValue);
+
+        // Move cursor between the pair
+        setTimeout(() => {
+          textarea.selectionStart = textarea.selectionEnd = selectionStart + 1;
+        }, 0);
+      }
+    }
+  };
+
   // For code view, use a simple textarea
   if (viewMode === 'code') {
     return (
       <div className="markdown-editor-container">
         <textarea
+          ref={textareaRef}
           className="markdown-code-editor"
           value={content}
           onChange={(e) => handleContentChange(e.target.value)}
-          placeholder="Start writing..."
+          onKeyDown={handleKeyDown}
+          placeholder="Untitled"
           spellCheck={false}
         />
       </div>
@@ -163,7 +207,7 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({ initialContent, viewMod
       <div className="markdown-editor-container">
         <RichTextPlugin
           contentEditable={<ContentEditable className="markdown-editor-input" />}
-          placeholder={<div className="markdown-editor-placeholder">Start writing...</div>}
+          placeholder={<div className="markdown-editor-placeholder">Untitled</div>}
           ErrorBoundary={LexicalErrorBoundary}
         />
         <HistoryPlugin />

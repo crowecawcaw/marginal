@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow';
-import IconBar from '../IconBar/IconBar';
 import Sidebar from '../Sidebar/Sidebar';
+import OutlineSidebar from '../Sidebar/OutlineSidebar';
 import EditorArea from '../EditorArea/EditorArea';
 import Toast from '../Toast/Toast';
 import LoadingOverlay from '../LoadingOverlay/LoadingOverlay';
@@ -13,7 +13,7 @@ import { useKeyboardShortcuts } from '../../hooks/useKeyboardShortcuts';
 import './Layout.css';
 
 const Layout: React.FC = () => {
-  const { toggleSidebar, setSidebarView, setLoading } = useUIStore();
+  const { toggleSidebar, toggleOutline, setLoading } = useUIStore();
   const { tabs, activeTabId, removeTab, markTabDirty, openTab } = useEditorStore();
   const { addNotification } = useNotificationStore();
   const { openFile, saveFile, saveFileAs, newFile } = useFileSystem();
@@ -91,9 +91,22 @@ const Layout: React.FC = () => {
     }
   };
 
-  // Handle search shortcut
-  const handleSearch = () => {
-    setSidebarView('search');
+  // Handle viewing README
+  const handleViewReadme = async () => {
+    try {
+      const readmeContent = await fetch('/src/assets/README.md').then(r => r.text());
+      openTab({
+        id: 'readme',
+        filePath: '', // Empty path means it's not a real file
+        fileName: 'README.md',
+        content: readmeContent,
+        isDirty: false,
+        frontmatter: undefined,
+      });
+    } catch (error) {
+      console.error('Failed to open README:', error);
+      addNotification('Failed to open README', 'error');
+    }
   };
 
   // Register global keyboard shortcuts
@@ -139,12 +152,11 @@ const Layout: React.FC = () => {
       },
     },
     {
-      key: 'f',
+      key: '\\',
       ctrlOrCmd: true,
-      shift: true,
       handler: (e) => {
         e.preventDefault();
-        handleSearch();
+        toggleOutline();
       },
     },
   ]);
@@ -156,6 +168,16 @@ const Layout: React.FC = () => {
     }
   }, []); // Only run once on mount
 
+  // Update page title based on active tab
+  useEffect(() => {
+    if (activeTab) {
+      const unsavedIndicator = activeTab.isDirty ? ' - Unsaved' : '';
+      document.title = `${activeTab.fileName}${unsavedIndicator}`;
+    } else {
+      document.title = 'Marginal';
+    }
+  }, [activeTab?.fileName, activeTab?.isDirty]);
+
   // Listen for menu events from Tauri
   useEffect(() => {
     const appWindow = getCurrentWebviewWindow();
@@ -166,7 +188,8 @@ const Layout: React.FC = () => {
       appWindow.listen('menu:save', () => handleSave()),
       appWindow.listen('menu:close-tab', () => handleCloseTab()),
       appWindow.listen('menu:toggle-sidebar', () => toggleSidebar()),
-      appWindow.listen('menu:search', () => handleSearch()),
+      appWindow.listen('menu:toggle-outline', () => toggleOutline()),
+      appWindow.listen('menu:view-readme', () => handleViewReadme()),
     ];
 
     // Cleanup listeners on unmount
@@ -179,8 +202,8 @@ const Layout: React.FC = () => {
 
   return (
     <div className="layout">
-      <IconBar />
       <Sidebar />
+      <OutlineSidebar />
       <EditorArea />
       <Toast />
       <LoadingOverlay />

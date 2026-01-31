@@ -14,4 +14,4 @@ export interface FileNode {
   children?: FileNode[];
 }
 
-export type SidebarView = 'files' | 'search' | 'toc';
+export type SidebarView = 'files' | 'outline';
