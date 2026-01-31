@@ -149,6 +149,13 @@ const Layout: React.FC = () => {
     },
   ]);
 
+  // Create a blank file on startup if no tabs exist
+  useEffect(() => {
+    if (tabs.length === 0) {
+      newFile();
+    }
+  }, []); // Only run once on mount
+
   // Listen for menu events from Tauri
   useEffect(() => {
     const appWindow = getCurrentWebviewWindow();

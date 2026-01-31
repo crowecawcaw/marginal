@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { LexicalComposer } from '@lexical/react/LexicalComposer';
 import { RichTextPlugin } from '@lexical/react/LexicalRichTextPlugin';
 import { ContentEditable } from '@lexical/react/LexicalContentEditable';
@@ -15,40 +15,63 @@ import { ListItemNode, ListNode } from '@lexical/list';
 import { CodeNode, CodeHighlightNode } from '@lexical/code';
 import { LinkNode, AutoLinkNode } from '@lexical/link';
 import { TableNode, TableCellNode, TableRowNode } from '@lexical/table';
-import { $getRoot, $createParagraphNode, $createTextNode, EditorState } from 'lexical';
-import { TRANSFORMERS } from '@lexical/markdown';
+import { $getRoot, EditorState } from 'lexical';
+import { $convertFromMarkdownString, $convertToMarkdownString, TRANSFORMERS } from '@lexical/markdown';
 import './MarkdownEditor.css';
 
 interface MarkdownEditorProps {
   initialContent: string;
+  viewMode: 'rendered' | 'code';
   onChange: (content: string) => void;
 }
 
-// Plugin to set initial content from markdown
-function InitialContentPlugin({ content }: { content: string }) {
+// Plugin to set and sync content from markdown
+function ContentSyncPlugin({ content }: { content: string }) {
   const [editor] = useLexicalComposerContext();
+  const [initialized, setInitialized] = React.useState(false);
 
   useEffect(() => {
-    editor.update(() => {
-      const root = $getRoot();
-      root.clear();
-
-      if (content.trim()) {
-        // For now, treat content as plain text
-        // We'll enhance this with proper markdown parsing later
-        const paragraph = $createParagraphNode();
-        const textNode = $createTextNode(content);
-        paragraph.append(textNode);
-        root.append(paragraph);
-      }
-    });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [editor]);
+    if (!initialized) {
+      // Initial load - parse markdown and set content
+      editor.update(() => {
+        $convertFromMarkdownString(content, TRANSFORMERS);
+      });
+      setInitialized(true);
+    }
+  }, [editor, initialized, content]);
 
   return null;
 }
 
-const MarkdownEditor: React.FC<MarkdownEditorProps> = ({ initialContent, onChange }) => {
+const MarkdownEditor: React.FC<MarkdownEditorProps> = ({ initialContent, viewMode, onChange }) => {
+  const [content, setContent] = useState(initialContent);
+
+  // Sync content when initialContent changes (e.g., switching tabs)
+  useEffect(() => {
+    setContent(initialContent);
+  }, [initialContent]);
+
+  const handleContentChange = (newContent: string) => {
+    setContent(newContent);
+    onChange(newContent);
+  };
+
+  // For code view, use a simple textarea
+  if (viewMode === 'code') {
+    return (
+      <div className="markdown-editor-container">
+        <textarea
+          className="markdown-code-editor"
+          value={content}
+          onChange={(e) => handleContentChange(e.target.value)}
+          placeholder="Start writing..."
+          spellCheck={false}
+        />
+      </div>
+    );
+  }
+
+  // For rendered view, use Lexical
   const initialConfig = {
     namespace: 'MarkdownEditor',
     theme: {
@@ -129,9 +152,9 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({ initialContent, onChang
 
   const handleChange = (editorState: EditorState) => {
     editorState.read(() => {
-      const root = $getRoot();
-      const textContent = root.getTextContent();
-      onChange(textContent);
+      // Convert editor state to markdown
+      const markdown = $convertToMarkdownString(TRANSFORMERS);
+      handleContentChange(markdown);
     });
   };
 
@@ -149,7 +172,7 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({ initialContent, onChang
         <ListPlugin />
         <LinkPlugin />
         <TabIndentationPlugin />
-        <InitialContentPlugin content={initialContent} />
+        <ContentSyncPlugin content={content} />
       </div>
     </LexicalComposer>
   );
