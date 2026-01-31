@@ -3,6 +3,7 @@ import { open } from '@tauri-apps/plugin-dialog';
 import { useFileStore } from '../stores/fileStore';
 import { useEditorStore } from '../stores/editorStore';
 import { FileNode } from '../types';
+import { parseFrontmatter, serializeFrontmatter } from '../utils/frontmatter';
 
 export const useFileSystem = () => {
   const { setRootPath, setFileTree, addRecentFile } = useFileStore();
@@ -55,18 +56,22 @@ export const useFileSystem = () => {
         path = selected;
       }
 
-      const content = await invoke<string>('read_file_content', {
+      const rawContent = await invoke<string>('read_file_content', {
         path,
       });
 
       const fileName = path.split('/').pop() || path.split('\\').pop() || 'Untitled';
 
+      // Parse frontmatter from the content
+      const parsed = parseFrontmatter(rawContent);
+
       openTab({
         id: path,
         filePath: path,
         fileName,
-        content,
+        content: parsed.content,
         isDirty: false,
+        frontmatter: parsed.frontmatter,
       });
 
       addRecentFile(path);
@@ -76,11 +81,20 @@ export const useFileSystem = () => {
     }
   };
 
-  const saveFile = async (filePath: string, content: string) => {
+  const saveFile = async (
+    filePath: string,
+    content: string,
+    frontmatter?: Record<string, any>
+  ) => {
     try {
+      // Serialize content with frontmatter if it exists
+      const finalContent = frontmatter
+        ? serializeFrontmatter(content, frontmatter)
+        : content;
+
       await invoke('write_file_content', {
         path: filePath,
-        content,
+        content: finalContent,
       });
 
       return true;

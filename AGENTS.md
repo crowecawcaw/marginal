@@ -14,7 +14,7 @@ When working on this project:
 
 ## Development Status
 
-Current Phase: **Phase 3 - Lexical Editor Integration** (Ready to Start)
+Current Phase: **Phase 4 - Markdown Features** (Ready to Start)
 
 ## Tasks
 
@@ -38,14 +38,14 @@ Current Phase: **Phase 3 - Lexical Editor Integration** (Ready to Start)
 - [x] Test file tree navigation and file operations
 
 ### Phase 3: Lexical Editor Integration
-- [ ] Set up Lexical editor with React integration
-- [ ] Configure markdown plugin for Lexical
-- [ ] Create MarkdownEditor component
-- [ ] Implement EditorTabs component
-- [ ] Add tab management (open, close, switch)
-- [ ] Implement frontmatter parsing with gray-matter
-- [ ] Add save functionality with unsaved changes indicator
-- [ ] Create keyboard shortcuts hook
+- [x] Set up Lexical editor with React integration
+- [x] Configure markdown plugin for Lexical
+- [x] Create MarkdownEditor component
+- [x] Implement EditorTabs component
+- [x] Add tab management (open, close, switch)
+- [x] Implement frontmatter parsing with gray-matter
+- [x] Add save functionality with unsaved changes indicator
+- [x] Create keyboard shortcuts hook
 
 ### Phase 4: Markdown Features
 - [ ] Add syntax highlighting for code blocks
@@ -71,6 +71,22 @@ Current Phase: **Phase 3 - Lexical Editor Integration** (Ready to Start)
 - [ ] Write integration tests for key user flows
 
 ## Current Work Log
+
+### 2026-01-31 (Session 4 - Current)
+- ✅ Created MarkdownEditor component with full Lexical integration
+- ✅ Configured Lexical with all markdown plugins (RichText, List, Link, Code, Table, History)
+- ✅ Added MarkdownShortcutPlugin for markdown syntax shortcuts
+- ✅ Integrated MarkdownEditor into EditorArea replacing readonly textarea
+- ✅ Implemented content change tracking for isDirty state
+- ✅ Created useKeyboardShortcuts hook for keyboard shortcuts management
+- ✅ Added Cmd/Ctrl+S save functionality with frontmatter support
+- ✅ Created frontmatter utility with gray-matter (parse/serialize)
+- ✅ Updated useFileSystem to handle frontmatter parsing on file open
+- ✅ Updated save functionality to preserve frontmatter
+- ✅ Fixed TypeScript configuration (added jsx: "react-jsx")
+- ✅ Installed missing @tauri-apps/plugin-dialog dependency
+- ✅ Build succeeds - Phase 3 is complete!
+- ✅ Ready for Phase 4: Markdown Features (syntax highlighting, TOC, Mermaid)
 
 ### 2026-01-31 (Session 3)
 - ✅ Created FileTree component with expand/collapse folder functionality
