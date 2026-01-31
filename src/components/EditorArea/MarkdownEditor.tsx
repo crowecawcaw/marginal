@@ -42,7 +42,8 @@ function InitialContentPlugin({ content }: { content: string }) {
         root.append(paragraph);
       }
     });
-  }, [editor, content]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [editor]);
 
   return null;
 }
