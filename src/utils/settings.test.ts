@@ -14,8 +14,10 @@ describe("settings", () => {
       expect(settings).toEqual({
         sidebarVisible: false,
         sidebarWidth: 250,
-        outlineVisible: false,
+        outlineVisible: true,
         outlineWidth: 250,
+        codeZoom: 100,
+        renderedZoom: 100,
         recentFiles: [],
         lastOpenedFolder: null,
       });
@@ -27,6 +29,8 @@ describe("settings", () => {
         sidebarWidth: 300,
         outlineVisible: true,
         outlineWidth: 300,
+        codeZoom: 120,
+        renderedZoom: 80,
         recentFiles: ["/path/to/file.md"],
         lastOpenedFolder: "/path/to/folder",
       };
@@ -52,8 +56,10 @@ describe("settings", () => {
       expect(settings).toEqual({
         sidebarVisible: true,
         sidebarWidth: 250,
-        outlineVisible: false,
+        outlineVisible: true,
         outlineWidth: 250,
+        codeZoom: 100,
+        renderedZoom: 100,
         recentFiles: [],
         lastOpenedFolder: null,
       });
@@ -71,8 +77,10 @@ describe("settings", () => {
       expect(settings).toEqual({
         sidebarVisible: false,
         sidebarWidth: 250,
-        outlineVisible: false,
+        outlineVisible: true,
         outlineWidth: 250,
+        codeZoom: 100,
+        renderedZoom: 100,
         recentFiles: [],
         lastOpenedFolder: null,
       });
@@ -131,8 +139,10 @@ describe("settings", () => {
       expect(settings).toEqual({
         sidebarVisible: false,
         sidebarWidth: 250,
-        outlineVisible: false,
+        outlineVisible: true,
         outlineWidth: 250,
+        codeZoom: 100,
+        renderedZoom: 100,
         recentFiles: [],
         lastOpenedFolder: null,
       });

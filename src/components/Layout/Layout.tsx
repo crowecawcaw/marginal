@@ -16,7 +16,7 @@ import { useKeyboardShortcuts } from "../../hooks/useKeyboardShortcuts";
 import "./Layout.css";
 
 const Layout: React.FC = () => {
-  const { toggleOutline } = useUIStore();
+  const { toggleOutline, zoomIn, zoomOut } = useUIStore();
   const { tabs, activeTabId, removeTab, markTabDirty, openTab } =
     useEditorStore();
   const { addNotification } = useNotificationStore();
@@ -165,6 +165,22 @@ const Layout: React.FC = () => {
       handler: (e) => {
         e.preventDefault();
         toggleOutline();
+      },
+    },
+    {
+      key: "=",
+      ctrlOrCmd: true,
+      handler: (e) => {
+        e.preventDefault();
+        zoomIn();
+      },
+    },
+    {
+      key: "-",
+      ctrlOrCmd: true,
+      handler: (e) => {
+        e.preventDefault();
+        zoomOut();
       },
     },
   ]);

@@ -42,6 +42,7 @@ const CUSTOM_TRANSFORMERS = [...TRANSFORMERS, TABLE];
 interface MarkdownEditorProps {
   initialContent: string;
   viewMode: "rendered" | "code";
+  zoom?: number;
   onChange: (content: string) => void;
 }
 
@@ -175,24 +176,31 @@ function CodeEditor({
 const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
   initialContent,
   viewMode,
+  zoom = 100,
   onChange,
 }) => {
+  const zoomStyle = { '--editor-zoom': `${zoom}%` } as React.CSSProperties;
+
   if (viewMode === "code") {
     return (
-      <CodeEditor
-        key="code"
-        initialContent={initialContent}
-        onChange={onChange}
-      />
+      <div style={zoomStyle}>
+        <CodeEditor
+          key="code"
+          initialContent={initialContent}
+          onChange={onChange}
+        />
+      </div>
     );
   }
 
   return (
-    <RenderedEditor
-      key="rendered"
-      initialContent={initialContent}
-      onChange={onChange}
-    />
+    <div style={zoomStyle}>
+      <RenderedEditor
+        key="rendered"
+        initialContent={initialContent}
+        onChange={onChange}
+      />
+    </div>
   );
 };
 

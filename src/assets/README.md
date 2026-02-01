@@ -18,6 +18,8 @@
 | `Cmd/Ctrl+B`       | Toggle Sidebar (files)        |
 | `Cmd/Ctrl+\`       | Toggle Outline                |
 | `Cmd/Ctrl+Shift+P` | Toggle Presentation/Code View |
+| `Cmd/Ctrl++`       | Increase Text Size            |
+| `Cmd/Ctrl+-`       | Decrease Text Size            |
 
 ### Editing
 

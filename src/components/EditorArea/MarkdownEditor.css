@@ -10,7 +10,7 @@
 .markdown-code-view .markdown-editor-input {
   font-family:
     "SF Mono", "Monaco", "Menlo", "Consolas", "Courier New", monospace;
-  font-size: 14px;
+  font-size: calc(14px * var(--editor-zoom, 100) / 100);
   line-height: 1.6;
   white-space: pre-wrap;
   word-wrap: break-word;
@@ -20,7 +20,7 @@
 .markdown-code-view .markdown-editor-placeholder {
   font-family:
     "SF Mono", "Monaco", "Menlo", "Consolas", "Courier New", monospace;
-  font-size: 14px;
+  font-size: calc(14px * var(--editor-zoom, 100) / 100);
   font-weight: normal;
   opacity: 0.5;
 }
@@ -39,7 +39,7 @@
   font-family:
     -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica", "Arial",
     sans-serif;
-  font-size: 16px;
+  font-size: calc(16px * var(--editor-zoom, 100) / 100);
   line-height: 1.6;
   overflow-y: auto;
   color: var(--color-text-primary);

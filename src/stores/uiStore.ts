@@ -2,6 +2,11 @@ import { create } from "zustand";
 import { SidebarView, ViewMode } from "../types";
 import { loadSettings, saveSettings } from "../utils/settings";
 
+// Zoom limits (percentage)
+const MIN_ZOOM = 50;
+const MAX_ZOOM = 200;
+const ZOOM_STEP = 10;
+
 interface UIState {
   sidebarVisible: boolean;
   sidebarWidth: number;
@@ -9,6 +14,8 @@ interface UIState {
   outlineWidth: number;
   currentSidebarView: SidebarView;
   viewMode: ViewMode;
+  codeZoom: number;
+  renderedZoom: number;
   isLoading: boolean;
   loadingMessage: string;
   toggleSidebar: () => void;
@@ -18,6 +25,8 @@ interface UIState {
   setSidebarView: (view: SidebarView) => void;
   setViewMode: (mode: ViewMode) => void;
   toggleViewMode: () => void;
+  zoomIn: () => void;
+  zoomOut: () => void;
   setLoading: (isLoading: boolean, message?: string) => void;
 }
 
@@ -31,6 +40,8 @@ export const useUIStore = create<UIState>((set) => ({
   outlineWidth: settings.outlineWidth,
   currentSidebarView: "files",
   viewMode: "code",
+  codeZoom: settings.codeZoom,
+  renderedZoom: settings.renderedZoom,
   isLoading: false,
   loadingMessage: "",
   toggleSidebar: () =>
@@ -59,6 +70,30 @@ export const useUIStore = create<UIState>((set) => ({
     set((state) => ({
       viewMode: state.viewMode === "code" ? "rendered" : "code",
     })),
+  zoomIn: () =>
+    set((state) => {
+      if (state.viewMode === "code") {
+        const newZoom = Math.min(state.codeZoom + ZOOM_STEP, MAX_ZOOM);
+        saveSettings({ codeZoom: newZoom });
+        return { codeZoom: newZoom };
+      } else {
+        const newZoom = Math.min(state.renderedZoom + ZOOM_STEP, MAX_ZOOM);
+        saveSettings({ renderedZoom: newZoom });
+        return { renderedZoom: newZoom };
+      }
+    }),
+  zoomOut: () =>
+    set((state) => {
+      if (state.viewMode === "code") {
+        const newZoom = Math.max(state.codeZoom - ZOOM_STEP, MIN_ZOOM);
+        saveSettings({ codeZoom: newZoom });
+        return { codeZoom: newZoom };
+      } else {
+        const newZoom = Math.max(state.renderedZoom - ZOOM_STEP, MIN_ZOOM);
+        saveSettings({ renderedZoom: newZoom });
+        return { renderedZoom: newZoom };
+      }
+    }),
   setLoading: (isLoading, message = "") =>
     set({ isLoading, loadingMessage: message }),
 }));

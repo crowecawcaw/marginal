@@ -3,6 +3,8 @@ interface AppSettings {
   sidebarWidth: number;
   outlineVisible: boolean;
   outlineWidth: number;
+  codeZoom: number;
+  renderedZoom: number;
   recentFiles: string[];
   lastOpenedFolder: string | null;
 }
@@ -14,6 +16,8 @@ const defaultSettings: AppSettings = {
   sidebarWidth: 250,
   outlineVisible: true,
   outlineWidth: 250,
+  codeZoom: 100,
+  renderedZoom: 100,
   recentFiles: [],
   lastOpenedFolder: null,
 };

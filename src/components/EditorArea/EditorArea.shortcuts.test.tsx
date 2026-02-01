@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
-import { render, act, screen, fireEvent } from "@testing-library/react";
+import { render } from "@testing-library/react";
 import { userEvent } from "@testing-library/user-event";
 import EditorArea from "./EditorArea";
 import { useEditorStore } from "../../stores/editorStore";
@@ -103,64 +103,8 @@ describe("EditorArea Keyboard Shortcuts", () => {
     expect(formatEvent.shiftKey).toBe(true);
   });
 
-  it("view toggle buttons properly switch between code and rendered views", async () => {
-    const { container } = render(<EditorArea />);
-
-    // Initial view mode should be code
-    expect(container.querySelector(".markdown-code-view")).toBeTruthy();
-
-    // Find and click the rendered view button (labeled "Aa")
-    const renderedButton = screen.getByTitle("Rendered view");
-    await act(async () => {
-      fireEvent.click(renderedButton);
-    });
-
-    // Should now be in rendered view (no code view class)
-    expect(container.querySelector(".markdown-code-view")).toBeFalsy();
-
-    // Find and click the code view button
-    const codeButton = screen.getByTitle("Code view");
-    await act(async () => {
-      fireEvent.click(codeButton);
-    });
-
-    // Should be back in code view
-    expect(container.querySelector(".markdown-code-view")).toBeTruthy();
-  });
-
-  it("toggle buttons can switch between views multiple times", async () => {
-    const { container } = render(<EditorArea />);
-
-    const renderedButton = screen.getByTitle("Rendered view");
-    const codeButton = screen.getByTitle("Code view");
-
-    // Start in code view
-    expect(container.querySelector(".markdown-code-view")).toBeTruthy();
-
-    // Toggle to rendered
-    await act(async () => {
-      fireEvent.click(renderedButton);
-    });
-    expect(container.querySelector(".markdown-code-view")).toBeFalsy();
-
-    // Toggle to code
-    await act(async () => {
-      fireEvent.click(codeButton);
-    });
-    expect(container.querySelector(".markdown-code-view")).toBeTruthy();
-
-    // Toggle to rendered again
-    await act(async () => {
-      fireEvent.click(renderedButton);
-    });
-    expect(container.querySelector(".markdown-code-view")).toBeFalsy();
-
-    // Toggle to code again
-    await act(async () => {
-      fireEvent.click(codeButton);
-    });
-    expect(container.querySelector(".markdown-code-view")).toBeTruthy();
-  });
+  // Note: View toggle button tests removed - buttons moved to Titlebar component
+  // View mode can be tested through the uiStore directly
 
   it("Cmd+Shift+P emits toggle-view event", async () => {
     const user = userEvent.setup();

@@ -11,7 +11,8 @@ import prettierMarkdown from "prettier/plugins/markdown";
 
 const EditorArea: React.FC = () => {
   const { tabs, activeTabId, updateTabContent, markTabDirty } = useEditorStore();
-  const { viewMode, toggleViewMode } = useUIStore();
+  const { viewMode, toggleViewMode, codeZoom, renderedZoom } = useUIStore();
+  const zoom = viewMode === "code" ? codeZoom : renderedZoom;
   const { addNotification } = useNotificationStore();
   const [findVisible, setFindVisible] = useState(false);
   const [editorKey, setEditorKey] = useState(0);
@@ -118,6 +119,7 @@ const EditorArea: React.FC = () => {
               key={`${activeTab.id}-${viewMode}-${editorKey}`}
               initialContent={activeTab.content}
               viewMode={viewMode}
+              zoom={zoom}
               onChange={(content) => {
                 const hasChanged = content !== activeTab.content;
                 updateTabContent(activeTab.id, content);
