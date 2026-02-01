@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow';
+import { setupEventListeners } from '../../platform/eventAdapter';
 import { useEditorStore } from '../../stores/editorStore';
 import MarkdownEditor from './MarkdownEditor';
 import FindInDocument from './FindInDocument';
@@ -48,20 +48,20 @@ const EditorArea: React.FC = () => {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
-  // Listen for format menu event
+  // Listen for format menu event (works in both Tauri and web)
   useEffect(() => {
-    const appWindow = getCurrentWebviewWindow();
+    let cleanup: (() => void) | undefined;
 
-    const unlistenPromises = [
-      appWindow.listen('menu:format-document', () => handleFormat()),
-      appWindow.listen('menu:view-rendered', () => setViewMode('rendered')),
-      appWindow.listen('menu:view-code', () => setViewMode('code')),
-    ];
+    setupEventListeners([
+      { event: 'menu:format-document', callback: () => handleFormat() },
+      { event: 'menu:view-rendered', callback: () => setViewMode('rendered') },
+      { event: 'menu:view-code', callback: () => setViewMode('code') },
+    ]).then((unlisten) => {
+      cleanup = unlisten;
+    });
 
     return () => {
-      Promise.all(unlistenPromises).then((unlisteners) => {
-        unlisteners.forEach((unlisten) => unlisten());
-      });
+      cleanup?.();
     };
   }, [activeTab, viewMode]);
 

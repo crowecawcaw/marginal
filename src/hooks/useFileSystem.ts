@@ -1,8 +1,15 @@
-import { invoke } from '@tauri-apps/api/core';
-import { open } from '@tauri-apps/plugin-dialog';
+import {
+  openDialog,
+  readDirTree,
+  readFileContent,
+  writeFileContent,
+  getFileName,
+  downloadFile,
+  saveDialog,
+} from '../platform/fileSystemAdapter';
+import { isTauri } from '../platform';
 import { useFileStore } from '../stores/fileStore';
 import { useEditorStore } from '../stores/editorStore';
-import { FileNode } from '../types';
 import { parseFrontmatter, serializeFrontmatter } from '../utils/frontmatter';
 
 export const useFileSystem = () => {
@@ -11,21 +18,18 @@ export const useFileSystem = () => {
 
   const openFolder = async () => {
     try {
-      const selected = await open({
+      const selected = await openDialog({
         directory: true,
         multiple: false,
       });
 
-      if (!selected || typeof selected !== 'string') {
+      if (!selected) {
         return;
       }
 
       setRootPath(selected);
 
-      const tree = await invoke<FileNode[]>('read_dir_tree', {
-        path: selected,
-      });
-
+      const tree = await readDirTree(selected);
       setFileTree(tree);
     } catch (error) {
       console.error('Failed to open folder:', error);
@@ -38,7 +42,7 @@ export const useFileSystem = () => {
       let path = filePath;
 
       if (!path) {
-        const selected = await open({
+        const selected = await openDialog({
           directory: false,
           multiple: false,
           filters: [
@@ -49,18 +53,15 @@ export const useFileSystem = () => {
           ],
         });
 
-        if (!selected || typeof selected !== 'string') {
+        if (!selected) {
           return;
         }
 
         path = selected;
       }
 
-      const rawContent = await invoke<string>('read_file_content', {
-        path,
-      });
-
-      const fileName = path.split('/').pop() || path.split('\\').pop() || 'Untitled';
+      const rawContent = await readFileContent(path);
+      const fileName = getFileName(path);
 
       // Parse frontmatter from the content
       const parsed = parseFrontmatter(rawContent);
@@ -92,11 +93,7 @@ export const useFileSystem = () => {
         ? serializeFrontmatter(content, frontmatter)
         : content;
 
-      await invoke('write_file_content', {
-        path: filePath,
-        content: finalContent,
-      });
-
+      await writeFileContent(filePath, finalContent);
       return true;
     } catch (error) {
       console.error('Failed to save file:', error);
@@ -106,10 +103,7 @@ export const useFileSystem = () => {
 
   const readFile = async (filePath: string): Promise<string> => {
     try {
-      const content = await invoke<string>('read_file_content', {
-        path: filePath,
-      });
-
+      const content = await readFileContent(filePath);
       return content;
     } catch (error) {
       console.error('Failed to read file:', error);
@@ -151,9 +145,7 @@ export const useFileSystem = () => {
 
   const saveFileAs = async (content: string, frontmatter?: Record<string, any>) => {
     try {
-      const selected = await open({
-        directory: false,
-        multiple: false,
+      const selected = await saveDialog({
         filters: [
           {
             name: 'Markdown',
@@ -162,7 +154,7 @@ export const useFileSystem = () => {
         ],
       });
 
-      if (!selected || typeof selected !== 'string') {
+      if (!selected) {
         return null;
       }
 
@@ -170,18 +162,28 @@ export const useFileSystem = () => {
         ? serializeFrontmatter(content, frontmatter)
         : content;
 
-      await invoke('write_file_content', {
-        path: selected,
-        content: finalContent,
-      });
+      await writeFileContent(selected, finalContent);
 
-      const fileName = selected.split('/').pop() || selected.split('\\').pop() || 'Untitled.md';
+      const fileName = getFileName(selected);
+
+      // In web mode, trigger download
+      if (!isTauri()) {
+        downloadFile(finalContent, fileName);
+      }
 
       return { path: selected, fileName };
     } catch (error) {
       console.error('Failed to save file as:', error);
       throw error;
     }
+  };
+
+  // Web-specific function to download current file
+  const downloadCurrentFile = (content: string, fileName: string, frontmatter?: Record<string, any>) => {
+    const finalContent = frontmatter
+      ? serializeFrontmatter(content, frontmatter)
+      : content;
+    downloadFile(finalContent, fileName);
   };
 
   return {
@@ -191,5 +193,6 @@ export const useFileSystem = () => {
     saveFileAs,
     readFile,
     newFile,
+    downloadCurrentFile,
   };
 };
