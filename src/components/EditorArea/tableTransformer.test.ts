@@ -245,6 +245,47 @@ describe("tableTransformer", () => {
         expect(rows.length).toBe(2);
       });
     });
+
+    it("preserves empty rows in table", () => {
+      withEditor(() => {
+        const markdown = `| Header1 | Header2 | Header3 |
+|---------|---------|---------|
+|         |         |         |
+|         |         |         |`;
+        const table = $createTableFromMarkdown(markdown);
+
+        expect(table).not.toBeNull();
+        const rows = table!.getChildren() as TableRowNode[];
+        // Should have 3 rows: 1 header + 2 empty data rows
+        expect(rows.length).toBe(3);
+
+        // Verify empty rows exist with 3 cells each
+        const dataRow1 = rows[1].getChildren() as TableCellNode[];
+        const dataRow2 = rows[2].getChildren() as TableCellNode[];
+        expect(dataRow1.length).toBe(3);
+        expect(dataRow2.length).toBe(3);
+
+        // Cells should be empty (or have empty text)
+        expect(dataRow1[0].getTextContent()).toBe("");
+        expect(dataRow1[1].getTextContent()).toBe("");
+        expect(dataRow1[2].getTextContent()).toBe("");
+      });
+    });
+
+    it("preserves rows with only whitespace cells", () => {
+      withEditor(() => {
+        const markdown = `| H |
+|---|
+|   |
+|   |`;
+        const table = $createTableFromMarkdown(markdown);
+
+        expect(table).not.toBeNull();
+        const rows = table!.getChildren();
+        // Should have 3 rows: 1 header + 2 whitespace-only data rows
+        expect(rows.length).toBe(3);
+      });
+    });
   });
 
   describe("TABLE.export", () => {

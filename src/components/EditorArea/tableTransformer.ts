@@ -165,8 +165,9 @@ export function $createTableFromMarkdown(tableText: string): TableNode | null {
     // Remove leading and trailing pipes
     const content = trimmed.slice(1, -1);
 
-    // Check if this is a separator row
-    if (/^[\s\-:|]+$/.test(content)) {
+    // Check if this is a separator row (must contain at least one dash)
+    // This prevents empty rows (only whitespace and pipes) from being treated as separators
+    if (/^[\s\-:|]+$/.test(content) && content.includes("-")) {
       separatorIndex = index;
       return;
     }
