@@ -8,7 +8,7 @@ const OutlineSidebar: React.FC = () => {
   const { outlineVisible, outlineWidth } = useUIStore();
   const { tabs, activeTabId } = useEditorStore();
 
-  // Get the active tab's content for TOC
+  // Get the active tab's content for outline
   const activeTab = tabs.find((tab) => tab.id === activeTabId);
   const activeContent = activeTab?.content || "";
 
