@@ -1,7 +1,7 @@
 .mermaid-block {
   margin: 1rem 0;
   padding: 1rem;
-  background: var(--bg-secondary, #f8f9fa);
+  background: var(--color-bg-secondary);
   border-radius: 8px;
   overflow-x: auto;
 }
@@ -19,11 +19,11 @@
 }
 
 .mermaid-error {
-  color: var(--error-color, #dc3545);
+  color: var(--color-status-error);
   padding: 1rem;
-  background: var(--error-bg, #f8d7da);
+  background: var(--color-status-error-bg);
   border-radius: 4px;
-  border-left: 4px solid var(--error-color, #dc3545);
+  border-left: 4px solid var(--color-status-error);
 }
 
 .mermaid-error p {
@@ -34,7 +34,7 @@
 .mermaid-error pre {
   margin: 0;
   padding: 0.5rem;
-  background: rgba(0, 0, 0, 0.05);
+  background: var(--color-bg-tertiary);
   border-radius: 4px;
   font-size: 0.875rem;
   overflow-x: auto;

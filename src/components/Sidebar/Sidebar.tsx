@@ -41,7 +41,7 @@ const Sidebar: React.FC = () => {
   };
 
   return (
-    <div className="sidebar" style={{ width: `${sidebarWidth}px` }}>
+    <div className="sidebar" style={{ '--sidebar-width': `${sidebarWidth}px` } as React.CSSProperties}>
       <div className="sidebar-content">
         <div className="sidebar-header">
           <span>FILES</span>

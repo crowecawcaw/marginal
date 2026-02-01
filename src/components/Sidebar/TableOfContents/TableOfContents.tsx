@@ -56,7 +56,7 @@ const TableOfContents: React.FC<TableOfContentsProps> = ({ content }) => {
             <li
               key={`${heading.id}-${index}`}
               className={`toc-item toc-level-${heading.level}`}
-              style={{ paddingLeft: `${(heading.level - 1) * 1}rem` }}
+              style={{ '--heading-level': heading.level - 1 } as React.CSSProperties}
             >
               <button
                 className="toc-link"

@@ -10,8 +10,8 @@
   margin: 0;
   font-size: 0.875rem;
   font-weight: 600;
-  color: var(--text-primary);
-  border-bottom: 1px solid var(--border-color);
+  color: var(--color-text-primary);
+  border-bottom: 1px solid var(--color-border-primary);
 }
 
 .outline-nav {
@@ -29,6 +29,7 @@
 .outline-item {
   margin: 0;
   padding: 0;
+  padding-left: calc(var(--heading-level, 0) * var(--size-indent-heading));
 }
 
 .outline-link {
@@ -38,7 +39,7 @@
   text-align: left;
   background: none;
   border: none;
-  color: var(--text-primary);
+  color: var(--color-text-primary);
   font-size: 0.875rem;
   cursor: pointer;
   transition: all 0.15s ease;
@@ -48,12 +49,12 @@
 }
 
 .outline-link:hover {
-  background-color: var(--hover-bg, rgba(0, 0, 0, 0.05));
-  color: var(--accent-color, #0066cc);
+  background-color: var(--color-bg-hover);
+  color: var(--color-accent-primary);
 }
 
 .outline-link:active {
-  background-color: var(--active-bg, rgba(0, 0, 0, 0.1));
+  background-color: var(--color-bg-active);
 }
 
 /* Different heading levels */
@@ -73,7 +74,7 @@
 .outline-level-6 .outline-link {
   font-weight: 400;
   font-size: 0.85rem;
-  color: var(--text-secondary);
+  color: var(--color-text-secondary);
 }
 
 .outline-empty {
@@ -83,6 +84,6 @@
 
 .outline-empty p {
   margin: 0;
-  color: var(--text-secondary);
+  color: var(--color-text-secondary);
   font-size: 0.875rem;
 }

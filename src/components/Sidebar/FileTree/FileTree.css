@@ -6,7 +6,7 @@
 .file-tree-empty {
   padding: 16px;
   text-align: center;
-  color: var(--text-secondary);
+  color: var(--color-text-secondary);
 }
 
 .file-tree-empty p {
@@ -22,17 +22,18 @@
   display: flex;
   align-items: center;
   padding: 4px 8px;
+  padding-left: calc(var(--depth, 0) * var(--size-indent-base));
   cursor: pointer;
   font-size: 13px;
   transition: background-color 0.1s ease;
 }
 
 .file-tree-item:hover {
-  background-color: var(--hover-bg);
+  background-color: var(--color-bg-hover);
 }
 
 .file-tree-item.file:hover {
-  background-color: var(--hover-bg);
+  background-color: var(--color-bg-hover);
 }
 
 .file-tree-icon {

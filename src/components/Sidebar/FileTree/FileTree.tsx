@@ -42,7 +42,7 @@ const FileTreeNode: React.FC<FileTreeNodeProps> = ({
     <div className="file-tree-node">
       <div
         className={`file-tree-item ${node.isDirectory ? "directory" : "file"}`}
-        style={{ paddingLeft: `${depth * 16}px` }}
+        style={{ '--depth': depth } as React.CSSProperties}
         onClick={handleClick}
       >
         <span className="file-tree-icon">{getIcon()}</span>

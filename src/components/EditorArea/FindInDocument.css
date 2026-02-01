@@ -2,14 +2,14 @@
   position: absolute;
   top: 8px;
   right: 16px;
-  background: var(--bg-secondary);
-  border: 1px solid var(--border);
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-border-primary);
   border-radius: 6px;
   padding: 8px 12px;
   display: flex;
   align-items: center;
   gap: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  box-shadow: var(--shadow-medium);
   z-index: 100;
 }
 
@@ -20,23 +20,23 @@
 }
 
 .find-input {
-  background: var(--bg-primary);
-  border: 1px solid var(--border);
+  background: var(--color-bg-primary);
+  border: 1px solid var(--color-border-primary);
   border-radius: 4px;
   padding: 6px 8px;
   font-size: 13px;
-  color: var(--text-primary);
+  color: var(--color-text-primary);
   width: 200px;
   outline: none;
 }
 
 .find-input:focus {
-  border-color: var(--accent);
+  border-color: var(--color-accent-primary);
 }
 
 .find-match-count {
   font-size: 12px;
-  color: var(--text-secondary);
+  color: var(--color-text-secondary);
   min-width: 60px;
   text-align: center;
 }
@@ -46,15 +46,15 @@
   align-items: center;
   gap: 4px;
   padding-left: 8px;
-  border-left: 1px solid var(--border);
+  border-left: 1px solid var(--color-border-primary);
 }
 
 .find-btn {
   background: transparent;
-  border: 1px solid var(--border);
+  border: 1px solid var(--color-border-primary);
   border-radius: 4px;
   padding: 4px 8px;
-  color: var(--text-primary);
+  color: var(--color-text-primary);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -63,8 +63,8 @@
 }
 
 .find-btn:hover:not(:disabled) {
-  background: var(--bg-hover);
-  border-color: var(--accent);
+  background: var(--color-bg-hover);
+  border-color: var(--color-accent-primary);
 }
 
 .find-btn:disabled {
@@ -73,9 +73,9 @@
 }
 
 .find-btn.active {
-  background: var(--accent);
+  background: var(--color-accent-primary);
   color: white;
-  border-color: var(--accent);
+  border-color: var(--color-accent-primary);
 }
 
 .find-btn svg {

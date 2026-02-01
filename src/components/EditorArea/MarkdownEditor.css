@@ -13,7 +13,7 @@
   line-height: 1.6;
   white-space: pre-wrap;
   word-wrap: break-word;
-  caret-color: var(--text-primary, currentColor);
+  caret-color: var(--color-text-primary, currentColor);
 }
 
 .markdown-code-view .markdown-editor-placeholder {
@@ -40,15 +40,15 @@
   font-size: 16px;
   line-height: 1.6;
   overflow-y: auto;
-  color: var(--text-primary);
-  caret-color: var(--text-primary, currentColor);
+  color: var(--color-text-primary);
+  caret-color: var(--color-text-primary, currentColor);
 }
 
 .markdown-editor-placeholder {
   position: absolute;
   top: 2rem;
   left: 2rem;
-  color: var(--text-secondary);
+  color: var(--color-text-secondary);
   pointer-events: none;
   user-select: none;
   font-family:
@@ -128,30 +128,30 @@
 .editor-quote {
   margin: 1em 0;
   padding-left: 1em;
-  border-left: 4px solid var(--border-color);
-  color: var(--text-secondary);
+  border-left: 4px solid var(--color-border-primary);
+  color: var(--color-text-secondary);
   font-style: italic;
 }
 
 /* Code */
 .editor-code {
-  background-color: var(--bg-secondary);
-  border: 1px solid var(--border-color);
+  background-color: var(--color-bg-secondary);
+  border: 1px solid var(--color-border-primary);
   border-radius: 4px;
   padding: 1em;
   margin: 1em 0;
-  font-family: var(--font-mono);
+  font-family: var(--font-family-mono);
   font-size: 13px;
   overflow-x: auto;
 }
 
 /* Inline code */
 .editor-text-code {
-  background-color: var(--bg-secondary);
-  border: 1px solid var(--border-color);
+  background-color: var(--color-bg-secondary);
+  border: 1px solid var(--color-border-primary);
   border-radius: 3px;
   padding: 0.2em 0.4em;
-  font-family: var(--font-mono);
+  font-family: var(--font-family-mono);
   font-size: 0.9em;
 }
 
@@ -174,7 +174,7 @@
 
 /* Links */
 .editor-link {
-  color: var(--accent-color, #0066cc);
+  color: var(--color-accent-primary);
   text-decoration: underline;
   cursor: pointer;
 }
@@ -185,49 +185,49 @@
 
 /* Code highlighting tokens */
 .editor-token-comment {
-  color: #6a9955;
+  color: var(--color-syntax-comment);
 }
 
 .editor-token-keyword {
-  color: #569cd6;
+  color: var(--color-syntax-keyword);
 }
 
 .editor-token-string {
-  color: #ce9178;
+  color: var(--color-syntax-string);
 }
 
 .editor-token-number {
-  color: #b5cea8;
+  color: var(--color-syntax-number);
 }
 
 .editor-token-function {
-  color: #dcdcaa;
+  color: var(--color-syntax-function);
 }
 
 .editor-token-class-name {
-  color: #4ec9b0;
+  color: var(--color-syntax-class);
 }
 
 .editor-token-operator {
-  color: #d4d4d4;
+  color: var(--color-syntax-operator);
 }
 
 .editor-token-punctuation {
-  color: #d4d4d4;
+  color: var(--color-syntax-punctuation);
 }
 
 .editor-token-variable {
-  color: #9cdcfe;
+  color: var(--color-syntax-variable);
 }
 
 .editor-token-property {
-  color: #9cdcfe;
+  color: var(--color-syntax-property);
 }
 
 .editor-token-boolean {
-  color: #569cd6;
+  color: var(--color-syntax-keyword);
 }
 
 .editor-token-constant {
-  color: #4fc1ff;
+  color: var(--color-syntax-number);
 }

@@ -101,7 +101,7 @@ const EditorArea: React.FC = () => {
           </div>
         </div>
       )}
-      <div className="editor-content" style={{ position: "relative" }}>
+      <div className="editor-content">
         {activeTab && (
           <>
             <MarkdownEditor

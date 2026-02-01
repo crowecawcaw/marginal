@@ -41,7 +41,7 @@
   padding: 10px 24px;
   background-color: var(--color-bg-secondary);
   color: var(--color-text-primary);
-  border: 1px solid var(--color-border);
+  border: 1px solid var(--color-border-primary);
   border-radius: 4px;
   cursor: pointer;
   font-size: 14px;
@@ -64,7 +64,7 @@
   justify-content: space-between;
   gap: 2px;
   background-color: var(--color-bg-secondary);
-  border-bottom: 1px solid var(--color-border);
+  border-bottom: 1px solid var(--color-border-primary);
   overflow-x: auto;
 }
 
@@ -92,9 +92,9 @@
 
 .view-toggle-btn {
   padding: 6px 12px;
-  background-color: rgba(128, 128, 128, 0.2);
-  color: rgba(128, 128, 128, 0.8);
-  border: 1px solid rgba(128, 128, 128, 0.3);
+  background-color: var(--color-toggle-bg);
+  color: var(--color-toggle-text);
+  border: 1px solid var(--color-toggle-bg);
   cursor: pointer;
   font-size: 13px;
   font-family: monospace;
@@ -115,14 +115,14 @@
 }
 
 .view-toggle-btn:hover {
-  background-color: rgba(128, 128, 128, 0.3);
-  color: rgba(96, 96, 96, 1);
+  background-color: var(--color-toggle-bg-hover);
+  color: var(--color-toggle-text);
 }
 
 .view-toggle-btn.active {
-  background-color: rgba(128, 128, 128, 0.4);
-  color: rgba(64, 64, 64, 1);
-  border-color: rgba(128, 128, 128, 0.5);
+  background-color: var(--color-toggle-bg-active);
+  color: var(--color-toggle-text-active);
+  border-color: var(--color-toggle-bg-active);
 }
 
 .editor-tab {
@@ -143,7 +143,7 @@
 
 .editor-tab.active {
   background-color: var(--color-bg-primary);
-  border-bottom: 2px solid var(--color-accent);
+  border-bottom: 2px solid var(--color-accent-primary);
 }
 
 .editor-tab-name {
@@ -173,6 +173,7 @@
 }
 
 .editor-content {
+  position: relative;
   flex: 1;
   display: flex;
   overflow: hidden;
