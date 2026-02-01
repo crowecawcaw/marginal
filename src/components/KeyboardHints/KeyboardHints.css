@@ -3,14 +3,24 @@
   bottom: 0;
   left: 0;
   right: 0;
-  background: rgba(0, 0, 0, 0.5);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  color: white;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.7);
   padding: 10px 16px;
   z-index: 1000;
-  box-shadow: 0 -2px 20px rgba(0, 0, 0, 0.2);
   animation: slideUp 0.2s ease-out;
+}
+
+.keyboard-hints::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  backdrop-filter: blur(0px);
+  -webkit-backdrop-filter: blur(0px);
+  mask-image: linear-gradient(to bottom, transparent 0%, black 30%, black 100%);
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 30%, black 100%);
+  z-index: -1;
+  will-change: backdrop-filter;
+  animation: blurIn 0.3s ease-out forwards;
 }
 
 @keyframes slideUp {
@@ -21,6 +31,17 @@
   to {
     transform: translateY(0);
     opacity: 1;
+  }
+}
+
+@keyframes blurIn {
+  0% {
+    backdrop-filter: blur(0px);
+    -webkit-backdrop-filter: blur(0px);
+  }
+  100% {
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
   }
 }
 
@@ -57,7 +78,7 @@
 
 .keyboard-hint-description {
   font-size: 11px;
-  opacity: 0.85;
+  opacity: 0.7;
   white-space: nowrap;
 }
 

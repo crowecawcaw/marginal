@@ -18,7 +18,8 @@ const KeyboardHints: React.FC = () => {
 
     const handleKeyDown = (e: KeyboardEvent) => {
       // Show hints after 1 second when Cmd (Mac) or Ctrl (Windows/Linux) is pressed
-      if (e.metaKey || e.ctrlKey) {
+      // Only on initial keypress, not on repeat events
+      if ((e.metaKey || e.ctrlKey) && !e.repeat) {
         if (!showTimer) {
           showTimer = setTimeout(() => {
             setIsVisible(true);
