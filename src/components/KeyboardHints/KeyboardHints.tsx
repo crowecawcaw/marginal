@@ -14,22 +14,36 @@ const KeyboardHints: React.FC = () => {
     const platform = navigator.platform.toLowerCase();
     setIsMac(platform.includes("mac"));
 
+    let showTimer: number | null = null;
+
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Show hints when Cmd (Mac) or Ctrl (Windows/Linux) is pressed
+      // Show hints after 1 second when Cmd (Mac) or Ctrl (Windows/Linux) is pressed
       if (e.metaKey || e.ctrlKey) {
-        setIsVisible(true);
+        if (!showTimer) {
+          showTimer = setTimeout(() => {
+            setIsVisible(true);
+          }, 1000);
+        }
       }
     };
 
     const handleKeyUp = (e: KeyboardEvent) => {
       // Hide hints when Cmd/Ctrl is released
       if (e.key === "Meta" || e.key === "Control") {
+        if (showTimer) {
+          clearTimeout(showTimer);
+          showTimer = null;
+        }
         setIsVisible(false);
       }
     };
 
     // Also hide when window loses focus
     const handleBlur = () => {
+      if (showTimer) {
+        clearTimeout(showTimer);
+        showTimer = null;
+      }
       setIsVisible(false);
     };
 
@@ -38,6 +52,9 @@ const KeyboardHints: React.FC = () => {
     window.addEventListener("blur", handleBlur);
 
     return () => {
+      if (showTimer) {
+        clearTimeout(showTimer);
+      }
       window.removeEventListener("keydown", handleKeyDown);
       window.removeEventListener("keyup", handleKeyUp);
       window.removeEventListener("blur", handleBlur);
@@ -56,8 +73,8 @@ const KeyboardHints: React.FC = () => {
     { keys: `${modKey} S`, description: "Save" },
     { keys: `${modKey} W`, description: "Close Tab" },
     { keys: `${modKey} F`, description: "Find" },
-    { keys: `${modKey} Shift F`, description: "Format" },
-    { keys: `${modKey} Shift P`, description: "Toggle View" },
+    { keys: `${modKey} ⇧ F`, description: "Format" },
+    { keys: `${modKey} ⇧ P`, description: "Toggle View" },
     { keys: `${modKey} \\`, description: "Toggle Outline" },
     { keys: `${modKey} B`, description: "Bold" },
     { keys: `${modKey} I`, description: "Italic" },
