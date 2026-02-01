@@ -7,6 +7,10 @@
   overflow: hidden;
 }
 
+.sidebar.outline-sidebar {
+  border-right: none;
+}
+
 .sidebar-content {
   display: flex;
   flex-direction: column;

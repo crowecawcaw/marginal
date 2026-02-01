@@ -12,7 +12,7 @@ const SETTINGS_KEY = "marginal-settings";
 const defaultSettings: AppSettings = {
   sidebarVisible: false,
   sidebarWidth: 250,
-  outlineVisible: false,
+  outlineVisible: true,
   outlineWidth: 250,
   recentFiles: [],
   lastOpenedFolder: null,

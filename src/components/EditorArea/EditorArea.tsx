@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { setupEventListeners, emit } from "../../platform/eventAdapter";
 import { useEditorStore } from "../../stores/editorStore";
+import { useUIStore } from "../../stores/uiStore";
 import { useNotificationStore } from "../../stores/notificationStore";
 import MarkdownEditor from "./MarkdownEditor";
 import FindInDocument from "./FindInDocument";
@@ -8,19 +9,10 @@ import "./EditorArea.css";
 import prettier from "prettier/standalone";
 import prettierMarkdown from "prettier/plugins/markdown";
 
-type ViewMode = "rendered" | "code";
-
 const EditorArea: React.FC = () => {
-  const {
-    tabs,
-    activeTabId,
-    setActiveTab,
-    removeTab,
-    updateTabContent,
-    markTabDirty,
-  } = useEditorStore();
+  const { tabs, activeTabId, updateTabContent, markTabDirty } = useEditorStore();
+  const { viewMode, toggleViewMode } = useUIStore();
   const { addNotification } = useNotificationStore();
-  const [viewMode, setViewMode] = useState<ViewMode>("code");
   const [findVisible, setFindVisible] = useState(false);
   const [editorKey, setEditorKey] = useState(0);
 
@@ -58,17 +50,12 @@ const EditorArea: React.FC = () => {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
 
-  // Listen for toggle-view event - separate effect with no dependencies
-  // since toggleView uses functional setState and doesn't need any captured values
+  // Listen for toggle-view event
   useEffect(() => {
     let cleanup: (() => void) | undefined;
 
-    const toggleView = () => {
-      setViewMode((current) => (current === "code" ? "rendered" : "code"));
-    };
-
     setupEventListeners([
-      { event: "menu:toggle-view", callback: toggleView },
+      { event: "menu:toggle-view", callback: toggleViewMode },
     ]).then((unlisten) => {
       cleanup = unlisten;
     });
@@ -76,7 +63,7 @@ const EditorArea: React.FC = () => {
     return () => {
       cleanup?.();
     };
-  }, []);
+  }, [toggleViewMode]);
 
   // Listen for format-document event
   useEffect(() => {
@@ -124,35 +111,6 @@ const EditorArea: React.FC = () => {
 
   return (
     <div className="editor-area">
-      {tabs.length > 1 && (
-        <div className="editor-tabs">
-          <div className="editor-tabs-left">
-            {tabs.map((tab) => (
-              <div
-                key={tab.id}
-                className={`editor-tab ${tab.id === activeTabId ? "active" : ""}`}
-                onClick={() => setActiveTab(tab.id)}
-              >
-                <span
-                  className={`editor-tab-name ${tab.isDirty ? "unsaved" : ""}`}
-                >
-                  {tab.isDirty && "• "}
-                  {tab.fileName}
-                </span>
-                <button
-                  className="editor-tab-close"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    removeTab(tab.id);
-                  }}
-                >
-                  ×
-                </button>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
       <div className="editor-content">
         {activeTab && (
           <>
@@ -168,22 +126,6 @@ const EditorArea: React.FC = () => {
                 }
               }}
             />
-            <div className="editor-view-toggle">
-              <button
-                className={`view-toggle-btn ${viewMode === "rendered" ? "active" : ""}`}
-                onClick={() => setViewMode("rendered")}
-                title="Rendered view"
-              >
-                Aa
-              </button>
-              <button
-                className={`view-toggle-btn ${viewMode === "code" ? "active" : ""}`}
-                onClick={() => setViewMode("code")}
-                title="Code view"
-              >
-                &lt;/&gt;
-              </button>
-            </div>
             {findVisible && (
               <FindInDocument
                 content={activeTab.content}

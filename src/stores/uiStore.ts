@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { SidebarView } from "../types";
+import { SidebarView, ViewMode } from "../types";
 import { loadSettings, saveSettings } from "../utils/settings";
 
 interface UIState {
@@ -8,6 +8,7 @@ interface UIState {
   outlineVisible: boolean;
   outlineWidth: number;
   currentSidebarView: SidebarView;
+  viewMode: ViewMode;
   isLoading: boolean;
   loadingMessage: string;
   toggleSidebar: () => void;
@@ -15,6 +16,8 @@ interface UIState {
   setSidebarWidth: (width: number) => void;
   setOutlineWidth: (width: number) => void;
   setSidebarView: (view: SidebarView) => void;
+  setViewMode: (mode: ViewMode) => void;
+  toggleViewMode: () => void;
   setLoading: (isLoading: boolean, message?: string) => void;
 }
 
@@ -27,6 +30,7 @@ export const useUIStore = create<UIState>((set) => ({
   outlineVisible: settings.outlineVisible,
   outlineWidth: settings.outlineWidth,
   currentSidebarView: "files",
+  viewMode: "code",
   isLoading: false,
   loadingMessage: "",
   toggleSidebar: () =>
@@ -50,6 +54,11 @@ export const useUIStore = create<UIState>((set) => ({
     set({ outlineWidth: width });
   },
   setSidebarView: (view) => set({ currentSidebarView: view }),
+  setViewMode: (mode) => set({ viewMode: mode }),
+  toggleViewMode: () =>
+    set((state) => ({
+      viewMode: state.viewMode === "code" ? "rendered" : "code",
+    })),
   setLoading: (isLoading, message = "") =>
     set({ isLoading, loadingMessage: message }),
 }));

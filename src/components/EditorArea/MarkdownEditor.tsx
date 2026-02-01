@@ -159,7 +159,7 @@ function CodeEditor({
             />
           }
           placeholder={
-            <div className="markdown-editor-placeholder">Enter markdown...</div>
+            <div className="markdown-editor-placeholder"># Untitled</div>
           }
           ErrorBoundary={LexicalErrorBoundary}
         />

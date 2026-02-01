@@ -15,3 +15,5 @@ export interface FileNode {
 }
 
 export type SidebarView = "files" | "outline";
+
+export type ViewMode = "rendered" | "code";

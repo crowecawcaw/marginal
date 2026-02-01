@@ -198,11 +198,7 @@ const Layout: React.FC = () => {
 
   return (
     <div className="layout">
-      <Titlebar
-        onNewFile={handleNewFile}
-        onOpenFile={handleOpenFile}
-        onSave={handleSave}
-      />
+      <Titlebar />
       <div className="layout-main">
         <Sidebar />
         <OutlineSidebar />

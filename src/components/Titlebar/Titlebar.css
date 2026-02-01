@@ -1,125 +1,127 @@
 .titlebar {
   display: flex;
   align-items: center;
-  justify-content: space-between;
   height: 52px;
-  padding: 0 16px;
   background-color: var(--color-bg-primary);
-  border-bottom: 1px solid var(--color-border-primary);
-  -webkit-app-region: drag;
   user-select: none;
-  position: relative;
-  z-index: 100;
 }
 
-.titlebar-spacer {
-  width: 80px;
-  flex-shrink: 0;
+[data-tauri-drag-region] {
+  -webkit-app-region: drag;
+  app-region: drag;
 }
 
-.titlebar-center {
-  position: relative;
-  -webkit-app-region: no-drag;
+/*
+ * Drag regions for window movement.
+ * Note: data-tauri-drag-region must be applied directly to the element -
+ * it does not cascade to children. Each draggable area needs its own element.
+ */
+.titlebar-drag-left {
+  flex: 1;
+  height: 100%;
+  min-width: 80px; /* Space for macOS traffic lights */
 }
 
-.titlebar-title {
+.titlebar-drag-right {
+  flex: 1;
+  height: 100%;
+}
+
+.titlebar-tabs {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 8px;
+}
+
+.titlebar-tab {
   display: flex;
   align-items: center;
   gap: 6px;
   padding: 6px 12px;
-  background: transparent;
+  background-color: transparent;
   border: 1px solid transparent;
   border-radius: 6px;
   cursor: pointer;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 500;
-  color: var(--color-text-primary);
+  color: var(--color-text-secondary);
   transition: all 0.15s ease;
 }
 
-.titlebar-title:hover {
-  background-color: var(--color-bg-secondary);
+.titlebar-tab:hover {
+  background-color: var(--color-bg-hover);
 }
 
-.titlebar-title.active {
+.titlebar-tab.active {
   background-color: var(--color-bg-secondary);
   border-color: var(--color-border-primary);
+  color: var(--color-text-primary);
 }
 
-.titlebar-title-text {
+.titlebar-tab-name {
   display: flex;
   align-items: center;
   gap: 4px;
+  white-space: nowrap;
 }
 
-.titlebar-dirty {
+.titlebar-tab-dirty {
   color: var(--color-accent-primary);
-  font-size: 10px;
+  font-size: 8px;
 }
 
-.titlebar-chevron {
-  transition: transform 0.15s ease;
-  opacity: 0.5;
-}
-
-.titlebar-chevron.open {
-  transform: rotate(180deg);
-}
-
-.titlebar-dropdown {
-  position: absolute;
-  top: calc(100% + 4px);
-  left: 50%;
-  transform: translateX(-50%);
-  min-width: 200px;
-  background-color: var(--color-bg-primary);
-  border: 1px solid var(--color-border-primary);
-  border-radius: 8px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
-  padding: 4px;
-  z-index: 1000;
-}
-
-.titlebar-dropdown-item {
+.titlebar-tab-close {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  width: 100%;
-  padding: 8px 12px;
-  background: none;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 13px;
-  color: var(--color-text-primary);
-  text-align: left;
-  transition: background-color 0.1s ease;
-}
-
-.titlebar-dropdown-item:hover {
-  background-color: var(--color-bg-secondary);
-}
-
-.titlebar-dropdown-label {
-  flex: 1;
-}
-
-.titlebar-dropdown-shortcut {
-  font-size: 12px;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  font-size: 14px;
+  line-height: 1;
   color: var(--color-text-secondary);
-  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+  transition: all 0.1s ease;
 }
 
-.titlebar-dropdown-separator {
-  height: 1px;
-  background-color: var(--color-border-primary);
-  margin: 4px 8px;
+.titlebar-tab-close:hover {
+  color: var(--color-text-primary);
+  background-color: rgba(0, 0, 0, 0.1);
 }
 
-.titlebar-dropdown-path {
-  padding: 8px 12px;
+/* View mode toggle */
+.titlebar-view-toggle {
+  display: flex;
+  margin-right: 12px;
+}
+
+.titlebar-toggle-btn {
+  padding: 4px 8px;
+  background-color: transparent;
+  border: 1px solid var(--color-border-primary);
+  color: var(--color-text-secondary);
   font-size: 11px;
-  color: var(--color-text-tertiary);
-  word-break: break-all;
-  line-height: 1.4;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.titlebar-toggle-btn:first-child {
+  border-top-left-radius: 4px;
+  border-bottom-left-radius: 4px;
+  border-right: none;
+}
+
+.titlebar-toggle-btn:last-child {
+  border-top-right-radius: 4px;
+  border-bottom-right-radius: 4px;
+}
+
+.titlebar-toggle-btn:hover {
+  background-color: var(--color-bg-hover);
+}
+
+.titlebar-toggle-btn.active {
+  background-color: var(--color-bg-secondary);
+  color: var(--color-text-primary);
 }
