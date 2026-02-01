@@ -287,4 +287,7 @@ describe("EditorArea E2E", () => {
       expect(state.tabs[0].id).toBe("tab-to-keep");
     });
   });
+
+  // Note: Format functionality is tested in EditorArea.format.test.tsx
+  // This e2e suite focuses on user interactions and UI state
 });

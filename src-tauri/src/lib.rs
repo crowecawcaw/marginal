@@ -89,7 +89,7 @@ fn write_file_content(path: String, content: String) -> Result<(), String> {
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
-    use tauri::menu::{MenuBuilder, MenuItemBuilder, SubmenuBuilder};
+    use tauri::menu::{MenuBuilder, MenuItemBuilder, PredefinedMenuItem, SubmenuBuilder};
 
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
@@ -103,11 +103,26 @@ pub fn run() {
         .setup(|app| {
             // Build the menu
             // On macOS, the first submenu becomes the app menu, so we create it explicitly
+            let about = PredefinedMenuItem::about(app, None, None)?;
+
             let view_readme = MenuItemBuilder::with_id("view_readme", "View README")
                 .build(app)?;
 
+            let hide = PredefinedMenuItem::hide(app, None)?;
+            let hide_others = PredefinedMenuItem::hide_others(app, None)?;
+            let show_all = PredefinedMenuItem::show_all(app, None)?;
+            let quit = PredefinedMenuItem::quit(app, None)?;
+
             let app_menu = SubmenuBuilder::new(app, "Marginal")
+                .item(&about)
+                .separator()
                 .item(&view_readme)
+                .separator()
+                .item(&hide)
+                .item(&hide_others)
+                .item(&show_all)
+                .separator()
+                .item(&quit)
                 .build()?;
 
             let new_file = MenuItemBuilder::with_id("new_file", "New File")
@@ -144,19 +159,14 @@ pub fn run() {
                 .accelerator("CmdOrCtrl+\\")
                 .build(app)?;
 
-            let view_rendered = MenuItemBuilder::with_id("view_rendered", "View Rendered Document")
-                .accelerator("CmdOrCtrl+Shift+R")
-                .build(app)?;
-
-            let view_code = MenuItemBuilder::with_id("view_code", "View Markdown Code")
-                .accelerator("CmdOrCtrl+Shift+M")
+            let toggle_view = MenuItemBuilder::with_id("toggle_view", "Toggle Presentation/Code View")
+                .accelerator("CmdOrCtrl+Shift+P")
                 .build(app)?;
 
             let view_menu = SubmenuBuilder::new(app, "View")
                 .item(&toggle_outline)
                 .separator()
-                .item(&view_rendered)
-                .item(&view_code)
+                .item(&toggle_view)
                 .build()?;
 
             let menu = MenuBuilder::new(app)
@@ -190,11 +200,8 @@ pub fn run() {
                     "toggle_outline" => {
                         let _ = window.emit("menu:toggle-outline", ());
                     }
-                    "view_rendered" => {
-                        let _ = window.emit("menu:view-rendered", ());
-                    }
-                    "view_code" => {
-                        let _ = window.emit("menu:view-code", ());
+                    "toggle_view" => {
+                        let _ = window.emit("menu:toggle-view", ());
                     }
                     "view_readme" => {
                         let _ = window.emit("menu:view-readme", ());

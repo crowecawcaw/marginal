@@ -83,13 +83,19 @@ marginal/
 - Unsaved changes indicator
 
 ### 4. Keyboard Shortcuts
-- `Cmd/Ctrl+N`: New file
-- `Cmd/Ctrl+O`: Open file
-- `Cmd/Ctrl+S`: Save
-- `Cmd/Ctrl+W`: Close tab
-- `Cmd/Ctrl+B`: Toggle sidebar
-- `Cmd/Ctrl+Shift+F`: Search in files
-- Standard markdown shortcuts (bold, italic, headers, lists, etc.)
+
+| Shortcut | Action |
+|----------|--------|
+| `Cmd/Ctrl+N` | New file |
+| `Cmd/Ctrl+O` | Open file |
+| `Cmd/Ctrl+S` | Save |
+| `Cmd/Ctrl+W` | Close tab |
+| `Cmd/Ctrl+\` | Toggle outline |
+| `Cmd/Ctrl+Shift+P` | Toggle presentation/code view |
+| `Shift+Alt+F` | Format document |
+| `Cmd/Ctrl+F` | Find in document |
+| `Cmd+H` | Hide app (macOS) |
+| `Cmd+Q` | Quit app (macOS) |
 
 ## Key Dependencies
 

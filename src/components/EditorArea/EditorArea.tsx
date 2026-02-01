@@ -20,27 +20,9 @@ const EditorArea: React.FC = () => {
   } = useEditorStore();
   const [viewMode, setViewMode] = useState<ViewMode>("code");
   const [findVisible, setFindVisible] = useState(false);
+  const [editorKey, setEditorKey] = useState(0);
 
   const activeTab = tabs.find((tab) => tab.id === activeTabId);
-
-  // Handle format document
-  const handleFormat = async () => {
-    if (!activeTab || viewMode !== "code") return;
-
-    try {
-      const formatted = await prettier.format(activeTab.content, {
-        parser: "markdown",
-        plugins: [prettierMarkdown],
-        proseWrap: "preserve",
-      });
-      updateTabContent(activeTab.id, formatted);
-      if (!activeTab.isDirty) {
-        markTabDirty(activeTab.id, true);
-      }
-    } catch (error) {
-      console.error("Failed to format document:", error);
-    }
-  };
 
   // Handle Cmd+F keyboard shortcut for find
   useEffect(() => {
@@ -55,14 +37,39 @@ const EditorArea: React.FC = () => {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
 
-  // Listen for format menu event (works in both Tauri and web)
+  // Listen for menu events (works in both Tauri and web)
   useEffect(() => {
     let cleanup: (() => void) | undefined;
 
+    // Handle format document - defined inside useEffect to always use current activeTab
+    const handleFormat = async () => {
+      if (!activeTab || viewMode !== "code") return;
+
+      try {
+        const formatted = await prettier.format(activeTab.content, {
+          parser: "markdown",
+          plugins: [prettierMarkdown],
+          proseWrap: "preserve",
+          printWidth: 120,
+        });
+        updateTabContent(activeTab.id, formatted);
+        if (!activeTab.isDirty) {
+          markTabDirty(activeTab.id, true);
+        }
+        // Force editor remount to show formatted content
+        setEditorKey((prev) => prev + 1);
+      } catch (error) {
+        console.error("Failed to format document:", error);
+      }
+    };
+
+    const toggleView = () => {
+      setViewMode((current) => (current === "code" ? "rendered" : "code"));
+    };
+
     setupEventListeners([
-      { event: "menu:format-document", callback: () => handleFormat() },
-      { event: "menu:view-rendered", callback: () => setViewMode("rendered") },
-      { event: "menu:view-code", callback: () => setViewMode("code") },
+      { event: "menu:format-document", callback: handleFormat },
+      { event: "menu:toggle-view", callback: toggleView },
     ]).then((unlisten) => {
       cleanup = unlisten;
     });
@@ -70,7 +77,7 @@ const EditorArea: React.FC = () => {
     return () => {
       cleanup?.();
     };
-  }, [activeTab, viewMode]);
+  }, [activeTab, viewMode, updateTabContent, markTabDirty]);
 
   return (
     <div className="editor-area">
@@ -105,7 +112,7 @@ const EditorArea: React.FC = () => {
         {activeTab && (
           <>
             <MarkdownEditor
-              key={`${activeTab.id}-${viewMode}`}
+              key={`${activeTab.id}-${viewMode}-${editorKey}`}
               initialContent={activeTab.content}
               viewMode={viewMode}
               onChange={(content) => {

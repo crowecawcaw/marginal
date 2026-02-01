@@ -97,6 +97,23 @@ describe("MarkdownEditor", () => {
       expect(onChange).toHaveBeenCalled();
       expect(onChange).toHaveBeenLastCalledWith("# Test");
     });
+
+    it("disables auto-corrections in code view to prevent -- becoming em dash", () => {
+      render(
+        <MarkdownEditor
+          initialContent="test -- content"
+          viewMode="code"
+          onChange={vi.fn()}
+        />,
+      );
+
+      const textarea = screen.getByRole("textbox");
+
+      // Verify auto-correction attributes are disabled
+      expect(textarea).toHaveAttribute("autocorrect", "off");
+      expect(textarea).toHaveAttribute("autocapitalize", "off");
+      expect(textarea).toHaveAttribute("spellcheck", "false");
+    });
   });
 
   describe("Rendered View", () => {

@@ -400,7 +400,12 @@ function CodeEditor({
       <div className="markdown-editor-container markdown-code-view">
         <PlainTextPlugin
           contentEditable={
-            <ContentEditable className="markdown-editor-input markdown-code-input" />
+            <ContentEditable
+              className="markdown-editor-input markdown-code-input"
+              autoCorrect="off"
+              autoCapitalize="off"
+              spellCheck={false}
+            />
           }
           placeholder={
             <div className="markdown-editor-placeholder">Enter markdown...</div>
