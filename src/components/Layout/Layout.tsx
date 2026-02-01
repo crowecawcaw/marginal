@@ -5,6 +5,7 @@ import OutlineSidebar from "../Sidebar/OutlineSidebar";
 import EditorArea from "../EditorArea/EditorArea";
 import Toast from "../Toast/Toast";
 import LoadingOverlay from "../LoadingOverlay/LoadingOverlay";
+import KeyboardHints from "../KeyboardHints/KeyboardHints";
 import { useUIStore } from "../../stores/uiStore";
 import { useEditorStore } from "../../stores/editorStore";
 import { useNotificationStore } from "../../stores/notificationStore";
@@ -208,6 +209,7 @@ const Layout: React.FC = () => {
       <EditorArea />
       <Toast />
       <LoadingOverlay />
+      <KeyboardHints />
     </div>
   );
 };
