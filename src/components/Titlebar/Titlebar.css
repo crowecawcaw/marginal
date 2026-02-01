@@ -1,0 +1,125 @@
+.titlebar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 52px;
+  padding: 0 16px;
+  background-color: var(--color-bg-primary);
+  border-bottom: 1px solid var(--color-border-primary);
+  -webkit-app-region: drag;
+  user-select: none;
+  position: relative;
+  z-index: 100;
+}
+
+.titlebar-spacer {
+  width: 80px;
+  flex-shrink: 0;
+}
+
+.titlebar-center {
+  position: relative;
+  -webkit-app-region: no-drag;
+}
+
+.titlebar-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-text-primary);
+  transition: all 0.15s ease;
+}
+
+.titlebar-title:hover {
+  background-color: var(--color-bg-secondary);
+}
+
+.titlebar-title.active {
+  background-color: var(--color-bg-secondary);
+  border-color: var(--color-border-primary);
+}
+
+.titlebar-title-text {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.titlebar-dirty {
+  color: var(--color-accent-primary);
+  font-size: 10px;
+}
+
+.titlebar-chevron {
+  transition: transform 0.15s ease;
+  opacity: 0.5;
+}
+
+.titlebar-chevron.open {
+  transform: rotate(180deg);
+}
+
+.titlebar-dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 50%;
+  transform: translateX(-50%);
+  min-width: 200px;
+  background-color: var(--color-bg-primary);
+  border: 1px solid var(--color-border-primary);
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  padding: 4px;
+  z-index: 1000;
+}
+
+.titlebar-dropdown-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 8px 12px;
+  background: none;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 13px;
+  color: var(--color-text-primary);
+  text-align: left;
+  transition: background-color 0.1s ease;
+}
+
+.titlebar-dropdown-item:hover {
+  background-color: var(--color-bg-secondary);
+}
+
+.titlebar-dropdown-label {
+  flex: 1;
+}
+
+.titlebar-dropdown-shortcut {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+.titlebar-dropdown-separator {
+  height: 1px;
+  background-color: var(--color-border-primary);
+  margin: 4px 8px;
+}
+
+.titlebar-dropdown-path {
+  padding: 8px 12px;
+  font-size: 11px;
+  color: var(--color-text-tertiary);
+  word-break: break-all;
+  line-height: 1.4;
+}

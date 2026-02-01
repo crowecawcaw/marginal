@@ -4,11 +4,14 @@
 
 The app name is **marginal** (lowercase). Always use lowercase when referring to the app in code, documentation, UI, and file names.
 
-## Unit Testing Requirement
+## Testing Philosophy
 
-**Add unit tests for every change.**
+Write effective tests that are simple and give high confidence:
 
-When implementing features or making changes to the codebase, you must create corresponding unit tests to verify the functionality works as expected.
+- **Unit tests** for data transformation functions (e.g., presentation ↔ code view conversions)
+- **E2E tests** for high-level functionality (e.g., click table cell → type → convert to code view → convert back → verify text matches)
+- **Avoid excessive mocking** - prefer real implementations when practical
+- **Refactor for testability** when it simplifies testing
 
 ## Behavior Tracking
 

@@ -152,6 +152,7 @@ export const useFileSystem = () => {
   ) => {
     try {
       const selected = await saveDialog({
+        defaultPath: "Untitled.md",
         filters: [
           {
             name: "Markdown",

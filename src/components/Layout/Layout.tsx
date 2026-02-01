@@ -1,5 +1,6 @@
 import React, { useEffect } from "react";
 import { setupEventListeners } from "../../platform/eventAdapter";
+import Titlebar from "../Titlebar/Titlebar";
 import Sidebar from "../Sidebar/Sidebar";
 import OutlineSidebar from "../Sidebar/OutlineSidebar";
 import EditorArea from "../EditorArea/EditorArea";
@@ -197,9 +198,16 @@ const Layout: React.FC = () => {
 
   return (
     <div className="layout">
-      <Sidebar />
-      <OutlineSidebar />
-      <EditorArea />
+      <Titlebar
+        onNewFile={handleNewFile}
+        onOpenFile={handleOpenFile}
+        onSave={handleSave}
+      />
+      <div className="layout-main">
+        <Sidebar />
+        <OutlineSidebar />
+        <EditorArea />
+      </div>
       <Toast />
       <LoadingOverlay />
       <KeyboardHints />

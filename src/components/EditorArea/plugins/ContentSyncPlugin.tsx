@@ -2,6 +2,7 @@ import React, { useEffect } from "react";
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
 import { $getRoot, $createParagraphNode, $createTextNode } from "lexical";
 import { $convertFromMarkdownString, TRANSFORMERS } from "@lexical/markdown";
+import { $createHeadingNode } from "@lexical/rich-text";
 import { TABLE, $createTableFromMarkdown } from "../tableTransformer";
 
 const CUSTOM_TRANSFORMERS = [...TRANSFORMERS, TABLE];
@@ -18,6 +19,15 @@ export function RenderedContentSyncPlugin({ content }: ContentSyncPluginProps) {
   useEffect(() => {
     if (!initialized) {
       editor.update(() => {
+        // If content is empty, initialize with a heading
+        if (!content || content.trim() === "") {
+          const root = $getRoot();
+          root.clear();
+          const heading = $createHeadingNode("h1");
+          root.append(heading);
+          return;
+        }
+
         // Extract table blocks and process them separately
         const tableRegex = /(\|.+\|\n\|[-:\s|]+\|\n(?:\|.+\|\n?)*)/g;
         const tables: { text: string; index: number }[] = [];
