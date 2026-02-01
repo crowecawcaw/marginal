@@ -7,7 +7,7 @@ interface AppSettings {
   lastOpenedFolder: string | null;
 }
 
-const SETTINGS_KEY = 'marginal-settings';
+const SETTINGS_KEY = "marginal-settings";
 
 const defaultSettings: AppSettings = {
   sidebarVisible: false,
@@ -25,7 +25,7 @@ export const loadSettings = (): AppSettings => {
       return { ...defaultSettings, ...JSON.parse(stored) };
     }
   } catch (error) {
-    console.error('Failed to load settings:', error);
+    console.error("Failed to load settings:", error);
   }
   return defaultSettings;
 };
@@ -36,7 +36,7 @@ export const saveSettings = (settings: Partial<AppSettings>): void => {
     const updated = { ...current, ...settings };
     localStorage.setItem(SETTINGS_KEY, JSON.stringify(updated));
   } catch (error) {
-    console.error('Failed to save settings:', error);
+    console.error("Failed to save settings:", error);
   }
 };
 
@@ -44,6 +44,6 @@ export const clearSettings = (): void => {
   try {
     localStorage.removeItem(SETTINGS_KEY);
   } catch (error) {
-    console.error('Failed to clear settings:', error);
+    console.error("Failed to clear settings:", error);
   }
 };

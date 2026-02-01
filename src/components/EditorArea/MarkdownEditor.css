@@ -5,40 +5,43 @@
   flex-direction: column;
 }
 
-.markdown-code-editor {
-  flex: 1;
-  width: 100%;
-  height: 100%;
-  background-color: var(--color-bg-primary);
-  color: var(--color-text-primary);
-  overflow-y: auto;
+/* Code view (plain text markdown source) */
+.markdown-code-view .markdown-editor-input {
+  font-family:
+    "SF Mono", "Monaco", "Menlo", "Consolas", "Courier New", monospace;
+  font-size: 14px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  caret-color: var(--text-primary, currentColor);
 }
 
-/* OverType plain textarea styling for code view */
-.markdown-code-editor textarea {
-  width: 100% !important;
-  height: 100% !important;
-  padding: 2rem !important;
-  font-family: 'SF Mono', 'Monaco', 'Menlo', 'Consolas', 'Courier New', monospace !important;
-  font-size: 14px !important;
-  line-height: 1.6 !important;
-  background-color: var(--color-bg-primary) !important;
-  color: var(--color-text-primary) !important;
-  border: none !important;
-  outline: none !important;
-  resize: none !important;
-  box-sizing: border-box !important;
+.markdown-code-view .markdown-editor-placeholder {
+  font-family:
+    "SF Mono", "Monaco", "Menlo", "Consolas", "Courier New", monospace;
+  font-size: 14px;
+  font-weight: normal;
+  opacity: 0.5;
+}
+
+.editor-code-paragraph {
+  margin: 0;
+  white-space: pre-wrap;
+  word-wrap: break-word;
 }
 
 .markdown-editor-input {
   flex: 1;
   outline: none;
   padding: 2rem;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica', 'Arial', sans-serif;
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica", "Arial",
+    sans-serif;
   font-size: 16px;
   line-height: 1.6;
   overflow-y: auto;
   color: var(--text-primary);
+  caret-color: var(--text-primary, currentColor);
 }
 
 .markdown-editor-placeholder {
@@ -48,7 +51,9 @@
   color: var(--text-secondary);
   pointer-events: none;
   user-select: none;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica', 'Arial', sans-serif;
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica", "Arial",
+    sans-serif;
   font-size: 2em;
   font-weight: bold;
   opacity: 0.4;

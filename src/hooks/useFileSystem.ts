@@ -6,11 +6,11 @@ import {
   getFileName,
   downloadFile,
   saveDialog,
-} from '../platform/fileSystemAdapter';
-import { isTauri } from '../platform';
-import { useFileStore } from '../stores/fileStore';
-import { useEditorStore } from '../stores/editorStore';
-import { parseFrontmatter, serializeFrontmatter } from '../utils/frontmatter';
+} from "../platform/fileSystemAdapter";
+import { isTauri } from "../platform";
+import { useFileStore } from "../stores/fileStore";
+import { useEditorStore } from "../stores/editorStore";
+import { parseFrontmatter, serializeFrontmatter } from "../utils/frontmatter";
 
 export const useFileSystem = () => {
   const { setRootPath, setFileTree, addRecentFile } = useFileStore();
@@ -32,7 +32,7 @@ export const useFileSystem = () => {
       const tree = await readDirTree(selected);
       setFileTree(tree);
     } catch (error) {
-      console.error('Failed to open folder:', error);
+      console.error("Failed to open folder:", error);
       throw error;
     }
   };
@@ -47,8 +47,8 @@ export const useFileSystem = () => {
           multiple: false,
           filters: [
             {
-              name: 'Markdown',
-              extensions: ['md', 'markdown'],
+              name: "Markdown",
+              extensions: ["md", "markdown"],
             },
           ],
         });
@@ -77,7 +77,7 @@ export const useFileSystem = () => {
 
       addRecentFile(path);
     } catch (error) {
-      console.error('Failed to open file:', error);
+      console.error("Failed to open file:", error);
       throw error;
     }
   };
@@ -85,7 +85,7 @@ export const useFileSystem = () => {
   const saveFile = async (
     filePath: string,
     content: string,
-    frontmatter?: Record<string, any>
+    frontmatter?: Record<string, any>,
   ) => {
     try {
       // Serialize content with frontmatter if it exists
@@ -96,7 +96,7 @@ export const useFileSystem = () => {
       await writeFileContent(filePath, finalContent);
       return true;
     } catch (error) {
-      console.error('Failed to save file:', error);
+      console.error("Failed to save file:", error);
       throw error;
     }
   };
@@ -106,7 +106,7 @@ export const useFileSystem = () => {
       const content = await readFileContent(filePath);
       return content;
     } catch (error) {
-      console.error('Failed to read file:', error);
+      console.error("Failed to read file:", error);
       throw error;
     }
   };
@@ -116,40 +116,46 @@ export const useFileSystem = () => {
     const untitledPattern = /^Untitled(\d*)\.md$/;
 
     const existingNumbers = currentTabs
-      .map(tab => {
+      .map((tab) => {
         const match = tab.fileName.match(untitledPattern);
-        return match ? (match[1] === '' ? 1 : parseInt(match[1], 10)) : 0;
+        return match ? (match[1] === "" ? 1 : parseInt(match[1], 10)) : 0;
       })
-      .filter(num => num > 0);
+      .filter((num) => num > 0);
 
     let nextNumber = 1;
     if (existingNumbers.length > 0) {
       const maxNumber = Math.max(...existingNumbers);
-      const hasUntitled = currentTabs.some(tab => tab.fileName === 'Untitled.md');
+      const hasUntitled = currentTabs.some(
+        (tab) => tab.fileName === "Untitled.md",
+      );
       nextNumber = hasUntitled ? maxNumber + 1 : 1;
     }
 
-    const fileName = nextNumber === 1 ? 'Untitled.md' : `Untitled${nextNumber}.md`;
+    const fileName =
+      nextNumber === 1 ? "Untitled.md" : `Untitled${nextNumber}.md`;
     const timestamp = Date.now();
     const newTabId = `untitled-${timestamp}`;
 
     openTab({
       id: newTabId,
-      filePath: '', // Empty path means unsaved file
+      filePath: "", // Empty path means unsaved file
       fileName,
-      content: '',
+      content: "",
       isDirty: false,
       frontmatter: undefined,
     });
   };
 
-  const saveFileAs = async (content: string, frontmatter?: Record<string, any>) => {
+  const saveFileAs = async (
+    content: string,
+    frontmatter?: Record<string, any>,
+  ) => {
     try {
       const selected = await saveDialog({
         filters: [
           {
-            name: 'Markdown',
-            extensions: ['md', 'markdown'],
+            name: "Markdown",
+            extensions: ["md", "markdown"],
           },
         ],
       });
@@ -173,13 +179,17 @@ export const useFileSystem = () => {
 
       return { path: selected, fileName };
     } catch (error) {
-      console.error('Failed to save file as:', error);
+      console.error("Failed to save file as:", error);
       throw error;
     }
   };
 
   // Web-specific function to download current file
-  const downloadCurrentFile = (content: string, fileName: string, frontmatter?: Record<string, any>) => {
+  const downloadCurrentFile = (
+    content: string,
+    fileName: string,
+    frontmatter?: Record<string, any>,
+  ) => {
     const finalContent = frontmatter
       ? serializeFrontmatter(content, frontmatter)
       : content;

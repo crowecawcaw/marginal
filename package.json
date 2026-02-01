@@ -28,7 +28,6 @@
     "gray-matter": "^4.0.3",
     "lexical": "^0.22.0",
     "mermaid": "^11.4.1",
-    "overtype": "^2.1.1",
     "prismjs": "^1.30.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",

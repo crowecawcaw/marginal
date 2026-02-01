@@ -1,102 +1,83 @@
-import React, { useEffect, useState, useRef } from 'react';
-import { LexicalComposer } from '@lexical/react/LexicalComposer';
-import { RichTextPlugin } from '@lexical/react/LexicalRichTextPlugin';
-import { ContentEditable } from '@lexical/react/LexicalContentEditable';
-import { HistoryPlugin } from '@lexical/react/LexicalHistoryPlugin';
-import { OnChangePlugin } from '@lexical/react/LexicalOnChangePlugin';
-import { MarkdownShortcutPlugin } from '@lexical/react/LexicalMarkdownShortcutPlugin';
-import { ListPlugin } from '@lexical/react/LexicalListPlugin';
-import { LinkPlugin } from '@lexical/react/LexicalLinkPlugin';
-import { TabIndentationPlugin } from '@lexical/react/LexicalTabIndentationPlugin';
-import { LexicalErrorBoundary } from '@lexical/react/LexicalErrorBoundary';
-import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
-import { registerCodeHighlighting } from '@lexical/code';
-import { HeadingNode, QuoteNode } from '@lexical/rich-text';
-import { ListItemNode, ListNode } from '@lexical/list';
-import { CodeNode, CodeHighlightNode } from '@lexical/code';
-import { LinkNode, AutoLinkNode } from '@lexical/link';
-import { TableNode, TableCellNode, TableRowNode } from '@lexical/table';
+// Prism setup must be imported first (before @lexical/code)
+import "../../lib/prismSetup";
+
+import React, { useEffect, useCallback } from "react";
+import { LexicalComposer } from "@lexical/react/LexicalComposer";
+import { RichTextPlugin } from "@lexical/react/LexicalRichTextPlugin";
+import { PlainTextPlugin } from "@lexical/react/LexicalPlainTextPlugin";
+import { ContentEditable } from "@lexical/react/LexicalContentEditable";
+import { HistoryPlugin } from "@lexical/react/LexicalHistoryPlugin";
+import { OnChangePlugin } from "@lexical/react/LexicalOnChangePlugin";
+import { MarkdownShortcutPlugin } from "@lexical/react/LexicalMarkdownShortcutPlugin";
+import { ListPlugin } from "@lexical/react/LexicalListPlugin";
+import { LinkPlugin } from "@lexical/react/LexicalLinkPlugin";
+import { TabIndentationPlugin } from "@lexical/react/LexicalTabIndentationPlugin";
+import { LexicalErrorBoundary } from "@lexical/react/LexicalErrorBoundary";
+import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
+import {
+  registerCodeHighlighting,
+  CodeNode,
+  CodeHighlightNode,
+} from "@lexical/code";
+import { HeadingNode, QuoteNode } from "@lexical/rich-text";
+import { ListItemNode, ListNode } from "@lexical/list";
+import { LinkNode, AutoLinkNode } from "@lexical/link";
+import { TableNode, TableCellNode, TableRowNode } from "@lexical/table";
 import {
   EditorState,
+  $getRoot,
   $getSelection,
   $isRangeSelection,
   $createParagraphNode,
+  $createTextNode,
   COMMAND_PRIORITY_HIGH,
   KEY_ENTER_COMMAND,
   KEY_BACKSPACE_COMMAND,
-} from 'lexical';
-import { $isListItemNode, $isListNode } from '@lexical/list';
-import { $convertFromMarkdownString, $convertToMarkdownString, TRANSFORMERS } from '@lexical/markdown';
-import OverType, { OverTypeInstance } from 'overtype';
-// Import Prism core first, then language components
-import 'prismjs';
-import 'prismjs/components/prism-markup';
-import 'prismjs/components/prism-markup-templating';
-import 'prismjs/components/prism-css';
-import 'prismjs/components/prism-clike';
-import 'prismjs/components/prism-javascript';
-import 'prismjs/components/prism-typescript';
-import 'prismjs/components/prism-jsx';
-import 'prismjs/components/prism-tsx';
-import 'prismjs/components/prism-python';
-import 'prismjs/components/prism-rust';
-import 'prismjs/components/prism-go';
-import 'prismjs/components/prism-java';
-import 'prismjs/components/prism-c';
-import 'prismjs/components/prism-cpp';
-import 'prismjs/components/prism-csharp';
-import 'prismjs/components/prism-bash';
-import 'prismjs/components/prism-shell-session';
-import 'prismjs/components/prism-json';
-import 'prismjs/components/prism-yaml';
-import 'prismjs/components/prism-toml';
-import 'prismjs/components/prism-sql';
-import 'prismjs/components/prism-graphql';
-import 'prismjs/components/prism-docker';
-import 'prismjs/components/prism-git';
-import 'prismjs/components/prism-diff';
-import 'prismjs/components/prism-regex';
-import 'prismjs/components/prism-markdown';
-import 'prismjs/components/prism-ruby';
-import 'prismjs/components/prism-php';
-import 'prismjs/components/prism-swift';
-import 'prismjs/components/prism-kotlin';
-import 'prismjs/components/prism-scala';
-import 'prismjs/components/prism-haskell';
-import 'prismjs/components/prism-elixir';
-import 'prismjs/components/prism-erlang';
-import 'prismjs/components/prism-clojure';
-import 'prismjs/components/prism-lua';
-import 'prismjs/components/prism-vim';
-import 'prismjs/components/prism-r';
-import 'prismjs/components/prism-matlab';
-import 'prismjs/components/prism-julia';
-import 'prismjs/components/prism-latex';
-import 'prismjs/components/prism-makefile';
-import 'prismjs/components/prism-nginx';
-import 'prismjs/components/prism-apacheconf';
-import 'prismjs/components/prism-http';
-import 'prismjs/components/prism-protobuf';
-import 'prismjs/components/prism-wasm';
-import 'prismjs/components/prism-xml-doc';
-import './MarkdownEditor.css';
+} from "lexical";
+import { $isListItemNode, $isListNode } from "@lexical/list";
+import {
+  $convertFromMarkdownString,
+  $convertToMarkdownString,
+  TRANSFORMERS,
+} from "@lexical/markdown";
+import "./MarkdownEditor.css";
 
 interface MarkdownEditorProps {
   initialContent: string;
-  viewMode: 'rendered' | 'code';
+  viewMode: "rendered" | "code";
   onChange: (content: string) => void;
 }
 
-// Plugin to set and sync content from markdown
-function ContentSyncPlugin({ content }: { content: string }) {
+// Plugin to set initial content for rendered view (parse markdown)
+function RenderedContentSyncPlugin({ content }: { content: string }) {
   const [editor] = useLexicalComposerContext();
   const [initialized, setInitialized] = React.useState(false);
 
   useEffect(() => {
     if (!initialized) {
-      // Initial load - parse markdown and set content
       editor.update(() => {
         $convertFromMarkdownString(content, TRANSFORMERS);
+      });
+      setInitialized(true);
+    }
+  }, [editor, initialized, content]);
+
+  return null;
+}
+
+// Plugin to set initial content for code view (plain text)
+function CodeContentSyncPlugin({ content }: { content: string }) {
+  const [editor] = useLexicalComposerContext();
+  const [initialized, setInitialized] = React.useState(false);
+
+  useEffect(() => {
+    if (!initialized) {
+      editor.update(() => {
+        const root = $getRoot();
+        root.clear();
+        const paragraph = $createParagraphNode();
+        paragraph.append($createTextNode(content));
+        root.append(paragraph);
       });
       setInitialized(true);
     }
@@ -140,7 +121,7 @@ function ListExitPlugin() {
 
         // Check if the list item is empty
         const textContent = listItemNode.getTextContent();
-        if (textContent !== '') {
+        if (textContent !== "") {
           return false;
         }
 
@@ -180,7 +161,7 @@ function ListExitPlugin() {
 
         return true;
       },
-      COMMAND_PRIORITY_HIGH
+      COMMAND_PRIORITY_HIGH,
     );
 
     // Handle Backspace key - exit list if on empty list item at start
@@ -207,7 +188,7 @@ function ListExitPlugin() {
 
         // Check if the list item is empty
         const textContent = listItemNode.getTextContent();
-        if (textContent !== '') {
+        if (textContent !== "") {
           return false;
         }
 
@@ -247,7 +228,7 @@ function ListExitPlugin() {
 
         return true;
       },
-      COMMAND_PRIORITY_HIGH
+      COMMAND_PRIORITY_HIGH,
     );
 
     return () => {
@@ -259,124 +240,75 @@ function ListExitPlugin() {
   return null;
 }
 
-const MarkdownEditor: React.FC<MarkdownEditorProps> = ({ initialContent, viewMode, onChange }) => {
-  const [content, setContent] = useState(initialContent);
-  const editorContainerRef = useRef<HTMLDivElement>(null);
-  const editorRef = useRef<OverTypeInstance | null>(null);
+// Shared theme for code highlighting tokens
+const codeHighlightTheme = {
+  atrule: "editor-token-atrule",
+  attr: "editor-token-attr",
+  boolean: "editor-token-boolean",
+  builtin: "editor-token-builtin",
+  cdata: "editor-token-cdata",
+  char: "editor-token-char",
+  class: "editor-token-class",
+  "class-name": "editor-token-class-name",
+  comment: "editor-token-comment",
+  constant: "editor-token-constant",
+  deleted: "editor-token-deleted",
+  doctype: "editor-token-doctype",
+  entity: "editor-token-entity",
+  function: "editor-token-function",
+  important: "editor-token-important",
+  inserted: "editor-token-inserted",
+  keyword: "editor-token-keyword",
+  namespace: "editor-token-namespace",
+  number: "editor-token-number",
+  operator: "editor-token-operator",
+  prolog: "editor-token-prolog",
+  property: "editor-token-property",
+  punctuation: "editor-token-punctuation",
+  regex: "editor-token-regex",
+  selector: "editor-token-selector",
+  string: "editor-token-string",
+  symbol: "editor-token-symbol",
+  tag: "editor-token-tag",
+  url: "editor-token-url",
+  variable: "editor-token-variable",
+};
 
-  // Sync content when initialContent changes (e.g., switching tabs)
-  useEffect(() => {
-    setContent(initialContent);
-  }, [initialContent]);
-
-  const handleContentChange = (newContent: string) => {
-    setContent(newContent);
-    onChange(newContent);
-  };
-
-  // Set up OverType for code view
-  useEffect(() => {
-    if (viewMode === 'code' && editorContainerRef.current && !editorRef.current) {
-      const [editor] = new OverType(editorContainerRef.current, {
-        value: content,
-        theme: 'cave',
-        onChange: (value: string) => {
-          setContent(value);
-          onChange(value);
-        },
-      });
-      // Show plain textarea for code view (not WYSIWYG overlay)
-      editor.showPlainTextarea();
-      editorRef.current = editor;
-    }
-
-    // Only cleanup when switching away from code view or unmounting
-    return () => {
-      if (viewMode !== 'code' && editorRef.current) {
-        editorRef.current.destroy();
-        editorRef.current = null;
-      }
-    };
-  }, [viewMode, onChange]);
-
-  // Update OverType content when initialContent changes
-  useEffect(() => {
-    if (viewMode === 'code' && editorRef.current) {
-      const currentContent = editorRef.current.getValue();
-      if (currentContent !== initialContent) {
-        editorRef.current.setValue(initialContent);
-      }
-    }
-  }, [initialContent, viewMode]);
-
-  // For code view, use OverType
-  if (viewMode === 'code') {
-    return (
-      <div className="markdown-editor-container">
-        <div ref={editorContainerRef} className="markdown-code-editor" />
-      </div>
-    );
-  }
-
-  // For rendered view, use Lexical
+// Rendered view editor (WYSIWYG markdown)
+function RenderedEditor({
+  initialContent,
+  onChange,
+}: {
+  initialContent: string;
+  onChange: (content: string) => void;
+}) {
   const initialConfig = {
-    namespace: 'MarkdownEditor',
+    namespace: "MarkdownEditor-Rendered",
     theme: {
-      paragraph: 'editor-paragraph',
+      paragraph: "editor-paragraph",
       heading: {
-        h1: 'editor-heading-h1',
-        h2: 'editor-heading-h2',
-        h3: 'editor-heading-h3',
-        h4: 'editor-heading-h4',
-        h5: 'editor-heading-h5',
-        h6: 'editor-heading-h6',
+        h1: "editor-heading-h1",
+        h2: "editor-heading-h2",
+        h3: "editor-heading-h3",
+        h4: "editor-heading-h4",
+        h5: "editor-heading-h5",
+        h6: "editor-heading-h6",
       },
       list: {
-        ul: 'editor-list-ul',
-        ol: 'editor-list-ol',
-        listitem: 'editor-list-item',
+        ul: "editor-list-ul",
+        ol: "editor-list-ol",
+        listitem: "editor-list-item",
       },
-      quote: 'editor-quote',
-      code: 'editor-code',
-      codeHighlight: {
-        atrule: 'editor-token-atrule',
-        attr: 'editor-token-attr',
-        boolean: 'editor-token-boolean',
-        builtin: 'editor-token-builtin',
-        cdata: 'editor-token-cdata',
-        char: 'editor-token-char',
-        class: 'editor-token-class',
-        'class-name': 'editor-token-class-name',
-        comment: 'editor-token-comment',
-        constant: 'editor-token-constant',
-        deleted: 'editor-token-deleted',
-        doctype: 'editor-token-doctype',
-        entity: 'editor-token-entity',
-        function: 'editor-token-function',
-        important: 'editor-token-important',
-        inserted: 'editor-token-inserted',
-        keyword: 'editor-token-keyword',
-        namespace: 'editor-token-namespace',
-        number: 'editor-token-number',
-        operator: 'editor-token-operator',
-        prolog: 'editor-token-prolog',
-        property: 'editor-token-property',
-        punctuation: 'editor-token-punctuation',
-        regex: 'editor-token-regex',
-        selector: 'editor-token-selector',
-        string: 'editor-token-string',
-        symbol: 'editor-token-symbol',
-        tag: 'editor-token-tag',
-        url: 'editor-token-url',
-        variable: 'editor-token-variable',
-      },
-      link: 'editor-link',
+      quote: "editor-quote",
+      code: "editor-code",
+      codeHighlight: codeHighlightTheme,
+      link: "editor-link",
       text: {
-        bold: 'editor-text-bold',
-        italic: 'editor-text-italic',
-        underline: 'editor-text-underline',
-        strikethrough: 'editor-text-strikethrough',
-        code: 'editor-text-code',
+        bold: "editor-text-bold",
+        italic: "editor-text-italic",
+        underline: "editor-text-underline",
+        strikethrough: "editor-text-strikethrough",
+        code: "editor-text-code",
       },
     },
     nodes: [
@@ -393,24 +325,30 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({ initialContent, viewMod
       TableRowNode,
     ],
     onError: (error: Error) => {
-      console.error('Lexical Error:', error);
+      console.error("Lexical Error:", error);
     },
   };
 
-  const handleChange = (editorState: EditorState) => {
-    editorState.read(() => {
-      // Convert editor state to markdown
-      const markdown = $convertToMarkdownString(TRANSFORMERS);
-      handleContentChange(markdown);
-    });
-  };
+  const handleChange = useCallback(
+    (editorState: EditorState) => {
+      editorState.read(() => {
+        const markdown = $convertToMarkdownString(TRANSFORMERS);
+        onChange(markdown);
+      });
+    },
+    [onChange],
+  );
 
   return (
     <LexicalComposer initialConfig={initialConfig}>
       <div className="markdown-editor-container">
         <RichTextPlugin
-          contentEditable={<ContentEditable className="markdown-editor-input" />}
-          placeholder={<div className="markdown-editor-placeholder">Untitled</div>}
+          contentEditable={
+            <ContentEditable className="markdown-editor-input" />
+          }
+          placeholder={
+            <div className="markdown-editor-placeholder">Untitled</div>
+          }
           ErrorBoundary={LexicalErrorBoundary}
         />
         <HistoryPlugin />
@@ -419,11 +357,86 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({ initialContent, viewMod
         <ListPlugin />
         <LinkPlugin />
         <TabIndentationPlugin />
-        <ContentSyncPlugin content={content} />
+        <RenderedContentSyncPlugin content={initialContent} />
         <CodeHighlightPlugin />
         <ListExitPlugin />
       </div>
     </LexicalComposer>
+  );
+}
+
+// Code view editor (plain text markdown source)
+function CodeEditor({
+  initialContent,
+  onChange,
+}: {
+  initialContent: string;
+  onChange: (content: string) => void;
+}) {
+  const initialConfig = {
+    namespace: "MarkdownEditor-Code",
+    theme: {
+      paragraph: "editor-code-paragraph",
+    },
+    nodes: [],
+    onError: (error: Error) => {
+      console.error("Lexical Error:", error);
+    },
+  };
+
+  const handleChange = useCallback(
+    (editorState: EditorState) => {
+      editorState.read(() => {
+        const root = $getRoot();
+        const text = root.getTextContent();
+        onChange(text);
+      });
+    },
+    [onChange],
+  );
+
+  return (
+    <LexicalComposer initialConfig={initialConfig}>
+      <div className="markdown-editor-container markdown-code-view">
+        <PlainTextPlugin
+          contentEditable={
+            <ContentEditable className="markdown-editor-input markdown-code-input" />
+          }
+          placeholder={
+            <div className="markdown-editor-placeholder">Enter markdown...</div>
+          }
+          ErrorBoundary={LexicalErrorBoundary}
+        />
+        <HistoryPlugin />
+        <OnChangePlugin onChange={handleChange} />
+        <CodeContentSyncPlugin content={initialContent} />
+      </div>
+    </LexicalComposer>
+  );
+}
+
+const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
+  initialContent,
+  viewMode,
+  onChange,
+}) => {
+  // Use key to force remount when switching views, ensuring fresh editor state
+  if (viewMode === "code") {
+    return (
+      <CodeEditor
+        key="code"
+        initialContent={initialContent}
+        onChange={onChange}
+      />
+    );
+  }
+
+  return (
+    <RenderedEditor
+      key="rendered"
+      initialContent={initialContent}
+      onChange={onChange}
+    />
   );
 };
 

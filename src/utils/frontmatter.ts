@@ -1,4 +1,4 @@
-import matter from 'gray-matter';
+import matter from "gray-matter";
 
 export interface ParsedMarkdown {
   content: string;
@@ -16,14 +16,14 @@ export const parseFrontmatter = (rawContent: string): ParsedMarkdown => {
     return {
       content: parsed.content,
       frontmatter: parsed.data,
-      rawFrontmatter: parsed.matter || '',
+      rawFrontmatter: parsed.matter || "",
     };
   } catch (error) {
-    console.error('Failed to parse frontmatter:', error);
+    console.error("Failed to parse frontmatter:", error);
     return {
       content: rawContent,
       frontmatter: {},
-      rawFrontmatter: '',
+      rawFrontmatter: "",
     };
   }
 };
@@ -33,7 +33,7 @@ export const parseFrontmatter = (rawContent: string): ParsedMarkdown => {
  */
 export const serializeFrontmatter = (
   content: string,
-  frontmatter: Record<string, any>
+  frontmatter: Record<string, any>,
 ): string => {
   // If there's no frontmatter, return content as-is
   if (!frontmatter || Object.keys(frontmatter).length === 0) {
@@ -43,7 +43,7 @@ export const serializeFrontmatter = (
   try {
     return matter.stringify(content, frontmatter);
   } catch (error) {
-    console.error('Failed to serialize frontmatter:', error);
+    console.error("Failed to serialize frontmatter:", error);
     return content;
   }
 };
@@ -52,5 +52,5 @@ export const serializeFrontmatter = (
  * Check if content has frontmatter
  */
 export const hasFrontmatter = (content: string): boolean => {
-  return content.trimStart().startsWith('---');
+  return content.trimStart().startsWith("---");
 };

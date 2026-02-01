@@ -5,7 +5,7 @@
  * in both Tauri (desktop) and web browser environments.
  */
 
-import { isTauri } from './index';
+import { isTauri } from "./index";
 
 // Event callback type
 type EventCallback = () => void;
@@ -44,9 +44,13 @@ export const getWebEventEmitter = (): WebEventEmitter => {
  * Listen for an app event
  * Works in both Tauri and web environments
  */
-export async function listen(event: string, callback: EventCallback): Promise<UnlistenFn> {
+export async function listen(
+  event: string,
+  callback: EventCallback,
+): Promise<UnlistenFn> {
   if (isTauri()) {
-    const { getCurrentWebviewWindow } = await import('@tauri-apps/api/webviewWindow');
+    const { getCurrentWebviewWindow } =
+      await import("@tauri-apps/api/webviewWindow");
     const appWindow = getCurrentWebviewWindow();
     return appWindow.listen(event, callback);
   } else {
@@ -70,10 +74,10 @@ export function emit(event: string): void {
  * Returns a cleanup function that removes all listeners
  */
 export async function setupEventListeners(
-  events: Array<{ event: string; callback: EventCallback }>
+  events: Array<{ event: string; callback: EventCallback }>,
 ): Promise<UnlistenFn> {
   const unlisteners = await Promise.all(
-    events.map(({ event, callback }) => listen(event, callback))
+    events.map(({ event, callback }) => listen(event, callback)),
   );
 
   return () => {

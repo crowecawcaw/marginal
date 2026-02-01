@@ -5,8 +5,8 @@
  * in both Tauri (desktop) and web browser environments.
  */
 
-import { isTauri } from './index';
-import { FileNode } from '../types';
+import { isTauri } from "./index";
+import { FileNode } from "../types";
 
 // Types for dialog options
 export interface OpenDialogOptions {
@@ -44,14 +44,14 @@ class WebFileStorage {
 
   private loadFromStorage() {
     try {
-      const stored = localStorage.getItem('marginal-files');
+      const stored = localStorage.getItem("marginal-files");
       if (stored) {
         const data = JSON.parse(stored);
         this.files = new Map(Object.entries(data.files || {}));
         this.nextId = data.nextId || 1;
       }
     } catch (e) {
-      console.warn('Failed to load files from localStorage:', e);
+      console.warn("Failed to load files from localStorage:", e);
     }
   }
 
@@ -61,9 +61,9 @@ class WebFileStorage {
         files: Object.fromEntries(this.files),
         nextId: this.nextId,
       };
-      localStorage.setItem('marginal-files', JSON.stringify(data));
+      localStorage.setItem("marginal-files", JSON.stringify(data));
     } catch (e) {
-      console.warn('Failed to save files to localStorage:', e);
+      console.warn("Failed to save files to localStorage:", e);
     }
   }
 
@@ -118,12 +118,14 @@ const getWebFileStorage = (): WebFileStorage => {
 /**
  * Open a file or folder dialog
  */
-export async function openDialog(options: OpenDialogOptions): Promise<string | null> {
+export async function openDialog(
+  options: OpenDialogOptions,
+): Promise<string | null> {
   if (isTauri()) {
     // Use Tauri dialog
-    const { open } = await import('@tauri-apps/plugin-dialog');
+    const { open } = await import("@tauri-apps/plugin-dialog");
     const result = await open(options);
-    if (result && typeof result === 'string') {
+    if (result && typeof result === "string") {
       return result;
     }
     return null;
@@ -132,16 +134,17 @@ export async function openDialog(options: OpenDialogOptions): Promise<string | n
     if (options.directory) {
       // For directory selection, we'll show a message that it's not supported
       // and create a virtual folder instead
-      return 'web-folder';
+      return "web-folder";
     }
 
     // Use File input for file selection
     return new Promise((resolve) => {
-      const input = document.createElement('input');
-      input.type = 'file';
-      input.accept = options.filters
-        ?.flatMap((f) => f.extensions.map((ext) => `.${ext}`))
-        .join(',') || '*';
+      const input = document.createElement("input");
+      input.type = "file";
+      input.accept =
+        options.filters
+          ?.flatMap((f) => f.extensions.map((ext) => `.${ext}`))
+          .join(",") || "*";
 
       input.onchange = async () => {
         const file = input.files?.[0];
@@ -164,26 +167,28 @@ export async function openDialog(options: OpenDialogOptions): Promise<string | n
 /**
  * Save file dialog (for Save As)
  */
-export async function saveDialog(options: SaveDialogOptions): Promise<string | null> {
+export async function saveDialog(
+  options: SaveDialogOptions,
+): Promise<string | null> {
   if (isTauri()) {
     // Use Tauri dialog
-    const { open } = await import('@tauri-apps/plugin-dialog');
+    const { open } = await import("@tauri-apps/plugin-dialog");
     const result = await open({
       directory: false,
       multiple: false,
       filters: options.filters,
     });
-    if (result && typeof result === 'string') {
+    if (result && typeof result === "string") {
       return result;
     }
     return null;
   } else {
     // Web implementation - prompt for filename
-    const defaultName = options.defaultPath || 'document.md';
-    const fileName = window.prompt('Enter file name:', defaultName);
+    const defaultName = options.defaultPath || "document.md";
+    const fileName = window.prompt("Enter file name:", defaultName);
     if (fileName) {
       const storage = getWebFileStorage();
-      return storage.addFile(fileName, '');
+      return storage.addFile(fileName, "");
     }
     return null;
   }
@@ -194,8 +199,8 @@ export async function saveDialog(options: SaveDialogOptions): Promise<string | n
  */
 export async function readDirTree(path: string): Promise<FileNode[]> {
   if (isTauri()) {
-    const { invoke } = await import('@tauri-apps/api/core');
-    return invoke<FileNode[]>('read_dir_tree', { path });
+    const { invoke } = await import("@tauri-apps/api/core");
+    return invoke<FileNode[]>("read_dir_tree", { path });
   } else {
     // Return the web file storage contents
     const storage = getWebFileStorage();
@@ -208,8 +213,8 @@ export async function readDirTree(path: string): Promise<FileNode[]> {
  */
 export async function readFileContent(path: string): Promise<string> {
   if (isTauri()) {
-    const { invoke } = await import('@tauri-apps/api/core');
-    return invoke<string>('read_file_content', { path });
+    const { invoke } = await import("@tauri-apps/api/core");
+    return invoke<string>("read_file_content", { path });
   } else {
     const storage = getWebFileStorage();
     const file = storage.getFile(path);
@@ -223,10 +228,13 @@ export async function readFileContent(path: string): Promise<string> {
 /**
  * Write file content
  */
-export async function writeFileContent(path: string, content: string): Promise<void> {
+export async function writeFileContent(
+  path: string,
+  content: string,
+): Promise<void> {
   if (isTauri()) {
-    const { invoke } = await import('@tauri-apps/api/core');
-    await invoke('write_file_content', { path, content });
+    const { invoke } = await import("@tauri-apps/api/core");
+    await invoke("write_file_content", { path, content });
   } else {
     const storage = getWebFileStorage();
     const file = storage.getFile(path);
@@ -234,7 +242,7 @@ export async function writeFileContent(path: string, content: string): Promise<v
       storage.updateFile(path, content);
     } else {
       // Create new file if it doesn't exist
-      storage.addFile(path.split('/').pop() || 'untitled.md', content);
+      storage.addFile(path.split("/").pop() || "untitled.md", content);
     }
   }
 }
@@ -243,9 +251,9 @@ export async function writeFileContent(path: string, content: string): Promise<v
  * Download file to user's computer (web only)
  */
 export function downloadFile(content: string, fileName: string): void {
-  const blob = new Blob([content], { type: 'text/markdown' });
+  const blob = new Blob([content], { type: "text/markdown" });
   const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
+  const a = document.createElement("a");
   a.href = url;
   a.download = fileName;
   document.body.appendChild(a);
@@ -259,10 +267,10 @@ export function downloadFile(content: string, fileName: string): void {
  */
 export function getFileName(path: string): string {
   if (isTauri()) {
-    return path.split('/').pop() || path.split('\\').pop() || 'Untitled';
+    return path.split("/").pop() || path.split("\\").pop() || "Untitled";
   } else {
     const storage = getWebFileStorage();
     const file = storage.getFile(path);
-    return file?.name || path.split('/').pop() || 'Untitled';
+    return file?.name || path.split("/").pop() || "Untitled";
   }
 }

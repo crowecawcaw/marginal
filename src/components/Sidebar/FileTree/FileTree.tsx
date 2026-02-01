@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
-import { FileNode } from '../../../types';
-import './FileTree.css';
+import React, { useState } from "react";
+import { FileNode } from "../../../types";
+import "./FileTree.css";
 
 interface FileTreeProps {
   nodes: FileNode[];
@@ -13,7 +13,11 @@ interface FileTreeNodeProps {
   onFileClick: (filePath: string) => void;
 }
 
-const FileTreeNode: React.FC<FileTreeNodeProps> = ({ node, depth, onFileClick }) => {
+const FileTreeNode: React.FC<FileTreeNodeProps> = ({
+  node,
+  depth,
+  onFileClick,
+}) => {
   const [isExpanded, setIsExpanded] = useState(false);
 
   const handleClick = () => {
@@ -26,18 +30,18 @@ const FileTreeNode: React.FC<FileTreeNodeProps> = ({ node, depth, onFileClick })
 
   const getIcon = () => {
     if (node.isDirectory) {
-      return isExpanded ? '📂' : '📁';
+      return isExpanded ? "📂" : "📁";
     }
-    if (node.name.endsWith('.md') || node.name.endsWith('.markdown')) {
-      return '📝';
+    if (node.name.endsWith(".md") || node.name.endsWith(".markdown")) {
+      return "📝";
     }
-    return '📄';
+    return "📄";
   };
 
   return (
     <div className="file-tree-node">
       <div
-        className={`file-tree-item ${node.isDirectory ? 'directory' : 'file'}`}
+        className={`file-tree-item ${node.isDirectory ? "directory" : "file"}`}
         style={{ paddingLeft: `${depth * 16}px` }}
         onClick={handleClick}
       >

@@ -1,8 +1,8 @@
-import React from 'react';
-import { useUIStore } from '../../stores/uiStore';
-import { useEditorStore } from '../../stores/editorStore';
-import Outline from './Outline/Outline';
-import './Sidebar.css';
+import React from "react";
+import { useUIStore } from "../../stores/uiStore";
+import { useEditorStore } from "../../stores/editorStore";
+import Outline from "./Outline/Outline";
+import "./Sidebar.css";
 
 const OutlineSidebar: React.FC = () => {
   const { outlineVisible, outlineWidth } = useUIStore();
@@ -10,7 +10,7 @@ const OutlineSidebar: React.FC = () => {
 
   // Get the active tab's content for TOC
   const activeTab = tabs.find((tab) => tab.id === activeTabId);
-  const activeContent = activeTab?.content || '';
+  const activeContent = activeTab?.content || "";
 
   if (!outlineVisible) return null;
 

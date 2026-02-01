@@ -1,6 +1,6 @@
-import React, { useEffect, useRef } from 'react';
-import mermaid from 'mermaid';
-import './MermaidBlock.css';
+import React, { useEffect, useRef } from "react";
+import mermaid from "mermaid";
+import "./MermaidBlock.css";
 
 interface MermaidBlockProps {
   code: string;
@@ -10,14 +10,16 @@ interface MermaidBlockProps {
 // Initialize mermaid
 mermaid.initialize({
   startOnLoad: false,
-  theme: 'default',
-  securityLevel: 'loose',
-  fontFamily: 'system-ui, -apple-system, sans-serif',
+  theme: "default",
+  securityLevel: "loose",
+  fontFamily: "system-ui, -apple-system, sans-serif",
 });
 
 const MermaidBlock: React.FC<MermaidBlockProps> = ({ code, language }) => {
   const containerRef = useRef<HTMLDivElement>(null);
-  const idRef = useRef<string>(`mermaid-${Math.random().toString(36).substr(2, 9)}`);
+  const idRef = useRef<string>(
+    `mermaid-${Math.random().toString(36).substr(2, 9)}`,
+  );
 
   useEffect(() => {
     const renderDiagram = async () => {
@@ -27,17 +29,17 @@ const MermaidBlock: React.FC<MermaidBlockProps> = ({ code, language }) => {
 
       try {
         // Clear previous content
-        containerRef.current.innerHTML = '';
+        containerRef.current.innerHTML = "";
 
         // Render the mermaid diagram
         const { svg } = await mermaid.render(idRef.current, code);
         containerRef.current.innerHTML = svg;
       } catch (error) {
-        console.error('Mermaid rendering error:', error);
+        console.error("Mermaid rendering error:", error);
         containerRef.current.innerHTML = `
           <div class="mermaid-error">
             <p>Error rendering diagram:</p>
-            <pre>${error instanceof Error ? error.message : 'Unknown error'}</pre>
+            <pre>${error instanceof Error ? error.message : "Unknown error"}</pre>
           </div>
         `;
       }
@@ -47,7 +49,7 @@ const MermaidBlock: React.FC<MermaidBlockProps> = ({ code, language }) => {
   }, [code]);
 
   // If language is specified and it's not mermaid, render as code
-  if (language && language !== 'mermaid') {
+  if (language && language !== "mermaid") {
     return null;
   }
 

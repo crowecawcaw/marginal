@@ -12,6 +12,11 @@ const isWebBuild = process.env.WEB_BUILD === 'true';
 export default defineConfig(async () => ({
   plugins: [react()],
 
+  // Prevent Vite from pre-bundling all prism languages (some have broken dependencies)
+  optimizeDeps: {
+    exclude: ['prismjs/components/prism-objectivec', 'prismjs/components/prism-xml-doc'],
+  },
+
   // Base path for GitHub Pages deployment
   // When building for web, use the repo name as base path
   base: isWebBuild ? '/marginal/' : '/',

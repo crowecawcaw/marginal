@@ -1,14 +1,17 @@
-import React, { useState, useEffect, useRef } from 'react';
-import './FindInDocument.css';
+import React, { useState, useEffect, useRef } from "react";
+import "./FindInDocument.css";
 
 interface FindInDocumentProps {
   content: string;
-  viewMode: 'rendered' | 'code';
+  viewMode: "rendered" | "code";
   onClose: () => void;
 }
 
-const FindInDocument: React.FC<FindInDocumentProps> = ({ content, onClose }) => {
-  const [searchQuery, setSearchQuery] = useState('');
+const FindInDocument: React.FC<FindInDocumentProps> = ({
+  content,
+  onClose,
+}) => {
+  const [searchQuery, setSearchQuery] = useState("");
   const [caseSensitive, setCaseSensitive] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [totalMatches, setTotalMatches] = useState(0);
@@ -22,13 +25,13 @@ const FindInDocument: React.FC<FindInDocumentProps> = ({ content, onClose }) => 
   // Handle Escape key to close
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
+      if (e.key === "Escape") {
         onClose();
       }
     };
 
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
   }, [onClose]);
 
   // Calculate matches when search query or content changes
@@ -86,7 +89,10 @@ const FindInDocument: React.FC<FindInDocumentProps> = ({ content, onClose }) => 
           onChange={handleSearchChange}
         />
         <div className="find-match-count">
-          {searchQuery && (totalMatches > 0 ? `${currentIndex} of ${totalMatches}` : 'No matches')}
+          {searchQuery &&
+            (totalMatches > 0
+              ? `${currentIndex} of ${totalMatches}`
+              : "No matches")}
         </div>
       </div>
       <div className="find-controls">
@@ -96,7 +102,14 @@ const FindInDocument: React.FC<FindInDocumentProps> = ({ content, onClose }) => 
           disabled={totalMatches === 0}
           title="Previous match"
         >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+          >
             <polyline points="15 18 9 12 15 6" />
           </svg>
         </button>
@@ -106,12 +119,19 @@ const FindInDocument: React.FC<FindInDocumentProps> = ({ content, onClose }) => 
           disabled={totalMatches === 0}
           title="Next match"
         >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+          >
             <polyline points="9 18 15 12 9 6" />
           </svg>
         </button>
         <button
-          className={`find-btn ${caseSensitive ? 'active' : ''}`}
+          className={`find-btn ${caseSensitive ? "active" : ""}`}
           onClick={() => setCaseSensitive(!caseSensitive)}
           title="Case sensitive"
         >
@@ -122,7 +142,14 @@ const FindInDocument: React.FC<FindInDocumentProps> = ({ content, onClose }) => 
           onClick={onClose}
           title="Close (Esc)"
         >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+          >
             <line x1="18" y1="6" x2="6" y2="18" />
             <line x1="6" y1="6" x2="18" y2="18" />
           </svg>

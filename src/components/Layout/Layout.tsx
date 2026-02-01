@@ -1,20 +1,21 @@
-import React, { useEffect } from 'react';
-import { setupEventListeners } from '../../platform/eventAdapter';
-import Sidebar from '../Sidebar/Sidebar';
-import OutlineSidebar from '../Sidebar/OutlineSidebar';
-import EditorArea from '../EditorArea/EditorArea';
-import Toast from '../Toast/Toast';
-import LoadingOverlay from '../LoadingOverlay/LoadingOverlay';
-import { useUIStore } from '../../stores/uiStore';
-import { useEditorStore } from '../../stores/editorStore';
-import { useNotificationStore } from '../../stores/notificationStore';
-import { useFileSystem } from '../../hooks/useFileSystem';
-import { useKeyboardShortcuts } from '../../hooks/useKeyboardShortcuts';
-import './Layout.css';
+import React, { useEffect } from "react";
+import { setupEventListeners } from "../../platform/eventAdapter";
+import Sidebar from "../Sidebar/Sidebar";
+import OutlineSidebar from "../Sidebar/OutlineSidebar";
+import EditorArea from "../EditorArea/EditorArea";
+import Toast from "../Toast/Toast";
+import LoadingOverlay from "../LoadingOverlay/LoadingOverlay";
+import { useUIStore } from "../../stores/uiStore";
+import { useEditorStore } from "../../stores/editorStore";
+import { useNotificationStore } from "../../stores/notificationStore";
+import { useFileSystem } from "../../hooks/useFileSystem";
+import { useKeyboardShortcuts } from "../../hooks/useKeyboardShortcuts";
+import "./Layout.css";
 
 const Layout: React.FC = () => {
   const { toggleOutline, setLoading } = useUIStore();
-  const { tabs, activeTabId, removeTab, markTabDirty, openTab } = useEditorStore();
+  const { tabs, activeTabId, removeTab, markTabDirty, openTab } =
+    useEditorStore();
   const { addNotification } = useNotificationStore();
   const { openFile, saveFile, saveFileAs, newFile } = useFileSystem();
 
@@ -28,11 +29,14 @@ const Layout: React.FC = () => {
     }
 
     try {
-      setLoading(true, 'Saving file...');
+      setLoading(true, "Saving file...");
 
       // If the file has no path (untitled), use Save As dialog
       if (!activeTab.filePath) {
-        const result = await saveFileAs(activeTab.content, activeTab.frontmatter);
+        const result = await saveFileAs(
+          activeTab.content,
+          activeTab.frontmatter,
+        );
         if (result) {
           // Remove old untitled tab and open new saved tab
           removeTab(activeTab.id);
@@ -44,17 +48,21 @@ const Layout: React.FC = () => {
             isDirty: false,
             frontmatter: activeTab.frontmatter,
           });
-          addNotification(`Saved ${result.fileName}`, 'success');
+          addNotification(`Saved ${result.fileName}`, "success");
         }
       } else {
         // Regular save for existing files
-        await saveFile(activeTab.filePath, activeTab.content, activeTab.frontmatter);
+        await saveFile(
+          activeTab.filePath,
+          activeTab.content,
+          activeTab.frontmatter,
+        );
         markTabDirty(activeTab.id, false);
-        addNotification(`Saved ${activeTab.fileName}`, 'success');
+        addNotification(`Saved ${activeTab.fileName}`, "success");
       }
     } catch (error) {
-      console.error('Failed to save file:', error);
-      addNotification('Failed to save file. Please try again.', 'error');
+      console.error("Failed to save file:", error);
+      addNotification("Failed to save file. Please try again.", "error");
     } finally {
       setLoading(false);
     }
@@ -64,21 +72,21 @@ const Layout: React.FC = () => {
   const handleNewFile = () => {
     try {
       newFile();
-      addNotification('Created new file', 'success');
+      addNotification("Created new file", "success");
     } catch (error) {
-      console.error('Failed to create new file:', error);
-      addNotification('Failed to create new file', 'error');
+      console.error("Failed to create new file:", error);
+      addNotification("Failed to create new file", "error");
     }
   };
 
   // Handle opening a file
   const handleOpenFile = async () => {
     try {
-      setLoading(true, 'Opening file...');
+      setLoading(true, "Opening file...");
       await openFile();
     } catch (error) {
-      console.error('Failed to open file:', error);
-      addNotification('Failed to open file', 'error');
+      console.error("Failed to open file:", error);
+      addNotification("Failed to open file", "error");
     } finally {
       setLoading(false);
     }
@@ -94,25 +102,27 @@ const Layout: React.FC = () => {
   // Handle viewing README
   const handleViewReadme = async () => {
     try {
-      const readmeContent = await fetch('/src/assets/README.md').then(r => r.text());
+      const readmeContent = await fetch("/src/assets/README.md").then((r) =>
+        r.text(),
+      );
       openTab({
-        id: 'readme',
-        filePath: '', // Empty path means it's not a real file
-        fileName: 'README.md',
+        id: "readme",
+        filePath: "", // Empty path means it's not a real file
+        fileName: "README.md",
         content: readmeContent,
         isDirty: false,
         frontmatter: undefined,
       });
     } catch (error) {
-      console.error('Failed to open README:', error);
-      addNotification('Failed to open README', 'error');
+      console.error("Failed to open README:", error);
+      addNotification("Failed to open README", "error");
     }
   };
 
   // Register global keyboard shortcuts
   useKeyboardShortcuts([
     {
-      key: 'n',
+      key: "n",
       ctrlOrCmd: true,
       handler: (e) => {
         e.preventDefault();
@@ -120,7 +130,7 @@ const Layout: React.FC = () => {
       },
     },
     {
-      key: 's',
+      key: "s",
       ctrlOrCmd: true,
       handler: (e) => {
         e.preventDefault();
@@ -128,7 +138,7 @@ const Layout: React.FC = () => {
       },
     },
     {
-      key: 'o',
+      key: "o",
       ctrlOrCmd: true,
       handler: (e) => {
         e.preventDefault();
@@ -136,7 +146,7 @@ const Layout: React.FC = () => {
       },
     },
     {
-      key: 'w',
+      key: "w",
       ctrlOrCmd: true,
       handler: (e) => {
         e.preventDefault();
@@ -144,7 +154,7 @@ const Layout: React.FC = () => {
       },
     },
     {
-      key: '\\',
+      key: "\\",
       ctrlOrCmd: true,
       handler: (e) => {
         e.preventDefault();
@@ -163,10 +173,10 @@ const Layout: React.FC = () => {
   // Update page title based on active tab
   useEffect(() => {
     if (activeTab) {
-      const unsavedIndicator = activeTab.isDirty ? ' - Unsaved' : '';
+      const unsavedIndicator = activeTab.isDirty ? " - Unsaved" : "";
       document.title = `${activeTab.fileName}${unsavedIndicator}`;
     } else {
-      document.title = 'Marginal';
+      document.title = "Marginal";
     }
   }, [activeTab?.fileName, activeTab?.isDirty]);
 
@@ -175,12 +185,12 @@ const Layout: React.FC = () => {
     let cleanup: (() => void) | undefined;
 
     setupEventListeners([
-      { event: 'menu:new-file', callback: () => handleNewFile() },
-      { event: 'menu:open-file', callback: () => handleOpenFile() },
-      { event: 'menu:save', callback: () => handleSave() },
-      { event: 'menu:close-tab', callback: () => handleCloseTab() },
-      { event: 'menu:toggle-outline', callback: () => toggleOutline() },
-      { event: 'menu:view-readme', callback: () => handleViewReadme() },
+      { event: "menu:new-file", callback: () => handleNewFile() },
+      { event: "menu:open-file", callback: () => handleOpenFile() },
+      { event: "menu:save", callback: () => handleSave() },
+      { event: "menu:close-tab", callback: () => handleCloseTab() },
+      { event: "menu:toggle-outline", callback: () => toggleOutline() },
+      { event: "menu:view-readme", callback: () => handleViewReadme() },
     ]).then((unlisten) => {
       cleanup = unlisten;
     });

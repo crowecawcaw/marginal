@@ -1,6 +1,6 @@
-import { create } from 'zustand';
+import { create } from "zustand";
 
-export type NotificationType = 'success' | 'error' | 'info';
+export type NotificationType = "success" | "error" | "info";
 
 export interface Notification {
   id: string;
@@ -11,7 +11,11 @@ export interface Notification {
 
 interface NotificationState {
   notifications: Notification[];
-  addNotification: (message: string, type: NotificationType, duration?: number) => void;
+  addNotification: (
+    message: string,
+    type: NotificationType,
+    duration?: number,
+  ) => void;
   removeNotification: (id: string) => void;
 }
 

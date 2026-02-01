@@ -1,6 +1,6 @@
-import { create } from 'zustand';
-import { SidebarView } from '../types';
-import { loadSettings, saveSettings } from '../utils/settings';
+import { create } from "zustand";
+import { SidebarView } from "../types";
+import { loadSettings, saveSettings } from "../utils/settings";
 
 interface UIState {
   sidebarVisible: boolean;
@@ -26,9 +26,9 @@ export const useUIStore = create<UIState>((set) => ({
   sidebarWidth: settings.sidebarWidth,
   outlineVisible: settings.outlineVisible,
   outlineWidth: settings.outlineWidth,
-  currentSidebarView: 'files',
+  currentSidebarView: "files",
   isLoading: false,
-  loadingMessage: '',
+  loadingMessage: "",
   toggleSidebar: () =>
     set((state) => {
       const newVisible = !state.sidebarVisible;
@@ -50,5 +50,6 @@ export const useUIStore = create<UIState>((set) => ({
     set({ outlineWidth: width });
   },
   setSidebarView: (view) => set({ currentSidebarView: view }),
-  setLoading: (isLoading, message = '') => set({ isLoading, loadingMessage: message }),
+  setLoading: (isLoading, message = "") =>
+    set({ isLoading, loadingMessage: message }),
 }));

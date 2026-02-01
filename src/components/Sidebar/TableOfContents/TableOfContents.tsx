@@ -1,5 +1,5 @@
-import React, { useMemo } from 'react';
-import './TableOfContents.css';
+import React, { useMemo } from "react";
+import "./TableOfContents.css";
 
 interface Heading {
   id: string;
@@ -24,8 +24,8 @@ const TableOfContents: React.FC<TableOfContentsProps> = ({ content }) => {
       const text = match[2].trim();
       const id = text
         .toLowerCase()
-        .replace(/[^\w\s-]/g, '')
-        .replace(/\s+/g, '-');
+        .replace(/[^\w\s-]/g, "")
+        .replace(/\s+/g, "-");
 
       matches.push({ id, level, text });
     }
@@ -36,7 +36,7 @@ const TableOfContents: React.FC<TableOfContentsProps> = ({ content }) => {
   const handleClick = (id: string) => {
     // In a full implementation, this would scroll to the heading
     // For now, we'll just log the click
-    console.log('Navigate to heading:', id);
+    console.log("Navigate to heading:", id);
   };
 
   if (headings.length === 0) {

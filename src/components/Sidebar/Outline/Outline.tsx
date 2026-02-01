@@ -1,5 +1,5 @@
-import React, { useMemo } from 'react';
-import './Outline.css';
+import React, { useMemo } from "react";
+import "./Outline.css";
 
 interface Heading {
   id: string;
@@ -24,8 +24,8 @@ const Outline: React.FC<OutlineProps> = ({ content }) => {
       const text = match[2].trim();
       const id = text
         .toLowerCase()
-        .replace(/[^\w\s-]/g, '')
-        .replace(/\s+/g, '-');
+        .replace(/[^\w\s-]/g, "")
+        .replace(/\s+/g, "-");
 
       matches.push({ id, level, text });
     }
@@ -36,7 +36,7 @@ const Outline: React.FC<OutlineProps> = ({ content }) => {
   const handleClick = (id: string) => {
     // In a full implementation, this would scroll to the heading
     // For now, we'll just log the click
-    console.log('Navigate to heading:', id);
+    console.log("Navigate to heading:", id);
   };
 
   if (headings.length === 0) {

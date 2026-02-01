@@ -1,6 +1,6 @@
-import React from 'react';
-import { useNotificationStore } from '../../stores/notificationStore';
-import './Toast.css';
+import React from "react";
+import { useNotificationStore } from "../../stores/notificationStore";
+import "./Toast.css";
 
 const Toast: React.FC = () => {
   const { notifications, removeNotification } = useNotificationStore();

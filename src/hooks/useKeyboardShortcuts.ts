@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect } from "react";
 
 export interface ShortcutHandler {
   key: string;
@@ -11,7 +11,7 @@ export interface ShortcutHandler {
 export const useKeyboardShortcuts = (shortcuts: ShortcutHandler[]) => {
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
+      const isMac = navigator.platform.toUpperCase().indexOf("MAC") >= 0;
       const cmdOrCtrl = isMac ? event.metaKey : event.ctrlKey;
 
       for (const shortcut of shortcuts) {
@@ -28,10 +28,10 @@ export const useKeyboardShortcuts = (shortcuts: ShortcutHandler[]) => {
       }
     };
 
-    document.addEventListener('keydown', handleKeyDown);
+    document.addEventListener("keydown", handleKeyDown);
 
     return () => {
-      document.removeEventListener('keydown', handleKeyDown);
+      document.removeEventListener("keydown", handleKeyDown);
     };
   }, [shortcuts]);
 };

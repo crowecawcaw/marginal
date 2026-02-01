@@ -1,10 +1,10 @@
-import React from 'react';
-import { useUIStore } from '../../stores/uiStore';
-import { useFileStore } from '../../stores/fileStore';
-import { useNotificationStore } from '../../stores/notificationStore';
-import { useFileSystem } from '../../hooks/useFileSystem';
-import FileTree from './FileTree/FileTree';
-import './Sidebar.css';
+import React from "react";
+import { useUIStore } from "../../stores/uiStore";
+import { useFileStore } from "../../stores/fileStore";
+import { useNotificationStore } from "../../stores/notificationStore";
+import { useFileSystem } from "../../hooks/useFileSystem";
+import FileTree from "./FileTree/FileTree";
+import "./Sidebar.css";
 
 const Sidebar: React.FC = () => {
   const { sidebarVisible, sidebarWidth, setLoading } = useUIStore();
@@ -17,12 +17,12 @@ const Sidebar: React.FC = () => {
 
   const handleOpenFolder = async () => {
     try {
-      setLoading(true, 'Opening folder...');
+      setLoading(true, "Opening folder...");
       await openFolder();
-      addNotification('Folder opened successfully', 'success');
+      addNotification("Folder opened successfully", "success");
     } catch (error) {
-      console.error('Error opening folder:', error);
-      addNotification('Failed to open folder', 'error');
+      console.error("Error opening folder:", error);
+      addNotification("Failed to open folder", "error");
     } finally {
       setLoading(false);
     }
@@ -30,11 +30,11 @@ const Sidebar: React.FC = () => {
 
   const handleFileClick = async (filePath: string) => {
     try {
-      setLoading(true, 'Opening file...');
+      setLoading(true, "Opening file...");
       await openFile(filePath);
     } catch (error) {
-      console.error('Error opening file:', error);
-      addNotification('Failed to open file', 'error');
+      console.error("Error opening file:", error);
+      addNotification("Failed to open file", "error");
     } finally {
       setLoading(false);
     }

@@ -1,14 +1,14 @@
-import { create } from 'zustand';
-import { EditorTab } from '../types';
+import { create } from "zustand";
+import { EditorTab } from "../types";
 
 // Extract first header from markdown content
 const extractFirstHeader = (content: string): string | null => {
-  const lines = content.split('\n');
+  const lines = content.split("\n");
   for (const line of lines) {
     const trimmed = line.trim();
-    if (trimmed.startsWith('#')) {
+    if (trimmed.startsWith("#")) {
       // Remove the # symbols and any extra whitespace
-      return trimmed.replace(/^#+\s*/, '').trim();
+      return trimmed.replace(/^#+\s*/, "").trim();
     }
   }
   return null;
@@ -74,6 +74,8 @@ export const useEditorStore = create<EditorState>((set) => ({
     })),
   markTabDirty: (id, isDirty) =>
     set((state) => ({
-      tabs: state.tabs.map((tab) => (tab.id === id ? { ...tab, isDirty } : tab)),
+      tabs: state.tabs.map((tab) =>
+        tab.id === id ? { ...tab, isDirty } : tab,
+      ),
     })),
 }));

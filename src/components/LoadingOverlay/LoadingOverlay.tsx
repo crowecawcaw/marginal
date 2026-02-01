@@ -1,6 +1,6 @@
-import React from 'react';
-import { useUIStore } from '../../stores/uiStore';
-import './LoadingOverlay.css';
+import React from "react";
+import { useUIStore } from "../../stores/uiStore";
+import "./LoadingOverlay.css";
 
 const LoadingOverlay: React.FC = () => {
   const { isLoading, loadingMessage } = useUIStore();
@@ -10,7 +10,9 @@ const LoadingOverlay: React.FC = () => {
   return (
     <div className="loading-overlay">
       <div className="loading-spinner"></div>
-      {loadingMessage && <div className="loading-message">{loadingMessage}</div>}
+      {loadingMessage && (
+        <div className="loading-message">{loadingMessage}</div>
+      )}
     </div>
   );
 };
