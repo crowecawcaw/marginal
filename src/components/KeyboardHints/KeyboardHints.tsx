@@ -51,17 +51,17 @@ const KeyboardHints: React.FC = () => {
   const modKey = isMac ? "⌘" : "Ctrl";
 
   const shortcuts = [
-    { keys: `${modKey}+N`, description: "New File" },
-    { keys: `${modKey}+O`, description: "Open File" },
-    { keys: `${modKey}+S`, description: "Save" },
-    { keys: `${modKey}+W`, description: "Close Tab" },
-    { keys: `${modKey}+F`, description: "Find" },
-    { keys: `${modKey}+Shift+F`, description: "Format" },
-    { keys: `${modKey}+Shift+P`, description: "Toggle View" },
-    { keys: `${modKey}+\\`, description: "Toggle Outline" },
-    { keys: `${modKey}+B`, description: "Bold" },
-    { keys: `${modKey}+I`, description: "Italic" },
-    { keys: `${modKey}+1-5`, description: "Heading" },
+    { keys: `${modKey} N`, description: "New File" },
+    { keys: `${modKey} O`, description: "Open File" },
+    { keys: `${modKey} S`, description: "Save" },
+    { keys: `${modKey} W`, description: "Close Tab" },
+    { keys: `${modKey} F`, description: "Find" },
+    { keys: `${modKey} Shift F`, description: "Format" },
+    { keys: `${modKey} Shift P`, description: "Toggle View" },
+    { keys: `${modKey} \\`, description: "Toggle Outline" },
+    { keys: `${modKey} B`, description: "Bold" },
+    { keys: `${modKey} I`, description: "Italic" },
+    { keys: `${modKey} 1-5`, description: "Heading" },
   ];
 
   return (
