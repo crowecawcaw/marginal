@@ -172,16 +172,12 @@ export async function saveDialog(
 ): Promise<string | null> {
   if (isTauri()) {
     // Use Tauri dialog
-    const { open } = await import("@tauri-apps/plugin-dialog");
-    const result = await open({
-      directory: false,
-      multiple: false,
+    const { save } = await import("@tauri-apps/plugin-dialog");
+    const result = await save({
+      defaultPath: options.defaultPath,
       filters: options.filters,
     });
-    if (result && typeof result === "string") {
-      return result;
-    }
-    return null;
+    return result;
   } else {
     // Web implementation - prompt for filename
     const defaultName = options.defaultPath || "document.md";

@@ -11,6 +11,12 @@ vi.mock("@tauri-apps/api/core", () => ({
 
 vi.mock("@tauri-apps/plugin-dialog", () => ({
   open: vi.fn(),
+  save: vi.fn(),
+}));
+
+// Mock platform detection
+vi.mock("../platform", () => ({
+  isTauri: vi.fn(() => true),
 }));
 
 describe("useFileSystem", () => {
@@ -231,6 +237,249 @@ describe("useFileSystem", () => {
       const timestamp = parseInt(id.replace("untitled-", ""));
       expect(timestamp).toBeGreaterThanOrEqual(beforeTime);
       expect(timestamp).toBeLessThanOrEqual(afterTime);
+    });
+  });
+
+  describe("openFile", () => {
+    it("opens file with dialog and adds to tabs", async () => {
+      const mockInvoke = (await import("@tauri-apps/api/core")).invoke as any;
+      const mockOpen = (await import("@tauri-apps/plugin-dialog")).open as any;
+
+      mockOpen.mockResolvedValue("/path/to/test.md");
+      mockInvoke.mockResolvedValue("# Test Content\n\nHello World");
+
+      const { result } = renderHook(() => useFileSystem());
+
+      await act(async () => {
+        await result.current.openFile();
+      });
+
+      const tabs = useEditorStore.getState().tabs;
+      expect(tabs).toHaveLength(1);
+      expect(tabs[0].fileName).toBe("test.md");
+      expect(tabs[0].filePath).toBe("/path/to/test.md");
+      expect(tabs[0].content).toBe("# Test Content\n\nHello World");
+      expect(tabs[0].isDirty).toBe(false);
+    });
+
+    it("opens file with provided path directly", async () => {
+      const mockInvoke = (await import("@tauri-apps/api/core")).invoke as any;
+
+      mockInvoke.mockResolvedValue("# Direct Open\n\nContent");
+
+      const { result } = renderHook(() => useFileSystem());
+
+      await act(async () => {
+        await result.current.openFile("/direct/path/file.md");
+      });
+
+      const tabs = useEditorStore.getState().tabs;
+      expect(tabs).toHaveLength(1);
+      expect(tabs[0].fileName).toBe("file.md");
+      expect(tabs[0].filePath).toBe("/direct/path/file.md");
+      expect(tabs[0].content).toBe("# Direct Open\n\nContent");
+    });
+
+    it("parses frontmatter when opening file", async () => {
+      const mockInvoke = (await import("@tauri-apps/api/core")).invoke as any;
+      const mockOpen = (await import("@tauri-apps/plugin-dialog")).open as any;
+
+      mockOpen.mockResolvedValue("/path/to/frontmatter.md");
+      mockInvoke.mockResolvedValue(
+        `---
+title: Test Document
+author: John Doe
+---
+
+# Content here`,
+      );
+
+      const { result } = renderHook(() => useFileSystem());
+
+      await act(async () => {
+        await result.current.openFile();
+      });
+
+      const tabs = useEditorStore.getState().tabs;
+      expect(tabs[0].frontmatter).toEqual({
+        title: "Test Document",
+        author: "John Doe",
+      });
+      // gray-matter includes the newline after frontmatter in content
+      expect(tabs[0].content.trim()).toBe("# Content here");
+    });
+
+    it("adds file to recent files when opened", async () => {
+      const mockInvoke = (await import("@tauri-apps/api/core")).invoke as any;
+      const mockOpen = (await import("@tauri-apps/plugin-dialog")).open as any;
+
+      mockOpen.mockResolvedValue("/path/to/recent.md");
+      mockInvoke.mockResolvedValue("# Recent File");
+
+      const { result } = renderHook(() => useFileSystem());
+
+      await act(async () => {
+        await result.current.openFile();
+      });
+
+      const recentFiles = useFileStore.getState().recentFiles;
+      expect(recentFiles).toContain("/path/to/recent.md");
+    });
+
+    it("does nothing when dialog is cancelled", async () => {
+      const mockOpen = (await import("@tauri-apps/plugin-dialog")).open as any;
+
+      mockOpen.mockResolvedValue(null);
+
+      const { result } = renderHook(() => useFileSystem());
+
+      await act(async () => {
+        await result.current.openFile();
+      });
+
+      const tabs = useEditorStore.getState().tabs;
+      expect(tabs).toHaveLength(0);
+    });
+  });
+
+  describe("saveFile", () => {
+    it("saves file content without frontmatter", async () => {
+      const mockInvoke = (await import("@tauri-apps/api/core")).invoke as any;
+
+      const { result } = renderHook(() => useFileSystem());
+
+      await act(async () => {
+        await result.current.saveFile("/path/to/save.md", "# Test Content");
+      });
+
+      expect(mockInvoke).toHaveBeenCalledWith("write_file_content", {
+        path: "/path/to/save.md",
+        content: "# Test Content",
+      });
+    });
+
+    it("saves file content with frontmatter", async () => {
+      const mockInvoke = (await import("@tauri-apps/api/core")).invoke as any;
+
+      const { result } = renderHook(() => useFileSystem());
+
+      await act(async () => {
+        await result.current.saveFile(
+          "/path/to/save.md",
+          "# Test Content",
+          { title: "Test", author: "Jane" },
+        );
+      });
+
+      expect(mockInvoke).toHaveBeenCalled();
+      const call = mockInvoke.mock.calls[0];
+      expect(call[0]).toBe("write_file_content");
+      expect(call[1].path).toBe("/path/to/save.md");
+      // gray-matter may format with/without trailing newline, just check it has the right parts
+      expect(call[1].content).toContain("title: Test");
+      expect(call[1].content).toContain("author: Jane");
+      expect(call[1].content).toContain("# Test Content");
+    });
+
+    it("returns true on successful save", async () => {
+      const mockInvoke = (await import("@tauri-apps/api/core")).invoke as any;
+      mockInvoke.mockResolvedValue(undefined);
+
+      const { result } = renderHook(() => useFileSystem());
+
+      let saveResult;
+      await act(async () => {
+        saveResult = await result.current.saveFile(
+          "/path/to/save.md",
+          "Content",
+        );
+      });
+
+      expect(saveResult).toBe(true);
+    });
+
+    it("throws error on save failure", async () => {
+      const mockInvoke = (await import("@tauri-apps/api/core")).invoke as any;
+      mockInvoke.mockRejectedValue(new Error("Write failed"));
+
+      const { result } = renderHook(() => useFileSystem());
+
+      await expect(
+        act(async () => {
+          await result.current.saveFile("/path/to/fail.md", "Content");
+        }),
+      ).rejects.toThrow("Write failed");
+    });
+  });
+
+  describe("saveFileAs", () => {
+    it("shows save dialog and saves file", async () => {
+      const mockInvoke = (await import("@tauri-apps/api/core")).invoke as any;
+      const mockSave = (await import("@tauri-apps/plugin-dialog")).save as any;
+
+      mockSave.mockResolvedValue("/path/to/newfile.md");
+      mockInvoke.mockResolvedValue(undefined);
+
+      const { result } = renderHook(() => useFileSystem());
+
+      let saveResult;
+      await act(async () => {
+        saveResult = await result.current.saveFileAs("# New Content");
+      });
+
+      expect(mockSave).toHaveBeenCalledWith({
+        filters: [
+          {
+            name: "Markdown",
+            extensions: ["md", "markdown"],
+          },
+        ],
+      });
+      expect(mockInvoke).toHaveBeenCalledWith("write_file_content", {
+        path: "/path/to/newfile.md",
+        content: "# New Content",
+      });
+      expect(saveResult).toEqual({
+        path: "/path/to/newfile.md",
+        fileName: "newfile.md",
+      });
+    });
+
+    it("saves with frontmatter when provided", async () => {
+      const mockInvoke = (await import("@tauri-apps/api/core")).invoke as any;
+      const mockSave = (await import("@tauri-apps/plugin-dialog")).save as any;
+
+      mockSave.mockResolvedValue("/path/to/withfm.md");
+      mockInvoke.mockResolvedValue(undefined);
+
+      const { result } = renderHook(() => useFileSystem());
+
+      await act(async () => {
+        await result.current.saveFileAs("# Content", { title: "Doc" });
+      });
+
+      expect(mockInvoke).toHaveBeenCalled();
+      const call = mockInvoke.mock.calls[0];
+      expect(call[0]).toBe("write_file_content");
+      expect(call[1].path).toBe("/path/to/withfm.md");
+      // Check frontmatter and content are present
+      expect(call[1].content).toContain("title: Doc");
+      expect(call[1].content).toContain("# Content");
+    });
+
+    it("returns null when dialog is cancelled", async () => {
+      const mockSave = (await import("@tauri-apps/plugin-dialog")).save as any;
+
+      mockSave.mockResolvedValue(null);
+
+      const { result } = renderHook(() => useFileSystem());
+
+      let saveResult;
+      await act(async () => {
+        saveResult = await result.current.saveFileAs("# Content");
+      });
+
+      expect(saveResult).toBeNull();
     });
   });
 });

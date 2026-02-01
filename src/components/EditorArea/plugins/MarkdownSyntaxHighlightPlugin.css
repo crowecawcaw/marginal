@@ -1,0 +1,90 @@
+.markdown-syntax-highlight-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  padding: 2rem;
+  margin: 0;
+  font-family:
+    "SF Mono", "Monaco", "Menlo", "Consolas", "Courier New", monospace;
+  font-size: 14px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  overflow: hidden;
+  z-index: 0;
+}
+
+/* Make the contentEditable sit on top with transparent text */
+.markdown-code-view .markdown-editor-input {
+  position: relative;
+  z-index: 1;
+  color: transparent;
+  caret-color: var(--color-text-primary, #000);
+  -webkit-text-fill-color: transparent; /* For WebKit browsers */
+}
+
+/* Prism markdown syntax highlighting styles */
+.markdown-syntax-highlight-overlay .token.title {
+  color: #0066cc;
+  font-weight: bold;
+}
+
+.markdown-syntax-highlight-overlay .token.title.important {
+  color: #d73a49;
+  font-weight: bold;
+}
+
+.markdown-syntax-highlight-overlay .token.bold {
+  font-weight: bold;
+  color: #005cc5;
+}
+
+.markdown-syntax-highlight-overlay .token.italic {
+  font-style: italic;
+  color: #6a737d;
+}
+
+.markdown-syntax-highlight-overlay .token.url,
+.markdown-syntax-highlight-overlay .token.url-reference {
+  color: #032f62;
+}
+
+.markdown-syntax-highlight-overlay .token.url-link {
+  text-decoration: underline;
+}
+
+.markdown-syntax-highlight-overlay .token.list.punctuation {
+  color: #d73a49;
+}
+
+.markdown-syntax-highlight-overlay .token.code {
+  color: #6f42c1;
+  background: rgba(111, 66, 193, 0.1);
+  padding: 0.2em 0;
+  border-radius: 3px;
+}
+
+.markdown-syntax-highlight-overlay .token.code-snippet {
+  color: #6f42c1;
+  background: rgba(111, 66, 193, 0.05);
+}
+
+.markdown-syntax-highlight-overlay .token.hr.punctuation {
+  color: #d1d5da;
+}
+
+.markdown-syntax-highlight-overlay .token.blockquote.punctuation {
+  color: #6a737d;
+}
+
+.markdown-syntax-highlight-overlay .token.table {
+  color: #005cc5;
+}
+
+/* Default text color for unhighlighted content */
+.markdown-syntax-highlight-overlay {
+  color: var(--color-text-primary, #24292e);
+}

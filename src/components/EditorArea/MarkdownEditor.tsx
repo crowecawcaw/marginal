@@ -30,6 +30,8 @@ import {
   CodeContentSyncPlugin,
   CodeHighlightPlugin,
   ListExitPlugin,
+  MarkdownSyntaxHighlightPlugin,
+  RichTextFormattingPlugin,
 } from "./plugins";
 import { renderedEditorTheme, codeEditorTheme } from "./editorTheme";
 import "./MarkdownEditor.css";
@@ -107,6 +109,7 @@ function RenderedEditor({
         <RenderedContentSyncPlugin content={initialContent} />
         <CodeHighlightPlugin />
         <ListExitPlugin />
+        <RichTextFormattingPlugin />
         <TableContextMenuPlugin />
         <InsertTablePlugin />
         <TableResizePlugin />
@@ -115,7 +118,7 @@ function RenderedEditor({
   );
 }
 
-// Code view editor (plain text markdown source)
+// Code view editor (plain text markdown source with syntax highlighting)
 function CodeEditor({
   initialContent,
   onChange,
@@ -163,6 +166,7 @@ function CodeEditor({
         <HistoryPlugin />
         <OnChangePlugin onChange={handleChange} />
         <CodeContentSyncPlugin content={initialContent} />
+        <MarkdownSyntaxHighlightPlugin />
       </div>
     </LexicalComposer>
   );

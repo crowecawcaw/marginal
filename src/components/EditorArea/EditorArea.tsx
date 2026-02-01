@@ -26,12 +26,29 @@ const EditorArea: React.FC = () => {
 
   const activeTab = tabs.find((tab) => tab.id === activeTabId);
 
-  // Handle Cmd+F keyboard shortcut for find
+  // Handle keyboard shortcuts: Cmd+F for find, Cmd+Shift+F for format, Cmd+Shift+P for toggle view
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key === "f") {
+      // Cmd+Shift+P - Toggle view
+      if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key === "P") {
+        e.preventDefault();
+        setViewMode((current) => (current === "code" ? "rendered" : "code"));
+        return;
+      }
+
+      // Cmd+Shift+F - Format document
+      if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key === "F") {
+        e.preventDefault();
+        // Trigger format event
+        window.dispatchEvent(new CustomEvent("menu:format-document"));
+        return;
+      }
+
+      // Cmd+F - Find in document (only if Shift is NOT pressed)
+      if ((e.metaKey || e.ctrlKey) && !e.shiftKey && e.key === "f") {
         e.preventDefault();
         setFindVisible(true);
+        return;
       }
     };
 

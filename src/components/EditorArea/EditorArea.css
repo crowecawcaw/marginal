@@ -62,15 +62,16 @@
 .editor-tabs {
   display: flex;
   justify-content: space-between;
-  gap: 2px;
+  gap: 8px;
   background-color: var(--color-bg-secondary);
   border-bottom: 1px solid var(--color-border-primary);
   overflow-x: auto;
+  padding: 8px 8px 0 8px;
 }
 
 .editor-tabs-left {
   display: flex;
-  gap: 2px;
+  gap: 8px;
   flex: 1;
   overflow-x: auto;
 }
@@ -130,20 +131,22 @@
   align-items: center;
   gap: 8px;
   padding: 8px 16px;
-  background-color: var(--color-bg-secondary);
-  border-right: 1px solid var(--color-border);
+  background-color: transparent;
+  border: 1px solid transparent;
+  border-radius: 8px 8px 0 0;
   cursor: pointer;
   user-select: none;
-  transition: background-color 0.1s ease;
+  transition: all 0.15s ease;
 }
 
 .editor-tab:hover {
-  background-color: var(--color-bg-primary);
+  background-color: rgba(0, 0, 0, 0.03);
 }
 
 .editor-tab.active {
   background-color: var(--color-bg-primary);
-  border-bottom: 2px solid var(--color-accent-primary);
+  border: 1px solid var(--color-border-primary);
+  border-bottom: 1px solid var(--color-bg-primary);
 }
 
 .editor-tab-name {
