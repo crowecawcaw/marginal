@@ -129,19 +129,21 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({ initialContent, viewMod
         value: content,
         theme: 'cave',
         onChange: (value: string) => {
-          handleContentChange(value);
+          setContent(value);
+          onChange(value);
         },
       });
       editorRef.current = editor;
     }
 
+    // Only cleanup when switching away from code view or unmounting
     return () => {
-      if (editorRef.current) {
+      if (viewMode !== 'code' && editorRef.current) {
         editorRef.current.destroy();
         editorRef.current = null;
       }
     };
-  }, [viewMode]);
+  }, [viewMode, onChange]);
 
   // Update OverType content when initialContent changes
   useEffect(() => {

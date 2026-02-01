@@ -19,6 +19,55 @@ describe('MarkdownEditor', () => {
       expect(textarea).toHaveValue(content);
     });
 
+    it('displays content in code view on initial render', () => {
+      const content = '# Test Content\n\nThis is a test.';
+      render(
+        <MarkdownEditor
+          initialContent={content}
+          viewMode="code"
+          onChange={vi.fn()}
+        />
+      );
+
+      // Verify the editor container exists
+      const editorContainer = document.querySelector('.markdown-code-editor');
+      expect(editorContainer).toBeInTheDocument();
+
+      // Verify the textarea with content exists
+      const textarea = screen.getByRole('textbox');
+      expect(textarea).toBeInTheDocument();
+      expect(textarea).toHaveValue(content);
+    });
+
+    it('maintains content after component re-renders in code view', () => {
+      const content = '# Persistent Content\n\nThis should remain visible.';
+      const { rerender } = render(
+        <MarkdownEditor
+          initialContent={content}
+          viewMode="code"
+          onChange={vi.fn()}
+        />
+      );
+
+      // Verify initial content
+      let textarea = screen.getByRole('textbox');
+      expect(textarea).toHaveValue(content);
+
+      // Force a re-render with same props
+      rerender(
+        <MarkdownEditor
+          initialContent={content}
+          viewMode="code"
+          onChange={vi.fn()}
+        />
+      );
+
+      // Verify content is still present after re-render
+      textarea = screen.getByRole('textbox');
+      expect(textarea).toBeInTheDocument();
+      expect(textarea).toHaveValue(content);
+    });
+
     it('calls onChange when typing in code view', async () => {
       const onChange = vi.fn();
       const user = userEvent.setup();
