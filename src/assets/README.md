@@ -55,6 +55,16 @@ When typing in code view, brackets and parentheses are automatically paired:
 - Type `[` to get `[]`
 - Type `(` to get `()`
 
+### Tables
+
+In rendered view, tables support:
+
+- Edit cell content directly
+- Right-click context menu to add/delete rows and columns
+- Drag table borders to add new rows (bottom) or columns (right)
+
+Use **Format Document** to clean up table alignment in code view.
+
 ### Document Formatting
 
 Use **Edit > Format Document** (or Cmd/Ctrl+Shift+F) to format your markdown, especially useful for tables.
