@@ -12,6 +12,7 @@ import { MarkdownShortcutPlugin } from "@lexical/react/LexicalMarkdownShortcutPl
 import { ListPlugin } from "@lexical/react/LexicalListPlugin";
 import { LinkPlugin } from "@lexical/react/LexicalLinkPlugin";
 import { TabIndentationPlugin } from "@lexical/react/LexicalTabIndentationPlugin";
+import { TablePlugin } from "@lexical/react/LexicalTablePlugin";
 import { LexicalErrorBoundary } from "@lexical/react/LexicalErrorBoundary";
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
 import {
@@ -40,7 +41,14 @@ import {
   $convertToMarkdownString,
   TRANSFORMERS,
 } from "@lexical/markdown";
+import { TABLE, $createTableFromMarkdown } from "./tableTransformer";
+import { TableContextMenuPlugin } from "./TableContextMenuPlugin";
+import { InsertTablePlugin } from "./InsertTablePlugin";
+import { TableResizePlugin } from "./TableResizePlugin";
 import "./MarkdownEditor.css";
+
+// Custom transformers array that includes table support
+const CUSTOM_TRANSFORMERS = [...TRANSFORMERS, TABLE];
 
 interface MarkdownEditorProps {
   initialContent: string;
@@ -56,7 +64,51 @@ function RenderedContentSyncPlugin({ content }: { content: string }) {
   useEffect(() => {
     if (!initialized) {
       editor.update(() => {
-        $convertFromMarkdownString(content, TRANSFORMERS);
+        // Extract table blocks and process them separately
+        const tableRegex = /(\|.+\|\n\|[-:\s|]+\|\n(?:\|.+\|\n?)*)/g;
+        const tables: { text: string; index: number }[] = [];
+        let match;
+
+        while ((match = tableRegex.exec(content)) !== null) {
+          tables.push({ text: match[1], index: match.index });
+        }
+
+        // If there are tables, replace them with placeholders
+        let processedContent = content;
+        const placeholder = "<!--TABLE_PLACEHOLDER-->";
+
+        if (tables.length > 0) {
+          // Replace tables with placeholders (in reverse to preserve indices)
+          for (let i = tables.length - 1; i >= 0; i--) {
+            const table = tables[i];
+            processedContent =
+              processedContent.slice(0, table.index) +
+              placeholder +
+              processedContent.slice(table.index + table.text.length);
+          }
+        }
+
+        // Convert the processed markdown
+        $convertFromMarkdownString(processedContent, CUSTOM_TRANSFORMERS);
+
+        // Now insert tables where placeholders are
+        if (tables.length > 0) {
+          const root = $getRoot();
+          const children = root.getChildren();
+          let tableIndex = 0;
+
+          children.forEach((child) => {
+            const text = child.getTextContent();
+            if (text.includes(placeholder) && tableIndex < tables.length) {
+              const tableNode = $createTableFromMarkdown(tables[tableIndex].text);
+              if (tableNode) {
+                child.insertAfter(tableNode);
+                child.remove();
+                tableIndex++;
+              }
+            }
+          });
+        }
       });
       setInitialized(true);
     }
@@ -310,6 +362,9 @@ function RenderedEditor({
         strikethrough: "editor-text-strikethrough",
         code: "editor-text-code",
       },
+      table: "editor-table",
+      tableCell: "editor-table-cell",
+      tableCellHeader: "editor-table-cell-header",
     },
     nodes: [
       HeadingNode,
@@ -332,7 +387,7 @@ function RenderedEditor({
   const handleChange = useCallback(
     (editorState: EditorState) => {
       editorState.read(() => {
-        const markdown = $convertToMarkdownString(TRANSFORMERS);
+        const markdown = $convertToMarkdownString(CUSTOM_TRANSFORMERS);
         onChange(markdown);
       });
     },
@@ -353,13 +408,17 @@ function RenderedEditor({
         />
         <HistoryPlugin />
         <OnChangePlugin onChange={handleChange} />
-        <MarkdownShortcutPlugin transformers={TRANSFORMERS} />
+        <MarkdownShortcutPlugin transformers={CUSTOM_TRANSFORMERS} />
         <ListPlugin />
         <LinkPlugin />
+        <TablePlugin hasCellMerge={false} hasCellBackgroundColor={false} />
         <TabIndentationPlugin />
         <RenderedContentSyncPlugin content={initialContent} />
         <CodeHighlightPlugin />
         <ListExitPlugin />
+        <TableContextMenuPlugin />
+        <InsertTablePlugin />
+        <TableResizePlugin />
       </div>
     </LexicalComposer>
   );

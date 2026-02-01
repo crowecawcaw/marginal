@@ -145,6 +145,10 @@ pub fn run() {
                 .accelerator("CmdOrCtrl+Shift+F")
                 .build(app)?;
 
+            let insert_table = MenuItemBuilder::with_id("insert_table", "Insert Table")
+                .accelerator("CmdOrCtrl+Shift+T")
+                .build(app)?;
+
             let file_menu = SubmenuBuilder::new(app, "File")
                 .item(&new_file)
                 .item(&open_file)
@@ -165,6 +169,8 @@ pub fn run() {
                 .item(&select_all)
                 .separator()
                 .item(&format_document)
+                .separator()
+                .item(&insert_table)
                 .build()?;
 
             let toggle_outline = MenuItemBuilder::with_id("toggle_outline", "Toggle Outline")
@@ -209,6 +215,9 @@ pub fn run() {
                     }
                     "format_document" => {
                         let _ = window.emit("menu:format-document", ());
+                    }
+                    "insert_table" => {
+                        let _ = window.emit("menu:insert-table", ());
                     }
                     "toggle_outline" => {
                         let _ = window.emit("menu:toggle-outline", ());

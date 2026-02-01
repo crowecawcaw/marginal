@@ -234,3 +234,101 @@
 .editor-token-constant {
   color: var(--color-syntax-number);
 }
+
+/* Tables */
+.editor-table {
+  border-collapse: collapse;
+  border: 1px solid var(--color-border-primary);
+  margin: 1em 0;
+  width: auto;
+  max-width: 100%;
+  overflow-x: auto;
+  position: relative;
+}
+
+.editor-table-cell {
+  border: 1px solid var(--color-border-primary);
+  padding: 6px;
+  min-width: 75px;
+  vertical-align: top;
+  text-align: left;
+  outline: none;
+  position: relative;
+}
+
+.editor-table-cell p,
+.editor-table-cell-header p {
+  margin: 0;
+}
+
+.editor-table-cell-header {
+  background-color: var(--color-bg-secondary);
+  font-weight: bold;
+  text-align: left;
+  border: 1px solid var(--color-border-primary);
+  padding: 6px;
+  min-width: 75px;
+  vertical-align: top;
+  outline: none;
+  position: relative;
+}
+
+/* Cell selection styles */
+.editor-table-cell.selected,
+.editor-table-cell-header.selected {
+  background-color: rgba(0, 122, 255, 0.1);
+  outline: 2px solid var(--color-accent-primary);
+  outline-offset: -1px;
+}
+
+/* Table cell hover effect */
+.editor-table-cell:hover,
+.editor-table-cell-header:hover {
+  background-color: var(--color-bg-hover, rgba(0, 0, 0, 0.02));
+}
+
+/* Table cell focus styles */
+.editor-table-cell:focus,
+.editor-table-cell-header:focus {
+  outline: 2px solid var(--color-accent-primary);
+  outline-offset: -1px;
+}
+
+/* Resize handles for adding rows/columns */
+.table-resize-handle-bottom {
+  position: absolute;
+  bottom: -6px;
+  left: 0;
+  right: 0;
+  height: 12px;
+  background: var(--color-accent-primary);
+  opacity: 0;
+  cursor: ns-resize;
+  z-index: 10;
+  transition: opacity 0.2s;
+  border-radius: 2px;
+}
+
+.table-resize-handle-right {
+  position: absolute;
+  top: 0;
+  right: -6px;
+  bottom: 0;
+  width: 12px;
+  background: var(--color-accent-primary);
+  opacity: 0;
+  cursor: ew-resize;
+  z-index: 10;
+  transition: opacity 0.2s;
+  border-radius: 2px;
+}
+
+.editor-table:hover .table-resize-handle-bottom,
+.editor-table:hover .table-resize-handle-right {
+  opacity: 0.3;
+}
+
+.table-resize-handle-bottom:hover,
+.table-resize-handle-right:hover {
+  opacity: 0.6 !important;
+}
