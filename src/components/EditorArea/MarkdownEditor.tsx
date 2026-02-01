@@ -16,7 +16,16 @@ import { ListItemNode, ListNode } from '@lexical/list';
 import { CodeNode, CodeHighlightNode } from '@lexical/code';
 import { LinkNode, AutoLinkNode } from '@lexical/link';
 import { TableNode, TableCellNode, TableRowNode } from '@lexical/table';
-import { EditorState } from 'lexical';
+import {
+  EditorState,
+  $getSelection,
+  $isRangeSelection,
+  $createParagraphNode,
+  COMMAND_PRIORITY_HIGH,
+  KEY_ENTER_COMMAND,
+  KEY_BACKSPACE_COMMAND,
+} from 'lexical';
+import { $isListItemNode, $isListNode } from '@lexical/list';
 import { $convertFromMarkdownString, $convertToMarkdownString, TRANSFORMERS } from '@lexical/markdown';
 import OverType, { OverTypeInstance } from 'overtype';
 // Import Prism core first, then language components
@@ -102,6 +111,149 @@ function CodeHighlightPlugin() {
 
   useEffect(() => {
     return registerCodeHighlighting(editor);
+  }, [editor]);
+
+  return null;
+}
+
+// Plugin to handle list exit behavior (Enter twice or Backspace on empty bullet exits list)
+function ListExitPlugin() {
+  const [editor] = useLexicalComposerContext();
+
+  useEffect(() => {
+    // Handle Enter key - exit list if on empty list item
+    const unregisterEnter = editor.registerCommand(
+      KEY_ENTER_COMMAND,
+      (event) => {
+        const selection = $getSelection();
+        if (!$isRangeSelection(selection) || !selection.isCollapsed()) {
+          return false;
+        }
+
+        const anchorNode = selection.anchor.getNode();
+        const listItemNode = anchorNode.getParent();
+
+        // Check if we're in a list item
+        if (!$isListItemNode(listItemNode)) {
+          return false;
+        }
+
+        // Check if the list item is empty
+        const textContent = listItemNode.getTextContent();
+        if (textContent !== '') {
+          return false;
+        }
+
+        // Get the parent list
+        const listNode = listItemNode.getParent();
+        if (!$isListNode(listNode)) {
+          return false;
+        }
+
+        // Prevent default Enter behavior
+        event?.preventDefault();
+
+        // Create a new paragraph and insert it after the list
+        const paragraph = $createParagraphNode();
+
+        // Get all siblings after current list item
+        const siblings = listItemNode.getNextSiblings();
+
+        if (siblings.length === 0) {
+          // No siblings after, just insert paragraph after list
+          listNode.insertAfter(paragraph);
+        } else {
+          // There are siblings after, insert paragraph after list
+          listNode.insertAfter(paragraph);
+        }
+
+        // Remove the empty list item
+        listItemNode.remove();
+
+        // If the list is now empty, remove it
+        if (listNode.getChildrenSize() === 0) {
+          listNode.remove();
+        }
+
+        // Move selection to the new paragraph
+        paragraph.selectStart();
+
+        return true;
+      },
+      COMMAND_PRIORITY_HIGH
+    );
+
+    // Handle Backspace key - exit list if on empty list item at start
+    const unregisterBackspace = editor.registerCommand(
+      KEY_BACKSPACE_COMMAND,
+      (event) => {
+        const selection = $getSelection();
+        if (!$isRangeSelection(selection) || !selection.isCollapsed()) {
+          return false;
+        }
+
+        // Only handle if cursor is at offset 0
+        if (selection.anchor.offset !== 0) {
+          return false;
+        }
+
+        const anchorNode = selection.anchor.getNode();
+        const listItemNode = anchorNode.getParent();
+
+        // Check if we're in a list item
+        if (!$isListItemNode(listItemNode)) {
+          return false;
+        }
+
+        // Check if the list item is empty
+        const textContent = listItemNode.getTextContent();
+        if (textContent !== '') {
+          return false;
+        }
+
+        // Get the parent list
+        const listNode = listItemNode.getParent();
+        if (!$isListNode(listNode)) {
+          return false;
+        }
+
+        // Prevent default Backspace behavior
+        event?.preventDefault();
+
+        // Create a new paragraph
+        const paragraph = $createParagraphNode();
+
+        // Check if this is the first item in the list
+        const previousSibling = listItemNode.getPreviousSibling();
+
+        if (previousSibling === null) {
+          // First item - insert paragraph before list
+          listNode.insertBefore(paragraph);
+        } else {
+          // Not first item - insert paragraph after list
+          listNode.insertAfter(paragraph);
+        }
+
+        // Remove the empty list item
+        listItemNode.remove();
+
+        // If the list is now empty, remove it
+        if (listNode.getChildrenSize() === 0) {
+          listNode.remove();
+        }
+
+        // Move selection to the new paragraph
+        paragraph.selectStart();
+
+        return true;
+      },
+      COMMAND_PRIORITY_HIGH
+    );
+
+    return () => {
+      unregisterEnter();
+      unregisterBackspace();
+    };
   }, [editor]);
 
   return null;
@@ -269,6 +421,7 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({ initialContent, viewMod
         <TabIndentationPlugin />
         <ContentSyncPlugin content={content} />
         <CodeHighlightPlugin />
+        <ListExitPlugin />
       </div>
     </LexicalComposer>
   );
