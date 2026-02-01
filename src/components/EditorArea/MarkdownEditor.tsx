@@ -133,6 +133,8 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({ initialContent, viewMod
           onChange(value);
         },
       });
+      // Show plain textarea for code view (not WYSIWYG overlay)
+      editor.showPlainTextarea();
       editorRef.current = editor;
     }
 
