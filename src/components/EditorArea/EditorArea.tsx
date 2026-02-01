@@ -58,11 +58,30 @@ const EditorArea: React.FC = () => {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
 
-  // Listen for menu events (works in both Tauri and web)
+  // Listen for toggle-view event - separate effect with no dependencies
+  // since toggleView uses functional setState and doesn't need any captured values
   useEffect(() => {
     let cleanup: (() => void) | undefined;
 
-    // Handle format document - defined inside useEffect to always use current activeTab
+    const toggleView = () => {
+      setViewMode((current) => (current === "code" ? "rendered" : "code"));
+    };
+
+    setupEventListeners([
+      { event: "menu:toggle-view", callback: toggleView },
+    ]).then((unlisten) => {
+      cleanup = unlisten;
+    });
+
+    return () => {
+      cleanup?.();
+    };
+  }, []);
+
+  // Listen for format-document event
+  useEffect(() => {
+    let cleanup: (() => void) | undefined;
+
     const handleFormat = async () => {
       if (!activeTab) return;
 
@@ -92,13 +111,8 @@ const EditorArea: React.FC = () => {
       }
     };
 
-    const toggleView = () => {
-      setViewMode((current) => (current === "code" ? "rendered" : "code"));
-    };
-
     setupEventListeners([
       { event: "menu:format-document", callback: handleFormat },
-      { event: "menu:toggle-view", callback: toggleView },
     ]).then((unlisten) => {
       cleanup = unlisten;
     });
