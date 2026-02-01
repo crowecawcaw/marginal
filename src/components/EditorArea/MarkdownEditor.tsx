@@ -179,7 +179,13 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
   zoom = 100,
   onChange,
 }) => {
-  const zoomStyle = { '--editor-zoom': `${zoom}%` } as React.CSSProperties;
+  const zoomStyle = {
+    '--editor-zoom': `${zoom}%`,
+    flex: 1,
+    display: 'flex',
+    flexDirection: 'column',
+    height: '100%',
+  } as React.CSSProperties;
 
   if (viewMode === "code") {
     return (
