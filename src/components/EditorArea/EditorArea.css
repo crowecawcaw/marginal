@@ -190,3 +190,12 @@
   line-height: 1.6;
   resize: none;
 }
+
+/* Mobile styles */
+@media (max-width: 768px) {
+  .editor-view-toggle {
+    bottom: auto;
+    top: 8px;
+    right: 8px;
+  }
+}
