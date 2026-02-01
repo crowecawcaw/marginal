@@ -64,7 +64,7 @@ export const useEditorStore = create<EditorState>((set) => ({
           if (!tab.filePath) {
             const firstHeader = extractFirstHeader(content);
             if (firstHeader) {
-              return { ...tab, content, fileName: firstHeader };
+              return { ...tab, content, fileName: `${firstHeader}.md` };
             }
           }
           return { ...tab, content };

@@ -2,10 +2,11 @@ import React from "react";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { useEditorStore } from "../../stores/editorStore";
 import { useUIStore } from "../../stores/uiStore";
+import { emit } from "../../platform/eventAdapter";
 import "./Titlebar.css";
 
 const Titlebar: React.FC = () => {
-  const { tabs, activeTabId, setActiveTab, removeTab } = useEditorStore();
+  const { tabs, activeTabId, setActiveTab } = useEditorStore();
   const { viewMode, setViewMode } = useUIStore();
 
   const handleDragStart = (e: React.MouseEvent) => {
@@ -16,6 +17,14 @@ const Titlebar: React.FC = () => {
         getCurrentWindow().startDragging();
       }
     }
+  };
+
+  const handleTabClose = (e: React.MouseEvent, tabId: string) => {
+    e.stopPropagation();
+    // Set as active tab first, then emit close event
+    // Layout will handle the save confirmation
+    setActiveTab(tabId);
+    emit("menu:close-tab");
   };
 
   return (
@@ -38,10 +47,7 @@ const Titlebar: React.FC = () => {
             {tabs.length > 1 && (
               <span
                 className="titlebar-tab-close"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  removeTab(tab.id);
-                }}
+                onClick={(e) => handleTabClose(e, tab.id)}
               >
                 ×
               </span>

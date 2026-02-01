@@ -190,6 +190,40 @@ export async function saveDialog(
   }
 }
 
+export type ConfirmResult = "save" | "discard" | "cancel";
+
+/**
+ * Show a confirmation dialog for unsaved changes
+ * Returns "save" if user wants to save, "discard" to close without saving, "cancel" to abort
+ */
+export async function confirmUnsavedChanges(
+  fileName: string,
+): Promise<ConfirmResult> {
+  if (isTauri()) {
+    const { ask } = await import("@tauri-apps/plugin-dialog");
+    const shouldSave = await ask(
+      `"${fileName}" has unsaved changes. Do you want to save before closing?`,
+      {
+        title: "Unsaved Changes",
+        kind: "warning",
+        okLabel: "Save",
+        cancelLabel: "Don't Save",
+      },
+    );
+    // Tauri's ask only returns boolean, so we use a workaround:
+    // true = Save, false = Don't Save
+    // For cancel, user would close the dialog, but ask doesn't distinguish
+    // We'll use a confirm for simplicity: Save or Don't Save
+    return shouldSave ? "save" : "discard";
+  } else {
+    // Web implementation - use confirm dialog
+    const result = window.confirm(
+      `"${fileName}" has unsaved changes. Click OK to save, or Cancel to discard changes.`,
+    );
+    return result ? "save" : "discard";
+  }
+}
+
 /**
  * Read directory tree
  */

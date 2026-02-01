@@ -1,5 +1,6 @@
 import React, { useEffect } from "react";
 import { setupEventListeners } from "../../platform/eventAdapter";
+import { confirmUnsavedChanges } from "../../platform/fileSystemAdapter";
 import Titlebar from "../Titlebar/Titlebar";
 import Sidebar from "../Sidebar/Sidebar";
 import OutlineSidebar from "../Sidebar/OutlineSidebar";
@@ -88,10 +89,20 @@ const Layout: React.FC = () => {
   };
 
   // Handle closing active tab
-  const handleCloseTab = () => {
-    if (activeTabId) {
-      removeTab(activeTabId);
+  const handleCloseTab = async () => {
+    if (!activeTab) return;
+
+    if (activeTab.isDirty) {
+      const result = await confirmUnsavedChanges(activeTab.fileName);
+      if (result === "save") {
+        await handleSave();
+      } else if (result === "cancel") {
+        return; // Don't close
+      }
+      // result === "discard" falls through to close
     }
+
+    removeTab(activeTab.id);
   };
 
   // Handle viewing README

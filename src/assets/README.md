@@ -57,8 +57,15 @@ When typing in code view, brackets and parentheses are automatically paired:
 
 Use **Edit > Format Document** (or Cmd/Ctrl+Shift+F) to format your markdown, especially useful for tables.
 
+### Unsaved Changes
+
+When closing a file with unsaved changes, you'll be prompted to save:
+
+- **Save**: Save changes before closing
+- **Don't Save**: Discard changes and close
+
 ## Tips
 
 - Single document? Tabs are hidden automatically
 - Untitled files show the first heading as their name
-- File names show "Unsaved" when there are changes
+- Blue dot indicates unsaved changes
