@@ -13,7 +13,7 @@ import { useKeyboardShortcuts } from '../../hooks/useKeyboardShortcuts';
 import './Layout.css';
 
 const Layout: React.FC = () => {
-  const { toggleSidebar, toggleOutline, setLoading } = useUIStore();
+  const { toggleOutline, setLoading } = useUIStore();
   const { tabs, activeTabId, removeTab, markTabDirty, openTab } = useEditorStore();
   const { addNotification } = useNotificationStore();
   const { openFile, saveFile, saveFileAs, newFile } = useFileSystem();

@@ -1,11 +1,9 @@
 import React from 'react';
 import { useUIStore } from '../../stores/uiStore';
 import { useFileStore } from '../../stores/fileStore';
-import { useEditorStore } from '../../stores/editorStore';
 import { useNotificationStore } from '../../stores/notificationStore';
 import { useFileSystem } from '../../hooks/useFileSystem';
 import FileTree from './FileTree/FileTree';
-import TableOfContents from './TableOfContents/TableOfContents';
 import './Sidebar.css';
 
 const Sidebar: React.FC = () => {
