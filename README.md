@@ -1,223 +1,137 @@
 # marginal
 
-A modern desktop markdown editor built with Tauri, React 19, and Lexical. Inspired by MarkText's UI, built with modern technologies.
+A lightweight desktop markdown editor with multiple viewing modes, built with Tauri and React.
 
-## Tech Stack
+## Features
 
-- **Desktop**: Tauri 2.9 (Rust-based, lightweight alternative to Electron)
-- **Frontend**: React 19.2 + TypeScript
-- **Build Tool**: Vite 6
-- **Testing**: Jest + React Testing Library
-- **Markdown Editor**: Lexical (Meta's modern rich text framework)
-- **Mermaid**: mermaid.js for diagram rendering
-- **Styling**: CSS Modules + modern CSS
-- **State Management**: Zustand
-- **File System**: Tauri's fs API
+- **Multiple View Modes**: Edit, code, and presentation views for different workflows
+- **Document Outline**: Automatic outline generation from markdown headings
+- **Tab Management**: Work with multiple documents simultaneously
+- **File Operations**: Open, save, and manage markdown files
+- **Syntax Highlighting**: Code blocks with Prism.js support
+- **Mermaid Diagrams**: Render diagrams directly in your documents
+- **Frontmatter Support**: YAML metadata at the top of documents
+- **Keyboard Shortcuts**: Full keyboard navigation and commands
 
-## Project Structure
-
-```
-marginal/
-├── src-tauri/          # Rust backend
-│   ├── src/
-│   │   ├── main.rs
-│   │   ├── commands/
-│   │   │   ├── file_ops.rs  # File operations
-│   │   │   └── dialog.rs    # File dialogs
-│   │   └── menu.rs          # App menu & shortcuts
-│   ├── Cargo.toml
-│   └── tauri.conf.json
-├── src/                # React frontend
-│   ├── components/
-│   │   ├── Sidebar/
-│   │   │   ├── FileTree/
-│   │   │   ├── Search/
-│   │   │   └── TableOfContents/
-│   │   ├── Editor/
-│   │   │   ├── EditorTabs/
-│   │   │   ├── MarkdownEditor/  # Lexical-based
-│   │   │   └── MermaidBlock/     # Mermaid rendering
-│   │   └── Layout/
-│   ├── hooks/
-│   │   ├── useFileSystem.ts
-│   │   └── useKeyboardShortcuts.ts
-│   ├── stores/
-│   │   ├── editorStore.ts       # Zustand store
-│   │   └── fileStore.ts         # Zustand store
-│   ├── utils/
-│   │   ├── frontmatter.ts       # Parse YAML frontmatter
-│   │   └── markdown.ts
-│   ├── App.tsx
-│   └── main.tsx
-├── tests/
-│   ├── unit/
-│   └── integration/
-├── public/
-├── package.json
-├── vite.config.ts
-├── tsconfig.json
-└── jest.config.js
-```
-
-## Core Features
-
-### 1. Sidebar (collapsible, resizable)
-- Icon bar (files, search, TOC)
-- File tree with folder navigation
-- Basic search across files
-- Table of contents from headers
-
-### 2. Editor
-- Tab management (open, close, switch)
-- WYSIWYG markdown editing with Lexical
-- Live preview rendering
-- Syntax highlighting for code blocks
-- **Mermaid diagram rendering** in preview
-- **Frontmatter support** (YAML at top of file)
-
-### 3. File Operations
-- Open file/folder (native dialogs)
-- Save file manually (Cmd/Ctrl+S)
-- New file (Cmd/Ctrl+N)
-- Recent files list
-- Unsaved changes indicator
-
-### 4. Keyboard Shortcuts
-
-| Shortcut | Action |
-|----------|--------|
-| `Cmd/Ctrl+N` | New file |
-| `Cmd/Ctrl+O` | Open file |
-| `Cmd/Ctrl+S` | Save |
-| `Cmd/Ctrl+W` | Close tab |
-| `Cmd/Ctrl+\` | Toggle outline |
-| `Cmd/Ctrl+Shift+P` | Toggle presentation/code view |
-| `Cmd/Ctrl+Shift+F` | Format document |
-| `Cmd/Ctrl+F` | Find in document |
-| `Cmd+H` | Hide app (macOS) |
-| `Cmd+Q` | Quit app (macOS) |
-
-## Key Dependencies
-
-```json
-{
-  "dependencies": {
-    "react": "^19.2.4",
-    "react-dom": "^19.2.4",
-    "@tauri-apps/api": "^2.9.1",
-    "lexical": "^0.21.0",
-    "@lexical/react": "^0.21.0",
-    "@lexical/markdown": "^0.21.0",
-    "zustand": "^5.0.2",
-    "mermaid": "^11.4.1",
-    "gray-matter": "^4.0.3"
-  },
-  "devDependencies": {
-    "@tauri-apps/cli": "^2.9.1",
-    "vite": "^6.0.0",
-    "@vitejs/plugin-react": "^4.3.4",
-    "typescript": "^5.7.0",
-    "jest": "^29.7.0",
-    "@testing-library/react": "^16.1.0"
-  }
-}
-```
-
-## Development Phases
-
-### Phase 1: Project setup
-- Initialize Tauri + Vite + React 19 + TypeScript
-- Configure Jest
-- Basic app window and layout structure
-- Zustand store setup
-
-### Phase 2: File system & sidebar
-- File tree component
-- Tauri file operations (open, save)
-- Recent files tracking
-- Sidebar navigation
-
-### Phase 3: Lexical editor integration
-- Markdown editing with Lexical
-- Tab management
-- Frontmatter parsing/editing
-- Save functionality with unsaved indicator
-
-### Phase 4: Markdown features
-- Syntax highlighting
-- Table of contents generation
-- Mermaid diagram rendering
-- Search functionality
-
-### Phase 5: Keyboard shortcuts & polish
-- Global keyboard shortcuts via Tauri
-- Error handling
-- Loading states
-- Basic settings persistence
-
-## Frontmatter Handling
-
-Files can include YAML frontmatter at the top:
-
-```markdown
----
-title: My Document
-date: 2026-01-31
-tags: [markdown, editor]
----
-
-# Content starts here
-```
-
-- Parsed with `gray-matter`
-- Preserved on save
-- Not rendered in preview
-
-## Mermaid Rendering
-
-Mermaid diagrams are rendered in preview mode:
-
-````markdown
-```mermaid
-graph TD
-    A[Start] --> B[Process]
-    B --> C[End]
-```
-````
-
-- Detected from code blocks with `mermaid` language
-- Rendered as diagrams in preview mode
-- Shown as code in edit mode
-
-## What's Excluded
-
-- ❌ Theming/dark mode
-- ❌ Internationalization
-- ❌ Cloud sync
-- ❌ Spell checker
-- ❌ Export to PDF/HTML
-- ❌ Image uploads to cloud services
-- ❌ Math equations (KaTeX)
-- ❌ Web compatibility
-
-## Getting Started
-
-See [AGENTS.md](./AGENTS.md) for development workflow and task tracking.
+## Quick Start
 
 ```bash
 # Install dependencies
 npm install
 
-# Run development server
-npm run tauri dev
+# Development
+npm run tauri dev        # Desktop app with hot-reload
+npm run dev              # Web-only mode
 
-# Build for production
-npm run tauri build
+# Production
+npm run tauri build      # Desktop app (outputs to src-tauri/target/release/bundle/)
+npm run build            # Web build
 
-# Run tests
-npm test
+# Testing
+npm test                 # Run tests
+npm run test:ui          # Vitest UI
 ```
 
-## License
+## Tech Stack
 
-TBD
+Tauri 2 • React 19 • TypeScript • Lexical • Vite • Zustand
+
+## Specs
+
+Comprehensive list of implemented behaviors for agent reference.
+
+- [ ] File Operations
+  - [ ] Open files via dialog (markdown files only)
+  - [ ] Open folders and display file tree
+  - [ ] Save existing files
+  - [ ] Save As for untitled files with dialog
+  - [x] Create new files with automatic Untitled numbering (Untitled.md, Untitled2.md, etc.)
+  - [ ] Track recent files (up to 10)
+  - [x] Persist last opened folder across sessions
+  - [ ] Hidden files and folders (starting with `.`) are excluded from file tree
+  - [x] Frontmatter in markdown files is parsed on open and preserved on save
+  - [ ] File tree displays folders first, then files, both sorted alphabetically
+- [x] Editor Views
+  - [x] Two view modes: rendered (presentation/WYSIWYG) and code (plain text)
+  - [x] Toggle between views with Cmd/Ctrl+Shift+P or view toggle buttons
+  - [x] Rendered view uses Lexical rich text editor with live markdown rendering
+  - [x] Code view shows raw markdown in plain text editor
+  - [x] Content persists when switching between views
+- [x] Tab Management
+  - [x] Multiple tabs for working with multiple documents
+  - [x] Switch between tabs by clicking tab headers
+  - [x] Close tabs with close button or Cmd/Ctrl+W
+  - [x] Dirty indicator (•) appears when tab has unsaved changes
+  - [ ] Unsaved tabs show "Unsaved" in document title
+  - [x] When closing a tab, the previous tab becomes active
+  - [ ] When no tabs exist, a blank Untitled file is created automatically
+  - [ ] For untitled files, tab name updates to first heading when user types one
+- [x] Markdown Features
+  - [x] Headings (H1-H6) render with proper styling
+  - [x] Lists (ordered and unordered) with proper indentation
+  - [x] Pressing Enter at end of empty list item exits the list
+  - [ ] Links render as clickable in rendered view
+  - [x] Inline code with backticks renders with monospace styling
+  - [ ] Code blocks with language syntax highlighting (Prism.js)
+  - [ ] Block quotes render with left border styling
+  - [x] Tables render with proper grid layout
+  - [ ] Mermaid code blocks render as diagrams in rendered view
+- [x] Table Editing
+  - [x] Tables are editable in rendered view
+  - [x] Users can edit content inline in table cells
+  - [x] Inline formatting (code, bold, italic, etc.) works inside cells
+  - [ ] Right-click on table cells opens context menu
+  - [ ] Context menu actions
+    - [ ] Insert row above
+    - [ ] Insert row below
+    - [ ] Insert column left
+    - [ ] Insert column right
+    - [ ] Delete row
+    - [ ] Delete column
+  - [ ] Tables can be resized by dragging column edges
+  - [ ] Insert table via Cmd/Ctrl+Shift+T shortcut
+  - [x] Tables convert to/from markdown format when switching views
+  - [x] Inline formatting persists when switching between views
+- [ ] Outline
+  - [ ] Outline auto-generates from markdown headings (H1-H6)
+  - [ ] Outline displays hierarchically with indentation based on heading level
+  - [ ] Clicking outline item scrolls to that heading in rendered view
+  - [ ] Outline shows "No headings found" when document has no headings
+  - [ ] Toggle outline visibility with Cmd/Ctrl+\
+  - [ ] Outline width is resizable and persists across sessions
+- [x] Find in Document
+  - [x] Open find dialog with Cmd/Ctrl+F
+  - [x] Search is case-insensitive by default
+  - [x] Toggle case-sensitive search with button
+  - [x] Navigate through matches with previous/next buttons
+  - [x] Match counter shows current match and total (e.g., "1 of 5")
+  - [x] Shows "No matches" when search has no results
+  - [x] Navigation buttons disabled when no matches
+  - [x] Close find dialog with Escape or close button
+  - [x] Match count updates as content changes
+- [x] Document Formatting
+  - [x] Format document with Cmd/Ctrl+Shift+F (Prettier)
+  - [x] Formatting only available in code view (error shown if in rendered view)
+  - [x] Formatting marks document as dirty
+  - [x] Formatting settings: preserve prose wrap, 120 character print width
+- [x] Settings Persistence
+  - [x] Sidebar visibility persists across sessions
+  - [x] Sidebar width persists across sessions
+  - [x] Outline visibility persists across sessions
+  - [x] Outline width persists across sessions
+  - [x] Last opened folder path persists across sessions
+  - [x] Recent files list persists across sessions (up to 10 files)
+- [ ] UI/UX
+  - [ ] Loading overlay with message during long operations
+  - [ ] Toast notifications for success/error messages
+  - [ ] File tree with expandable/collapsible folders
+  - [ ] File tree shows emoji icons (📁 folder, 📂 open folder, 📝 markdown, 📄 other)
+  - [ ] Icon bar for switching between file tree and outline views
+  - [ ] Sidebar is resizable by dragging edge
+  - [ ] Document title in browser/window updates based on active tab name
+  - [ ] Empty state messages when no files/folders opened
+- [ ] Platform Support
+  - [ ] Desktop app via Tauri (macOS, Windows, Linux)
+  - [ ] Web compatibility mode (with download instead of save)
+  - [ ] Native file dialogs on desktop
+  - [ ] File download functionality in web mode
