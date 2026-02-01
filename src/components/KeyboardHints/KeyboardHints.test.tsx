@@ -18,7 +18,7 @@ describe("KeyboardHints", () => {
     expect(container.querySelector(".keyboard-hints")).not.toBeInTheDocument();
   });
 
-  it("shows hints after 1 second when Cmd/Ctrl is pressed", async () => {
+  it("shows hints after 0.8 seconds when Cmd/Ctrl is pressed", async () => {
     const user = userEvent.setup({ delay: null });
     const { container } = render(<KeyboardHints />);
 
@@ -28,9 +28,9 @@ describe("KeyboardHints", () => {
     // Hints should NOT be visible immediately
     expect(container.querySelector(".keyboard-hints")).not.toBeInTheDocument();
 
-    // Advance time by 1 second
+    // Advance time by 0.8 seconds
     await act(async () => {
-      vi.advanceTimersByTime(1000);
+      vi.advanceTimersByTime(800);
     });
 
     // Hints should now be visible
@@ -44,7 +44,7 @@ describe("KeyboardHints", () => {
     // Press and hold Cmd
     await user.keyboard("{Meta>}");
     await act(async () => {
-      vi.advanceTimersByTime(1000);
+      vi.advanceTimersByTime(800);
     });
     expect(container.querySelector(".keyboard-hints")).toBeInTheDocument();
 
@@ -62,7 +62,7 @@ describe("KeyboardHints", () => {
     // Press Cmd to show hints
     await user.keyboard("{Meta>}");
     await act(async () => {
-      vi.advanceTimersByTime(1000);
+      vi.advanceTimersByTime(800);
     });
 
     // Check that key shortcuts are displayed
@@ -85,7 +85,7 @@ describe("KeyboardHints", () => {
 
     await user.keyboard("{Meta>}");
     await act(async () => {
-      vi.advanceTimersByTime(1000);
+      vi.advanceTimersByTime(800);
     });
 
     // Should show ⌘ symbol
@@ -105,7 +105,7 @@ describe("KeyboardHints", () => {
 
     await user.keyboard("{Control>}");
     await act(async () => {
-      vi.advanceTimersByTime(1000);
+      vi.advanceTimersByTime(800);
     });
 
     // Should show "Ctrl" text
@@ -120,7 +120,7 @@ describe("KeyboardHints", () => {
     // Press Cmd to show hints
     await user.keyboard("{Meta>}");
     await act(async () => {
-      vi.advanceTimersByTime(1000);
+      vi.advanceTimersByTime(800);
     });
     expect(container.querySelector(".keyboard-hints")).toBeInTheDocument();
 
@@ -133,16 +133,16 @@ describe("KeyboardHints", () => {
     });
   });
 
-  it("cancels timer if key is released before 1 second", async () => {
+  it("cancels timer if key is released before 0.8 seconds", async () => {
     const user = userEvent.setup({ delay: null });
     const { container } = render(<KeyboardHints />);
 
     // Press Cmd
     await user.keyboard("{Meta>}");
 
-    // Wait 500ms (less than 1 second)
+    // Wait 400ms (less than 0.8 seconds)
     await act(async () => {
-      vi.advanceTimersByTime(500);
+      vi.advanceTimersByTime(400);
     });
 
     // Release Cmd before timer completes
@@ -150,7 +150,7 @@ describe("KeyboardHints", () => {
 
     // Advance remaining time
     await act(async () => {
-      vi.advanceTimersByTime(500);
+      vi.advanceTimersByTime(400);
     });
 
     // Hints should never have appeared

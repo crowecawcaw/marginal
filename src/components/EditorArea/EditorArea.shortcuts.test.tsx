@@ -1,14 +1,9 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
-import { render } from "@testing-library/react";
+import { render, act, screen, fireEvent } from "@testing-library/react";
 import { userEvent } from "@testing-library/user-event";
 import EditorArea from "./EditorArea";
 import { useEditorStore } from "../../stores/editorStore";
 import { useNotificationStore } from "../../stores/notificationStore";
-
-// Mock the platform module
-vi.mock("../../platform/eventAdapter", () => ({
-  setupEventListeners: vi.fn(() => Promise.resolve(() => {})),
-}));
 
 describe("EditorArea Keyboard Shortcuts", () => {
   beforeEach(() => {
@@ -108,51 +103,88 @@ describe("EditorArea Keyboard Shortcuts", () => {
     expect(formatEvent.shiftKey).toBe(true);
   });
 
-  it("Cmd+Shift+P toggles between code and rendered views", async () => {
-    const user = userEvent.setup();
+  it("view toggle buttons properly switch between code and rendered views", async () => {
     const { container } = render(<EditorArea />);
 
     // Initial view mode should be code
-    // We can check for the presence of markdown-code-view class
-    let codeView = container.querySelector(".markdown-code-view");
-    expect(codeView).toBeTruthy();
+    expect(container.querySelector(".markdown-code-view")).toBeTruthy();
 
-    // Press Cmd+Shift+P to toggle to rendered view
-    await user.keyboard("{Meta>}{Shift>}P{/Shift}{/Meta}");
+    // Find and click the rendered view button (labeled "Aa")
+    const renderedButton = screen.getByTitle("Rendered view");
+    await act(async () => {
+      fireEvent.click(renderedButton);
+    });
 
-    // Should no longer have code view
-    codeView = container.querySelector(".markdown-code-view");
-    expect(codeView).toBeFalsy();
+    // Should now be in rendered view (no code view class)
+    expect(container.querySelector(".markdown-code-view")).toBeFalsy();
 
-    // Press Cmd+Shift+P again to toggle back to code view
-    await user.keyboard("{Meta>}{Shift>}P{/Shift}{/Meta}");
+    // Find and click the code view button
+    const codeButton = screen.getByTitle("Code view");
+    await act(async () => {
+      fireEvent.click(codeButton);
+    });
 
-    // Should have code view again
-    codeView = container.querySelector(".markdown-code-view");
-    expect(codeView).toBeTruthy();
+    // Should be back in code view
+    expect(container.querySelector(".markdown-code-view")).toBeTruthy();
   });
 
-  it("toggle view command properly alternates between views", async () => {
-    const user = userEvent.setup();
+  it("toggle buttons can switch between views multiple times", async () => {
     const { container } = render(<EditorArea />);
+
+    const renderedButton = screen.getByTitle("Rendered view");
+    const codeButton = screen.getByTitle("Code view");
 
     // Start in code view
     expect(container.querySelector(".markdown-code-view")).toBeTruthy();
 
     // Toggle to rendered
-    await user.keyboard("{Meta>}{Shift>}P{/Shift}{/Meta}");
+    await act(async () => {
+      fireEvent.click(renderedButton);
+    });
     expect(container.querySelector(".markdown-code-view")).toBeFalsy();
 
     // Toggle to code
-    await user.keyboard("{Meta>}{Shift>}P{/Shift}{/Meta}");
+    await act(async () => {
+      fireEvent.click(codeButton);
+    });
     expect(container.querySelector(".markdown-code-view")).toBeTruthy();
 
     // Toggle to rendered again
-    await user.keyboard("{Meta>}{Shift>}P{/Shift}{/Meta}");
+    await act(async () => {
+      fireEvent.click(renderedButton);
+    });
     expect(container.querySelector(".markdown-code-view")).toBeFalsy();
 
     // Toggle to code again
-    await user.keyboard("{Meta>}{Shift>}P{/Shift}{/Meta}");
+    await act(async () => {
+      fireEvent.click(codeButton);
+    });
     expect(container.querySelector(".markdown-code-view")).toBeTruthy();
+  });
+
+  it("Cmd+Shift+P emits toggle-view event", async () => {
+    const user = userEvent.setup();
+    render(<EditorArea />);
+
+    // Track if the event was emitted to the web event emitter
+    // Note: In web mode (no Tauri), emit() dispatches to the WebEventEmitter
+    // and the keyboard shortcut should trigger the toggle behavior
+    let eventEmitted = false;
+
+    // Listen on the WebEventEmitter by importing it
+    const { getWebEventEmitter } = await import("../../platform/eventAdapter");
+    const emitter = getWebEventEmitter();
+    const unlisten = emitter.on("menu:toggle-view", () => {
+      eventEmitted = true;
+    });
+
+    // Press Cmd+Shift+P
+    await user.keyboard("{Meta>}{Shift>}P{/Shift}{/Meta}");
+
+    // Event should have been emitted
+    expect(eventEmitted).toBe(true);
+
+    // Cleanup
+    unlisten();
   });
 });

@@ -15,6 +15,8 @@
   word-wrap: break-word;
   overflow: hidden;
   z-index: 0;
+  /* Default text color - white for regular text */
+  color: var(--color-text-primary, #ffffff);
 }
 
 /* Make the contentEditable sit on top with transparent text */
@@ -22,69 +24,64 @@
   position: relative;
   z-index: 1;
   color: transparent;
-  caret-color: var(--color-text-primary, #000);
+  caret-color: var(--color-text-primary, #ffffff);
   -webkit-text-fill-color: transparent; /* For WebKit browsers */
 }
 
-/* Prism markdown syntax highlighting styles */
+/* Headings - blue */
 .markdown-syntax-highlight-overlay .token.title {
-  color: #0066cc;
-  font-weight: bold;
+  color: #4a9eff;
 }
 
 .markdown-syntax-highlight-overlay .token.title.important {
-  color: #d73a49;
-  font-weight: bold;
+  color: #4a9eff;
 }
 
+/* Bold and italic - keep original text color */
 .markdown-syntax-highlight-overlay .token.bold {
   font-weight: bold;
-  color: #005cc5;
+  color: inherit;
 }
 
 .markdown-syntax-highlight-overlay .token.italic {
   font-style: italic;
-  color: #6a737d;
+  color: inherit;
 }
 
+/* Link text - pink */
+.markdown-syntax-highlight-overlay .token.url .token.content,
+.markdown-syntax-highlight-overlay .token.url-reference .token.content {
+  color: #ff6b9d;
+}
+
+/* Link/image href - blue */
 .markdown-syntax-highlight-overlay .token.url,
 .markdown-syntax-highlight-overlay .token.url-reference {
-  color: #032f62;
+  color: #4a9eff;
 }
 
-.markdown-syntax-highlight-overlay .token.url-link {
-  text-decoration: underline;
-}
-
-.markdown-syntax-highlight-overlay .token.list.punctuation {
-  color: #d73a49;
-}
-
-.markdown-syntax-highlight-overlay .token.code {
-  color: #6f42c1;
-  background: rgba(111, 66, 193, 0.1);
-  padding: 0.2em 0;
-  border-radius: 3px;
-}
-
+/* Code - orange */
+.markdown-syntax-highlight-overlay .token.code,
 .markdown-syntax-highlight-overlay .token.code-snippet {
-  color: #6f42c1;
-  background: rgba(111, 66, 193, 0.05);
+  color: #ff9f43;
 }
 
+/* List punctuation - subtle */
+.markdown-syntax-highlight-overlay .token.list.punctuation {
+  color: #888;
+}
+
+/* HR - subtle */
 .markdown-syntax-highlight-overlay .token.hr.punctuation {
-  color: #d1d5da;
+  color: #666;
 }
 
+/* Blockquote - subtle */
 .markdown-syntax-highlight-overlay .token.blockquote.punctuation {
-  color: #6a737d;
+  color: #888;
 }
 
+/* Table - subtle */
 .markdown-syntax-highlight-overlay .token.table {
-  color: #005cc5;
-}
-
-/* Default text color for unhighlighted content */
-.markdown-syntax-highlight-overlay {
-  color: var(--color-text-primary, #24292e);
+  color: #888;
 }

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { setupEventListeners } from "../../platform/eventAdapter";
+import { setupEventListeners, emit } from "../../platform/eventAdapter";
 import { useEditorStore } from "../../stores/editorStore";
 import { useNotificationStore } from "../../stores/notificationStore";
 import MarkdownEditor from "./MarkdownEditor";
@@ -30,9 +30,11 @@ const EditorArea: React.FC = () => {
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       // Cmd+Shift+P - Toggle view
+      // Use emit() to dispatch event instead of directly toggling,
+      // to avoid double-toggle when Tauri menu accelerator also fires
       if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key === "P") {
         e.preventDefault();
-        setViewMode((current) => (current === "code" ? "rendered" : "code"));
+        emit("menu:toggle-view");
         return;
       }
 

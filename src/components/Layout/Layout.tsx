@@ -14,7 +14,7 @@ import { useKeyboardShortcuts } from "../../hooks/useKeyboardShortcuts";
 import "./Layout.css";
 
 const Layout: React.FC = () => {
-  const { toggleOutline, setLoading } = useUIStore();
+  const { toggleOutline } = useUIStore();
   const { tabs, activeTabId, removeTab, markTabDirty, openTab } =
     useEditorStore();
   const { addNotification } = useNotificationStore();
@@ -30,8 +30,6 @@ const Layout: React.FC = () => {
     }
 
     try {
-      setLoading(true, "Saving file...");
-
       // If the file has no path (untitled), use Save As dialog
       if (!activeTab.filePath) {
         const result = await saveFileAs(
@@ -64,8 +62,6 @@ const Layout: React.FC = () => {
     } catch (error) {
       console.error("Failed to save file:", error);
       addNotification("Failed to save file. Please try again.", "error");
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -83,13 +79,10 @@ const Layout: React.FC = () => {
   // Handle opening a file
   const handleOpenFile = async () => {
     try {
-      setLoading(true, "Opening file...");
       await openFile();
     } catch (error) {
       console.error("Failed to open file:", error);
       addNotification("Failed to open file", "error");
-    } finally {
-      setLoading(false);
     }
   };
 

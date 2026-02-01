@@ -17,13 +17,13 @@ const KeyboardHints: React.FC = () => {
     let showTimer: number | null = null;
 
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Show hints after 1 second when Cmd (Mac) or Ctrl (Windows/Linux) is pressed
+      // Show hints after 0.8 seconds when Cmd (Mac) or Ctrl (Windows/Linux) is pressed
       // Only on initial keypress, not on repeat events
       if ((e.metaKey || e.ctrlKey) && !e.repeat) {
         if (!showTimer) {
           showTimer = setTimeout(() => {
             setIsVisible(true);
-          }, 1000);
+          }, 800);
         }
       }
     };
