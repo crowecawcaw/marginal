@@ -77,6 +77,7 @@ Comprehensive list of implemented behaviors for agent reference. Check of each i
   - [ ] Block quotes render with left border styling
   - [x] Tables render with proper grid layout
   - [ ] Mermaid code blocks render as diagrams in rendered view
+  - [ ] Images support URLs, absolute file paths, and relative file paths
 - [x] Table Editing
   - [x] Tables are editable in rendered view
   - [x] Users can edit content inline in table cells
@@ -123,6 +124,12 @@ Comprehensive list of implemented behaviors for agent reference. Check of each i
   - [x] Outline width persists across sessions
   - [x] Last opened folder path persists across sessions
   - [x] Recent files list persists across sessions (up to 10 files)
+- [x] Keyboard Hints
+  - [x] Shows keyboard shortcuts overlay when Cmd/Ctrl is held for 1 second
+  - [x] Uses platform-appropriate labels (⌘ for Mac, Ctrl for Windows/Linux)
+  - [x] Hides hints when Cmd/Ctrl is released
+  - [x] Hides hints when window loses focus
+  - [x] Displays shortcuts for: New File, Open File, Save, Close Tab, Find, Format, Toggle View, Toggle Outline, Bold, Italic, and Headings
 - [ ] UI/UX
   - [ ] Loading overlay with message during long operations
   - [ ] Toast notifications for success/error messages
