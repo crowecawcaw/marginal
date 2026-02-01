@@ -176,7 +176,7 @@ const Layout: React.FC = () => {
       const unsavedIndicator = activeTab.isDirty ? " - Unsaved" : "";
       document.title = `${activeTab.fileName}${unsavedIndicator}`;
     } else {
-      document.title = "Marginal";
+      document.title = "marginal";
     }
   }, [activeTab?.fileName, activeTab?.isDirty]);
 

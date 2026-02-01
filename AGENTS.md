@@ -1,5 +1,9 @@
 # Agent Rules
 
+## App Naming
+
+The app name is **marginal** (lowercase). Always use lowercase when referring to the app in code, documentation, UI, and file names.
+
 ## Unit Testing Requirement
 
 **Add unit tests for every change.**

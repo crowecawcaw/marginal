@@ -113,7 +113,7 @@ pub fn run() {
             let show_all = PredefinedMenuItem::show_all(app, None)?;
             let quit = PredefinedMenuItem::quit(app, None)?;
 
-            let app_menu = SubmenuBuilder::new(app, "Marginal")
+            let app_menu = SubmenuBuilder::new(app, "marginal")
                 .item(&about)
                 .separator()
                 .item(&view_readme)
@@ -142,7 +142,7 @@ pub fn run() {
                 .build(app)?;
 
             let format_document = MenuItemBuilder::with_id("format_document", "Format Document")
-                .accelerator("Shift+Alt+F")
+                .accelerator("CmdOrCtrl+Shift+F")
                 .build(app)?;
 
             let file_menu = SubmenuBuilder::new(app, "File")
@@ -150,9 +150,21 @@ pub fn run() {
                 .item(&open_file)
                 .item(&save)
                 .separator()
-                .item(&format_document)
-                .separator()
                 .item(&close_tab)
+                .build()?;
+
+            let cut = PredefinedMenuItem::cut(app, None)?;
+            let copy = PredefinedMenuItem::copy(app, None)?;
+            let paste = PredefinedMenuItem::paste(app, None)?;
+            let select_all = PredefinedMenuItem::select_all(app, None)?;
+
+            let edit_menu = SubmenuBuilder::new(app, "Edit")
+                .item(&cut)
+                .item(&copy)
+                .item(&paste)
+                .item(&select_all)
+                .separator()
+                .item(&format_document)
                 .build()?;
 
             let toggle_outline = MenuItemBuilder::with_id("toggle_outline", "Toggle Outline")
@@ -172,6 +184,7 @@ pub fn run() {
             let menu = MenuBuilder::new(app)
                 .item(&app_menu)
                 .item(&file_menu)
+                .item(&edit_menu)
                 .item(&view_menu)
                 .build()?;
 

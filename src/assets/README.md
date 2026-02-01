@@ -1,4 +1,4 @@
-# Marginal - Help Guide
+# marginal - Help Guide
 
 ## Keyboard Shortcuts
 
@@ -24,14 +24,14 @@
 | Shortcut      | Action                           |
 | ------------- | -------------------------------- |
 | `Cmd/Ctrl+F`  | Find in Document                 |
-| `Shift+Alt+F` | Format Document (code view only) |
+| `Cmd/Ctrl+Shift+F` | Format Document (code view only) |
 
 ### macOS
 
 | Shortcut | Action        |
 | -------- | ------------- |
-| `Cmd+H`  | Hide Marginal |
-| `Cmd+Q`  | Quit Marginal |
+| `Cmd+H`  | Hide marginal |
+| `Cmd+Q`  | Quit marginal |
 
 ## Features
 
@@ -55,7 +55,7 @@ When typing in code view, brackets and parentheses are automatically paired:
 
 ### Document Formatting
 
-Use **File > Format Document** (or Shift+Alt+F) to format your markdown, especially useful for tables.
+Use **Edit > Format Document** (or Cmd/Ctrl+Shift+F) to format your markdown, especially useful for tables.
 
 ## Tips
 

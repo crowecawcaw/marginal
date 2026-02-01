@@ -152,6 +152,10 @@
   white-space: nowrap;
 }
 
+.editor-tab-name.unsaved {
+  font-style: italic;
+}
+
 .editor-tab-close {
   background: none;
   border: none;

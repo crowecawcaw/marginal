@@ -1,4 +1,4 @@
-# Marginal
+# marginal
 
 A modern desktop markdown editor built with Tauri, React 19, and Lexical. Inspired by MarkText's UI, built with modern technologies.
 
@@ -92,7 +92,7 @@ marginal/
 | `Cmd/Ctrl+W` | Close tab |
 | `Cmd/Ctrl+\` | Toggle outline |
 | `Cmd/Ctrl+Shift+P` | Toggle presentation/code view |
-| `Shift+Alt+F` | Format document |
+| `Cmd/Ctrl+Shift+F` | Format document |
 | `Cmd/Ctrl+F` | Find in document |
 | `Cmd+H` | Hide app (macOS) |
 | `Cmd+Q` | Quit app (macOS) |

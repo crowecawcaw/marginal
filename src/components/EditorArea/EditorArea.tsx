@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { setupEventListeners } from "../../platform/eventAdapter";
 import { useEditorStore } from "../../stores/editorStore";
+import { useNotificationStore } from "../../stores/notificationStore";
 import MarkdownEditor from "./MarkdownEditor";
 import FindInDocument from "./FindInDocument";
 import "./EditorArea.css";
@@ -18,6 +19,7 @@ const EditorArea: React.FC = () => {
     updateTabContent,
     markTabDirty,
   } = useEditorStore();
+  const { addNotification } = useNotificationStore();
   const [viewMode, setViewMode] = useState<ViewMode>("code");
   const [findVisible, setFindVisible] = useState(false);
   const [editorKey, setEditorKey] = useState(0);
@@ -43,7 +45,15 @@ const EditorArea: React.FC = () => {
 
     // Handle format document - defined inside useEffect to always use current activeTab
     const handleFormat = async () => {
-      if (!activeTab || viewMode !== "code") return;
+      if (!activeTab) return;
+
+      if (viewMode !== "code") {
+        addNotification(
+          "Format document is only available in code view",
+          "error",
+        );
+        return;
+      }
 
       try {
         const formatted = await prettier.format(activeTab.content, {
@@ -77,7 +87,7 @@ const EditorArea: React.FC = () => {
     return () => {
       cleanup?.();
     };
-  }, [activeTab, viewMode, updateTabContent, markTabDirty]);
+  }, [activeTab, viewMode, updateTabContent, markTabDirty, addNotification]);
 
   return (
     <div className="editor-area">
@@ -90,7 +100,9 @@ const EditorArea: React.FC = () => {
                 className={`editor-tab ${tab.id === activeTabId ? "active" : ""}`}
                 onClick={() => setActiveTab(tab.id)}
               >
-                <span className="editor-tab-name">
+                <span
+                  className={`editor-tab-name ${tab.isDirty ? "unsaved" : ""}`}
+                >
                   {tab.isDirty && "• "}
                   {tab.fileName}
                 </span>
