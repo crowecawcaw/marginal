@@ -33,10 +33,18 @@ const Outline: React.FC<OutlineProps> = ({ content }) => {
     return matches;
   }, [content]);
 
-  const handleClick = (id: string) => {
-    // In a full implementation, this would scroll to the heading
-    // For now, we'll just log the click
-    console.log("Navigate to heading:", id);
+  const handleClick = (text: string) => {
+    // Find the heading in the editor by its text content
+    const headingElements = document.querySelectorAll(
+      '.editor-heading-h1, .editor-heading-h2, .editor-heading-h3, .editor-heading-h4, .editor-heading-h5, .editor-heading-h6'
+    );
+
+    for (const element of headingElements) {
+      if (element.textContent?.trim() === text) {
+        element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        return;
+      }
+    }
   };
 
   if (headings.length === 0) {
@@ -60,7 +68,7 @@ const Outline: React.FC<OutlineProps> = ({ content }) => {
             >
               <button
                 className="outline-link"
-                onClick={() => handleClick(heading.id)}
+                onClick={() => handleClick(heading.text)}
                 title={heading.text}
               >
                 {heading.text}

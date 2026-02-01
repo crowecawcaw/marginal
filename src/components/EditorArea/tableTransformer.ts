@@ -13,7 +13,7 @@ import { $createParagraphNode, $createTextNode, $isParagraphNode, $isTextNode, T
 import type { ElementTransformer } from "@lexical/markdown";
 
 // Helper function to parse inline markdown in cell text
-function $parseInlineMarkdown(text: string): LexicalNode[] {
+export function $parseInlineMarkdown(text: string): LexicalNode[] {
   const nodes: LexicalNode[] = [];
   let currentIndex = 0;
 

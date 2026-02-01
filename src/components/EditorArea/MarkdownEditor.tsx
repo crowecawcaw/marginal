@@ -1,7 +1,7 @@
 // Prism setup must be imported first (before @lexical/code)
 import "../../lib/prismSetup";
 
-import React, { useEffect, useCallback } from "react";
+import React, { useCallback } from "react";
 import { LexicalComposer } from "@lexical/react/LexicalComposer";
 import { RichTextPlugin } from "@lexical/react/LexicalRichTextPlugin";
 import { PlainTextPlugin } from "@lexical/react/LexicalPlainTextPlugin";
@@ -14,37 +14,24 @@ import { LinkPlugin } from "@lexical/react/LexicalLinkPlugin";
 import { TabIndentationPlugin } from "@lexical/react/LexicalTabIndentationPlugin";
 import { TablePlugin } from "@lexical/react/LexicalTablePlugin";
 import { LexicalErrorBoundary } from "@lexical/react/LexicalErrorBoundary";
-import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
-import {
-  registerCodeHighlighting,
-  CodeNode,
-  CodeHighlightNode,
-} from "@lexical/code";
+import { CodeNode, CodeHighlightNode } from "@lexical/code";
 import { HeadingNode, QuoteNode } from "@lexical/rich-text";
 import { ListItemNode, ListNode } from "@lexical/list";
 import { LinkNode, AutoLinkNode } from "@lexical/link";
 import { TableNode, TableCellNode, TableRowNode } from "@lexical/table";
-import {
-  EditorState,
-  $getRoot,
-  $getSelection,
-  $isRangeSelection,
-  $createParagraphNode,
-  $createTextNode,
-  COMMAND_PRIORITY_HIGH,
-  KEY_ENTER_COMMAND,
-  KEY_BACKSPACE_COMMAND,
-} from "lexical";
-import { $isListItemNode, $isListNode } from "@lexical/list";
-import {
-  $convertFromMarkdownString,
-  $convertToMarkdownString,
-  TRANSFORMERS,
-} from "@lexical/markdown";
-import { TABLE, $createTableFromMarkdown } from "./tableTransformer";
+import { EditorState, $getRoot } from "lexical";
+import { $convertToMarkdownString, TRANSFORMERS } from "@lexical/markdown";
+import { TABLE } from "./tableTransformer";
 import { TableContextMenuPlugin } from "./TableContextMenuPlugin";
 import { InsertTablePlugin } from "./InsertTablePlugin";
 import { TableResizePlugin } from "./TableResizePlugin";
+import {
+  RenderedContentSyncPlugin,
+  CodeContentSyncPlugin,
+  CodeHighlightPlugin,
+  ListExitPlugin,
+} from "./plugins";
+import { renderedEditorTheme, codeEditorTheme } from "./editorTheme";
 import "./MarkdownEditor.css";
 
 // Custom transformers array that includes table support
@@ -56,275 +43,20 @@ interface MarkdownEditorProps {
   onChange: (content: string) => void;
 }
 
-// Plugin to set initial content for rendered view (parse markdown)
-function RenderedContentSyncPlugin({ content }: { content: string }) {
-  const [editor] = useLexicalComposerContext();
-  const [initialized, setInitialized] = React.useState(false);
-
-  useEffect(() => {
-    if (!initialized) {
-      editor.update(() => {
-        // Extract table blocks and process them separately
-        const tableRegex = /(\|.+\|\n\|[-:\s|]+\|\n(?:\|.+\|\n?)*)/g;
-        const tables: { text: string; index: number }[] = [];
-        let match;
-
-        while ((match = tableRegex.exec(content)) !== null) {
-          tables.push({ text: match[1], index: match.index });
-        }
-
-        // If there are tables, replace them with placeholders
-        let processedContent = content;
-        const placeholder = "<!--TABLE_PLACEHOLDER-->";
-
-        if (tables.length > 0) {
-          // Replace tables with placeholders (in reverse to preserve indices)
-          for (let i = tables.length - 1; i >= 0; i--) {
-            const table = tables[i];
-            processedContent =
-              processedContent.slice(0, table.index) +
-              placeholder +
-              processedContent.slice(table.index + table.text.length);
-          }
-        }
-
-        // Convert the processed markdown
-        $convertFromMarkdownString(processedContent, CUSTOM_TRANSFORMERS);
-
-        // Now insert tables where placeholders are
-        if (tables.length > 0) {
-          const root = $getRoot();
-          const children = root.getChildren();
-          let tableIndex = 0;
-
-          children.forEach((child) => {
-            const text = child.getTextContent();
-            if (text.includes(placeholder) && tableIndex < tables.length) {
-              const tableNode = $createTableFromMarkdown(tables[tableIndex].text);
-              if (tableNode) {
-                child.insertAfter(tableNode);
-                child.remove();
-                tableIndex++;
-              }
-            }
-          });
-        }
-      });
-      setInitialized(true);
-    }
-  }, [editor, initialized, content]);
-
-  return null;
-}
-
-// Plugin to set initial content for code view (plain text)
-function CodeContentSyncPlugin({ content }: { content: string }) {
-  const [editor] = useLexicalComposerContext();
-  const [initialized, setInitialized] = React.useState(false);
-
-  useEffect(() => {
-    if (!initialized) {
-      editor.update(() => {
-        const root = $getRoot();
-        root.clear();
-        const paragraph = $createParagraphNode();
-        paragraph.append($createTextNode(content));
-        root.append(paragraph);
-      });
-      setInitialized(true);
-    }
-  }, [editor, initialized, content]);
-
-  return null;
-}
-
-// Plugin to enable code syntax highlighting with Prism
-function CodeHighlightPlugin() {
-  const [editor] = useLexicalComposerContext();
-
-  useEffect(() => {
-    return registerCodeHighlighting(editor);
-  }, [editor]);
-
-  return null;
-}
-
-// Plugin to handle list exit behavior (Enter twice or Backspace on empty bullet exits list)
-function ListExitPlugin() {
-  const [editor] = useLexicalComposerContext();
-
-  useEffect(() => {
-    // Handle Enter key - exit list if on empty list item
-    const unregisterEnter = editor.registerCommand(
-      KEY_ENTER_COMMAND,
-      (event) => {
-        const selection = $getSelection();
-        if (!$isRangeSelection(selection) || !selection.isCollapsed()) {
-          return false;
-        }
-
-        const anchorNode = selection.anchor.getNode();
-        const listItemNode = anchorNode.getParent();
-
-        // Check if we're in a list item
-        if (!$isListItemNode(listItemNode)) {
-          return false;
-        }
-
-        // Check if the list item is empty
-        const textContent = listItemNode.getTextContent();
-        if (textContent !== "") {
-          return false;
-        }
-
-        // Get the parent list
-        const listNode = listItemNode.getParent();
-        if (!$isListNode(listNode)) {
-          return false;
-        }
-
-        // Prevent default Enter behavior
-        event?.preventDefault();
-
-        // Create a new paragraph and insert it after the list
-        const paragraph = $createParagraphNode();
-
-        // Get all siblings after current list item
-        const siblings = listItemNode.getNextSiblings();
-
-        if (siblings.length === 0) {
-          // No siblings after, just insert paragraph after list
-          listNode.insertAfter(paragraph);
-        } else {
-          // There are siblings after, insert paragraph after list
-          listNode.insertAfter(paragraph);
-        }
-
-        // Remove the empty list item
-        listItemNode.remove();
-
-        // If the list is now empty, remove it
-        if (listNode.getChildrenSize() === 0) {
-          listNode.remove();
-        }
-
-        // Move selection to the new paragraph
-        paragraph.selectStart();
-
-        return true;
-      },
-      COMMAND_PRIORITY_HIGH,
-    );
-
-    // Handle Backspace key - exit list if on empty list item at start
-    const unregisterBackspace = editor.registerCommand(
-      KEY_BACKSPACE_COMMAND,
-      (event) => {
-        const selection = $getSelection();
-        if (!$isRangeSelection(selection) || !selection.isCollapsed()) {
-          return false;
-        }
-
-        // Only handle if cursor is at offset 0
-        if (selection.anchor.offset !== 0) {
-          return false;
-        }
-
-        const anchorNode = selection.anchor.getNode();
-        const listItemNode = anchorNode.getParent();
-
-        // Check if we're in a list item
-        if (!$isListItemNode(listItemNode)) {
-          return false;
-        }
-
-        // Check if the list item is empty
-        const textContent = listItemNode.getTextContent();
-        if (textContent !== "") {
-          return false;
-        }
-
-        // Get the parent list
-        const listNode = listItemNode.getParent();
-        if (!$isListNode(listNode)) {
-          return false;
-        }
-
-        // Prevent default Backspace behavior
-        event?.preventDefault();
-
-        // Create a new paragraph
-        const paragraph = $createParagraphNode();
-
-        // Check if this is the first item in the list
-        const previousSibling = listItemNode.getPreviousSibling();
-
-        if (previousSibling === null) {
-          // First item - insert paragraph before list
-          listNode.insertBefore(paragraph);
-        } else {
-          // Not first item - insert paragraph after list
-          listNode.insertAfter(paragraph);
-        }
-
-        // Remove the empty list item
-        listItemNode.remove();
-
-        // If the list is now empty, remove it
-        if (listNode.getChildrenSize() === 0) {
-          listNode.remove();
-        }
-
-        // Move selection to the new paragraph
-        paragraph.selectStart();
-
-        return true;
-      },
-      COMMAND_PRIORITY_HIGH,
-    );
-
-    return () => {
-      unregisterEnter();
-      unregisterBackspace();
-    };
-  }, [editor]);
-
-  return null;
-}
-
-// Shared theme for code highlighting tokens
-const codeHighlightTheme = {
-  atrule: "editor-token-atrule",
-  attr: "editor-token-attr",
-  boolean: "editor-token-boolean",
-  builtin: "editor-token-builtin",
-  cdata: "editor-token-cdata",
-  char: "editor-token-char",
-  class: "editor-token-class",
-  "class-name": "editor-token-class-name",
-  comment: "editor-token-comment",
-  constant: "editor-token-constant",
-  deleted: "editor-token-deleted",
-  doctype: "editor-token-doctype",
-  entity: "editor-token-entity",
-  function: "editor-token-function",
-  important: "editor-token-important",
-  inserted: "editor-token-inserted",
-  keyword: "editor-token-keyword",
-  namespace: "editor-token-namespace",
-  number: "editor-token-number",
-  operator: "editor-token-operator",
-  prolog: "editor-token-prolog",
-  property: "editor-token-property",
-  punctuation: "editor-token-punctuation",
-  regex: "editor-token-regex",
-  selector: "editor-token-selector",
-  string: "editor-token-string",
-  symbol: "editor-token-symbol",
-  tag: "editor-token-tag",
-  url: "editor-token-url",
-  variable: "editor-token-variable",
-};
+// Shared nodes for rendered editor
+const RENDERED_EDITOR_NODES = [
+  HeadingNode,
+  QuoteNode,
+  ListNode,
+  ListItemNode,
+  CodeNode,
+  CodeHighlightNode,
+  LinkNode,
+  AutoLinkNode,
+  TableNode,
+  TableCellNode,
+  TableRowNode,
+];
 
 // Rendered view editor (WYSIWYG markdown)
 function RenderedEditor({
@@ -336,49 +68,8 @@ function RenderedEditor({
 }) {
   const initialConfig = {
     namespace: "MarkdownEditor-Rendered",
-    theme: {
-      paragraph: "editor-paragraph",
-      heading: {
-        h1: "editor-heading-h1",
-        h2: "editor-heading-h2",
-        h3: "editor-heading-h3",
-        h4: "editor-heading-h4",
-        h5: "editor-heading-h5",
-        h6: "editor-heading-h6",
-      },
-      list: {
-        ul: "editor-list-ul",
-        ol: "editor-list-ol",
-        listitem: "editor-list-item",
-      },
-      quote: "editor-quote",
-      code: "editor-code",
-      codeHighlight: codeHighlightTheme,
-      link: "editor-link",
-      text: {
-        bold: "editor-text-bold",
-        italic: "editor-text-italic",
-        underline: "editor-text-underline",
-        strikethrough: "editor-text-strikethrough",
-        code: "editor-text-code",
-      },
-      table: "editor-table",
-      tableCell: "editor-table-cell",
-      tableCellHeader: "editor-table-cell-header",
-    },
-    nodes: [
-      HeadingNode,
-      QuoteNode,
-      ListNode,
-      ListItemNode,
-      CodeNode,
-      CodeHighlightNode,
-      LinkNode,
-      AutoLinkNode,
-      TableNode,
-      TableCellNode,
-      TableRowNode,
-    ],
+    theme: renderedEditorTheme,
+    nodes: RENDERED_EDITOR_NODES,
     onError: (error: Error) => {
       console.error("Lexical Error:", error);
     },
@@ -434,9 +125,7 @@ function CodeEditor({
 }) {
   const initialConfig = {
     namespace: "MarkdownEditor-Code",
-    theme: {
-      paragraph: "editor-code-paragraph",
-    },
+    theme: codeEditorTheme,
     nodes: [],
     onError: (error: Error) => {
       console.error("Lexical Error:", error);
@@ -484,7 +173,6 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
   viewMode,
   onChange,
 }) => {
-  // Use key to force remount when switching views, ensuring fresh editor state
   if (viewMode === "code") {
     return (
       <CodeEditor
