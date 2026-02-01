@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { loadSettings, saveSettings, clearSettings } from './settings';
 
 describe('settings', () => {
@@ -14,6 +14,8 @@ describe('settings', () => {
       expect(settings).toEqual({
         sidebarVisible: false,
         sidebarWidth: 250,
+        outlineVisible: false,
+        outlineWidth: 250,
         recentFiles: [],
         lastOpenedFolder: null,
       });
@@ -23,6 +25,8 @@ describe('settings', () => {
       const storedSettings = {
         sidebarVisible: true,
         sidebarWidth: 300,
+        outlineVisible: true,
+        outlineWidth: 300,
         recentFiles: ['/path/to/file.md'],
         lastOpenedFolder: '/path/to/folder',
       };
@@ -45,6 +49,8 @@ describe('settings', () => {
       expect(settings).toEqual({
         sidebarVisible: true,
         sidebarWidth: 250,
+        outlineVisible: false,
+        outlineWidth: 250,
         recentFiles: [],
         lastOpenedFolder: null,
       });
@@ -60,6 +66,8 @@ describe('settings', () => {
       expect(settings).toEqual({
         sidebarVisible: false,
         sidebarWidth: 250,
+        outlineVisible: false,
+        outlineWidth: 250,
         recentFiles: [],
         lastOpenedFolder: null,
       });
@@ -118,6 +126,8 @@ describe('settings', () => {
       expect(settings).toEqual({
         sidebarVisible: false,
         sidebarWidth: 250,
+        outlineVisible: false,
+        outlineWidth: 250,
         recentFiles: [],
         lastOpenedFolder: null,
       });

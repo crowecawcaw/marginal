@@ -18,11 +18,9 @@ import { LinkNode, AutoLinkNode } from '@lexical/link';
 import { TableNode, TableCellNode, TableRowNode } from '@lexical/table';
 import { EditorState } from 'lexical';
 import { $convertFromMarkdownString, $convertToMarkdownString, TRANSFORMERS } from '@lexical/markdown';
-import { EditorView } from '@codemirror/view';
-import { EditorState as CMEditorState } from '@codemirror/state';
-import { markdown } from '@codemirror/lang-markdown';
-import { basicSetup } from 'codemirror';
-// Import comprehensive Prism language support
+import OverType, { OverTypeInstance } from 'overtype';
+// Import Prism core first, then language components
+import 'prismjs';
 import 'prismjs/components/prism-markup';
 import 'prismjs/components/prism-markup-templating';
 import 'prismjs/components/prism-css';
@@ -67,11 +65,10 @@ import 'prismjs/components/prism-julia';
 import 'prismjs/components/prism-latex';
 import 'prismjs/components/prism-makefile';
 import 'prismjs/components/prism-nginx';
-import 'prismjs/components/prism-apache';
+import 'prismjs/components/prism-apacheconf';
 import 'prismjs/components/prism-http';
 import 'prismjs/components/prism-protobuf';
 import 'prismjs/components/prism-wasm';
-import 'prismjs/components/prism-webmanifest';
 import 'prismjs/components/prism-xml-doc';
 import './MarkdownEditor.css';
 
@@ -113,7 +110,7 @@ function CodeHighlightPlugin() {
 const MarkdownEditor: React.FC<MarkdownEditorProps> = ({ initialContent, viewMode, onChange }) => {
   const [content, setContent] = useState(initialContent);
   const editorContainerRef = useRef<HTMLDivElement>(null);
-  const editorViewRef = useRef<EditorView | null>(null);
+  const editorRef = useRef<OverTypeInstance | null>(null);
 
   // Sync content when initialContent changes (e.g., switching tabs)
   useEffect(() => {
@@ -125,53 +122,38 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({ initialContent, viewMod
     onChange(newContent);
   };
 
-  // Set up CodeMirror for code view
+  // Set up OverType for code view
   useEffect(() => {
-    if (viewMode === 'code' && editorContainerRef.current && !editorViewRef.current) {
-      const startState = CMEditorState.create({
-        doc: content,
-        extensions: [
-          basicSetup,
-          markdown(),
-          EditorView.updateListener.of((update) => {
-            if (update.docChanged) {
-              handleContentChange(update.state.doc.toString());
-            }
-          }),
-        ],
+    if (viewMode === 'code' && editorContainerRef.current && !editorRef.current) {
+      const [editor] = new OverType(editorContainerRef.current, {
+        value: content,
+        theme: 'cave',
+        onChange: (value: string) => {
+          handleContentChange(value);
+        },
       });
-
-      editorViewRef.current = new EditorView({
-        state: startState,
-        parent: editorContainerRef.current,
-      });
+      editorRef.current = editor;
     }
 
     return () => {
-      if (editorViewRef.current) {
-        editorViewRef.current.destroy();
-        editorViewRef.current = null;
+      if (editorRef.current) {
+        editorRef.current.destroy();
+        editorRef.current = null;
       }
     };
   }, [viewMode]);
 
-  // Update CodeMirror content when initialContent changes
+  // Update OverType content when initialContent changes
   useEffect(() => {
-    if (viewMode === 'code' && editorViewRef.current) {
-      const currentContent = editorViewRef.current.state.doc.toString();
+    if (viewMode === 'code' && editorRef.current) {
+      const currentContent = editorRef.current.getValue();
       if (currentContent !== initialContent) {
-        editorViewRef.current.dispatch({
-          changes: {
-            from: 0,
-            to: currentContent.length,
-            insert: initialContent,
-          },
-        });
+        editorRef.current.setValue(initialContent);
       }
     }
   }, [initialContent, viewMode]);
 
-  // For code view, use CodeMirror
+  // For code view, use OverType
   if (viewMode === 'code') {
     return (
       <div className="markdown-editor-container">
