@@ -1,6 +1,5 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { setupEventListeners } from "../../platform/eventAdapter";
-import { confirmUnsavedChanges } from "../../platform/fileSystemAdapter";
 import Titlebar from "../Titlebar/Titlebar";
 import Sidebar from "../Sidebar/Sidebar";
 import OutlineSidebar from "../Sidebar/OutlineSidebar";
@@ -8,6 +7,9 @@ import EditorArea from "../EditorArea/EditorArea";
 import Toast from "../Toast/Toast";
 import LoadingOverlay from "../LoadingOverlay/LoadingOverlay";
 import KeyboardHints from "../KeyboardHints/KeyboardHints";
+import ConfirmDialog, {
+  ConfirmResult,
+} from "../ConfirmDialog/ConfirmDialog";
 import { useUIStore } from "../../stores/uiStore";
 import { useEditorStore } from "../../stores/editorStore";
 import { useNotificationStore } from "../../stores/notificationStore";
@@ -21,6 +23,13 @@ const Layout: React.FC = () => {
     useEditorStore();
   const { addNotification } = useNotificationStore();
   const { openFile, saveFile, saveFileAs, newFile } = useFileSystem();
+
+  // Confirm dialog state
+  const [confirmDialog, setConfirmDialog] = useState<{
+    isOpen: boolean;
+    tabId: string;
+    fileName: string;
+  }>({ isOpen: false, tabId: "", fileName: "" });
 
   // Get active tab for save functionality
   const activeTab = tabs.find((tab) => tab.id === activeTabId);
@@ -89,21 +98,39 @@ const Layout: React.FC = () => {
   };
 
   // Handle closing active tab
-  const handleCloseTab = async () => {
+  const handleCloseTab = () => {
     if (!activeTab) return;
 
     if (activeTab.isDirty) {
-      const result = await confirmUnsavedChanges(activeTab.fileName);
+      setConfirmDialog({
+        isOpen: true,
+        tabId: activeTab.id,
+        fileName: activeTab.fileName,
+      });
+    } else {
+      removeTab(activeTab.id);
+    }
+  };
+
+  // Handle confirm dialog result
+  const handleConfirmResult = useCallback(
+    async (result: ConfirmResult) => {
+      const { tabId } = confirmDialog;
+      setConfirmDialog({ isOpen: false, tabId: "", fileName: "" });
+
+      if (result === "cancel") {
+        return;
+      }
+
       if (result === "save") {
         await handleSave();
-      } else if (result === "cancel") {
-        return; // Don't close
       }
-      // result === "discard" falls through to close
-    }
 
-    removeTab(activeTab.id);
-  };
+      // Both "save" and "discard" close the tab
+      removeTab(tabId);
+    },
+    [confirmDialog, handleSave, removeTab],
+  );
 
   // Handle viewing README
   const handleViewReadme = async () => {
@@ -234,6 +261,12 @@ const Layout: React.FC = () => {
       <Toast />
       <LoadingOverlay />
       <KeyboardHints />
+      <ConfirmDialog
+        isOpen={confirmDialog.isOpen}
+        title="Unsaved Changes"
+        message={`"${confirmDialog.fileName}" has unsaved changes. Do you want to save before closing?`}
+        onResult={handleConfirmResult}
+      />
     </div>
   );
 };
