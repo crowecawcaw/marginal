@@ -225,5 +225,82 @@ describe('MarkdownEditor', () => {
       const textarea = screen.getByRole('textbox');
       expect(textarea).toHaveValue(content);
     });
+
+    it('syncs content when typing in rendered view, switching to code view, typing more, and switching back', async () => {
+      const initialContent = '# Initial Heading';
+      let currentContent = initialContent;
+      const onChange = vi.fn((newContent: string) => {
+        currentContent = newContent;
+      });
+      const user = userEvent.setup();
+
+      // Start in rendered view
+      const { rerender } = render(
+        <MarkdownEditor
+          initialContent={currentContent}
+          viewMode="rendered"
+          onChange={onChange}
+        />
+      );
+
+      // Wait for initial render
+      await vi.waitFor(() => {
+        const heading = document.querySelector('.editor-heading-h1');
+        expect(heading).toBeInTheDocument();
+        expect(heading?.textContent).toBe('Initial Heading');
+      });
+
+      // Type in rendered view (adding new paragraph)
+      const editor = document.querySelector('.markdown-editor-input');
+      expect(editor).toBeInTheDocument();
+
+      // Note: Lexical editing is complex, so we'll simulate by updating content directly
+      const updatedContent = '# Initial Heading\n\nAdded in rendered view.';
+      currentContent = updatedContent;
+      onChange(updatedContent);
+
+      // Switch to code view with updated content
+      rerender(
+        <MarkdownEditor
+          initialContent={currentContent}
+          viewMode="code"
+          onChange={onChange}
+        />
+      );
+
+      // Verify content is visible in code view
+      let textarea = screen.getByRole('textbox');
+      expect(textarea).toBeInTheDocument();
+      expect(textarea).toHaveValue(updatedContent);
+
+      // Type more content in code view
+      await user.clear(textarea);
+      const codeViewContent = '# Initial Heading\n\nAdded in rendered view.\n\n**Added in code view.**';
+      await user.type(textarea, codeViewContent);
+
+      expect(onChange).toHaveBeenLastCalledWith(codeViewContent);
+      currentContent = codeViewContent;
+
+      // Switch back to rendered view
+      rerender(
+        <MarkdownEditor
+          initialContent={currentContent}
+          viewMode="rendered"
+          onChange={onChange}
+        />
+      );
+
+      // Verify new content is visible in rendered view
+      await vi.waitFor(() => {
+        const heading = document.querySelector('.editor-heading-h1');
+        expect(heading).toBeInTheDocument();
+        expect(heading?.textContent).toBe('Initial Heading');
+
+        // Check for the bold text added in code view
+        const bold = document.querySelector('.editor-text-bold');
+        expect(bold).toBeInTheDocument();
+        expect(bold?.textContent).toBe('Added in code view.');
+      });
+    });
   });
 });

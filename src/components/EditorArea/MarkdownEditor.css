@@ -14,37 +14,20 @@
   overflow-y: auto;
 }
 
-/* CodeMirror editor styling */
-.markdown-code-editor .cm-editor {
-  height: 100%;
-  background-color: var(--color-bg-primary);
-  color: var(--color-text-primary);
-}
-
-.markdown-code-editor .cm-scroller {
-  font-family: 'SF Mono', 'Monaco', 'Menlo', 'Consolas', 'Courier New', monospace;
-  font-size: 14px;
-  line-height: 1.6;
-  padding: 2rem;
-}
-
-.markdown-code-editor .cm-content {
-  font-family: 'SF Mono', 'Monaco', 'Menlo', 'Consolas', 'Courier New', monospace;
-}
-
-.markdown-code-editor .cm-gutters {
-  background-color: var(--color-bg-primary);
-  border-right: none;
-  padding-left: 1rem;
-}
-
-.markdown-code-editor .cm-activeLineGutter {
-  background-color: transparent;
-}
-
-.markdown-code-editor .cm-lineNumbers .cm-gutterElement {
-  color: var(--color-text-secondary);
-  padding-right: 1rem;
+/* OverType plain textarea styling for code view */
+.markdown-code-editor textarea {
+  width: 100% !important;
+  height: 100% !important;
+  padding: 2rem !important;
+  font-family: 'SF Mono', 'Monaco', 'Menlo', 'Consolas', 'Courier New', monospace !important;
+  font-size: 14px !important;
+  line-height: 1.6 !important;
+  background-color: var(--color-bg-primary) !important;
+  color: var(--color-text-primary) !important;
+  border: none !important;
+  outline: none !important;
+  resize: none !important;
+  box-sizing: border-box !important;
 }
 
 .markdown-editor-input {
