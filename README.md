@@ -38,7 +38,7 @@ Tauri 2 • React 19 • TypeScript • Lexical • Vite • Zustand
 
 ## Specs
 
-Comprehensive list of implemented behaviors for agent reference.
+Comprehensive list of implemented behaviors for agent reference. Check of each item as it's implemented and has solid tests.
 
 - [ ] File Operations
   - [ ] Open files via dialog (markdown files only)
@@ -51,6 +51,7 @@ Comprehensive list of implemented behaviors for agent reference.
   - [ ] Hidden files and folders (starting with `.`) are excluded from file tree
   - [x] Frontmatter in markdown files is parsed on open and preserved on save
   - [ ] File tree displays folders first, then files, both sorted alphabetically
+  - [ ] Print document via File menu
 - [x] Editor Views
   - [x] Two view modes: rendered (presentation/WYSIWYG) and code (plain text)
   - [x] Toggle between views with Cmd/Ctrl+Shift+P or view toggle buttons
@@ -99,6 +100,7 @@ Comprehensive list of implemented behaviors for agent reference.
   - [ ] Outline shows "No headings found" when document has no headings
   - [ ] Toggle outline visibility with Cmd/Ctrl+\
   - [ ] Outline width is resizable and persists across sessions
+  - [ ] Outline view is open by default on app launch
 - [x] Find in Document
   - [x] Open find dialog with Cmd/Ctrl+F
   - [x] Search is case-insensitive by default

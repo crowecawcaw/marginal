@@ -10,6 +10,10 @@ The app name is **marginal** (lowercase). Always use lowercase when referring to
 
 When implementing features or making changes to the codebase, you must create corresponding unit tests to verify the functionality works as expected.
 
+## Behavior Tracking
+
+The README.md contains a comprehensive Specs section that lists all implemented behaviors with test coverage indicators. When implementing features, check off items in this list and ensure they have solid test coverage.
+
 ## CSS Patterns
 
 ### No CSS in JavaScript
