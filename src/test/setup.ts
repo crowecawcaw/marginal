@@ -4,7 +4,8 @@ import '@testing-library/jest-dom/vitest';
 
 // Mock CSS.supports for jsdom (required by OverType)
 if (typeof CSS === 'undefined') {
-  (global as any).CSS = {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  (globalThis as any).CSS = {
     supports: vi.fn(() => false),
   };
 } else if (!CSS.supports) {

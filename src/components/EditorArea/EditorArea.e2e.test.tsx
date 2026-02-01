@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import EditorArea from './EditorArea';
 import { useEditorStore } from '../../stores/editorStore';
@@ -60,7 +60,7 @@ describe('EditorArea E2E', () => {
       activeTabId: tabId,
     });
 
-    const { rerender } = render(<EditorArea />);
+    render(<EditorArea />);
 
     // Step 1: Verify we're in code view (default) and type content
     const textarea = screen.getByRole('textbox');
@@ -218,8 +218,6 @@ describe('EditorArea E2E', () => {
   });
 
   it('shows dirty indicator on unsaved tabs', async () => {
-    const user = userEvent.setup();
-
     useEditorStore.setState({
       tabs: [
         {
@@ -244,7 +242,7 @@ describe('EditorArea E2E', () => {
 
     // Find the dirty tab - it should show bullet indicator
     const dirtyTabElement = screen.getByText((content, element) => {
-      return element?.classList.contains('editor-tab-name') && content.includes('dirty.md');
+      return Boolean(element?.classList.contains('editor-tab-name') && content.includes('dirty.md'));
     });
 
     expect(dirtyTabElement.textContent).toContain('•');

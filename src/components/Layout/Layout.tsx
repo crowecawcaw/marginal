@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow';
+import { setupEventListeners } from '../../platform/eventAdapter';
 import Sidebar from '../Sidebar/Sidebar';
 import OutlineSidebar from '../Sidebar/OutlineSidebar';
 import EditorArea from '../EditorArea/EditorArea';
@@ -170,24 +170,24 @@ const Layout: React.FC = () => {
     }
   }, [activeTab?.fileName, activeTab?.isDirty]);
 
-  // Listen for menu events from Tauri
+  // Listen for menu events (works in both Tauri and web)
   useEffect(() => {
-    const appWindow = getCurrentWebviewWindow();
+    let cleanup: (() => void) | undefined;
 
-    const unlistenPromises = [
-      appWindow.listen('menu:new-file', () => handleNewFile()),
-      appWindow.listen('menu:open-file', () => handleOpenFile()),
-      appWindow.listen('menu:save', () => handleSave()),
-      appWindow.listen('menu:close-tab', () => handleCloseTab()),
-      appWindow.listen('menu:toggle-outline', () => toggleOutline()),
-      appWindow.listen('menu:view-readme', () => handleViewReadme()),
-    ];
+    setupEventListeners([
+      { event: 'menu:new-file', callback: () => handleNewFile() },
+      { event: 'menu:open-file', callback: () => handleOpenFile() },
+      { event: 'menu:save', callback: () => handleSave() },
+      { event: 'menu:close-tab', callback: () => handleCloseTab() },
+      { event: 'menu:toggle-outline', callback: () => toggleOutline() },
+      { event: 'menu:view-readme', callback: () => handleViewReadme() },
+    ]).then((unlisten) => {
+      cleanup = unlisten;
+    });
 
     // Cleanup listeners on unmount
     return () => {
-      Promise.all(unlistenPromises).then((unlisteners) => {
-        unlisteners.forEach((unlisten) => unlisten());
-      });
+      cleanup?.();
     };
   }, [activeTab]); // Re-setup listeners when active tab changes
 
