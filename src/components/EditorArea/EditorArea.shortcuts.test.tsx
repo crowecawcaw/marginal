@@ -4,6 +4,10 @@ import { userEvent } from "@testing-library/user-event";
 import EditorArea from "./EditorArea";
 import { useEditorStore } from "../../stores/editorStore";
 import { useNotificationStore } from "../../stores/notificationStore";
+import {
+  getWebEventEmitter,
+  resetWebEventEmitter,
+} from "../../platform/eventAdapter";
 
 describe("EditorArea Keyboard Shortcuts", () => {
   beforeEach(() => {
@@ -28,18 +32,19 @@ describe("EditorArea Keyboard Shortcuts", () => {
 
   afterEach(() => {
     vi.clearAllMocks();
+    resetWebEventEmitter();
   });
 
   it("Cmd+F opens Find dialog without triggering Format", async () => {
     const user = userEvent.setup();
     render(<EditorArea />);
 
-    // Listen for the format event to ensure it's NOT triggered
+    // Listen for the format event using the event adapter to ensure it's NOT triggered
     let formatEventFired = false;
-    const formatListener = () => {
+    const emitter = getWebEventEmitter();
+    const unlisten = emitter.on("menu:format-document", () => {
       formatEventFired = true;
-    };
-    window.addEventListener("menu:format-document", formatListener);
+    });
 
     // Press Cmd+F (without Shift)
     await user.keyboard("{Meta>}f{/Meta}");
@@ -51,19 +56,19 @@ describe("EditorArea Keyboard Shortcuts", () => {
     // Format event should NOT have been triggered
     expect(formatEventFired).toBe(false);
 
-    window.removeEventListener("menu:format-document", formatListener);
+    unlisten();
   });
 
   it("Cmd+Shift+F triggers Format without opening Find dialog", async () => {
     const user = userEvent.setup();
     render(<EditorArea />);
 
-    // Listen for the format event
+    // Listen for the format event using the event adapter
     let formatEventFired = false;
-    const formatListener = () => {
+    const emitter = getWebEventEmitter();
+    const unlisten = emitter.on("menu:format-document", () => {
       formatEventFired = true;
-    };
-    window.addEventListener("menu:format-document", formatListener);
+    });
 
     // Press Cmd+Shift+F
     await user.keyboard("{Meta>}{Shift>}F{/Shift}{/Meta}");
@@ -75,7 +80,7 @@ describe("EditorArea Keyboard Shortcuts", () => {
     // This would need to check that FindInDocument is not rendered
     // The exact assertion depends on how we can detect the Find dialog
 
-    window.removeEventListener("menu:format-document", formatListener);
+    unlisten();
   });
 
   it("distinguishes between lowercase f and uppercase F in shortcuts", () => {

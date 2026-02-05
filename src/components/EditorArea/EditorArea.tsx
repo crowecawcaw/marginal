@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { setupEventListeners } from "../../platform/eventAdapter";
+import { setupEventListeners, emit } from "../../platform/eventAdapter";
 import { useEditorStore } from "../../stores/editorStore";
 import { useUIStore } from "../../stores/uiStore";
 import { useNotificationStore } from "../../stores/notificationStore";
@@ -25,8 +25,7 @@ const EditorArea: React.FC = () => {
       // Cmd+Shift+F - Format document
       if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key === "F") {
         e.preventDefault();
-        // Trigger format event
-        window.dispatchEvent(new CustomEvent("menu:format-document"));
+        emit("menu:format-document");
         return;
       }
 

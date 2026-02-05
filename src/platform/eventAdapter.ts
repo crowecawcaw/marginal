@@ -27,7 +27,13 @@ class WebEventEmitter {
   }
 
   emit<T = void>(event: string, payload?: T) {
-    this.listeners.get(event)?.forEach((callback) => callback(payload));
+    this.listeners.get(event)?.forEach((callback) => {
+      if (payload !== undefined) {
+        callback(payload);
+      } else {
+        (callback as () => void)();
+      }
+    });
   }
 }
 
