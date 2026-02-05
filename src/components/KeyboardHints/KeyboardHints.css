@@ -7,7 +7,11 @@
   color: rgba(255, 255, 255, 0.7);
   padding: 10px 16px;
   z-index: 1000;
-  animation: slideUp 0.2s ease-out;
+  animation: fadeIn 0.3s ease-out forwards;
+}
+
+.keyboard-hints.exiting {
+  animation: fadeOut 0.24s ease-in forwards;
 }
 
 .keyboard-hints::before {
@@ -23,9 +27,13 @@
   animation: blurIn 0.3s ease-out forwards;
 }
 
-@keyframes slideUp {
+.keyboard-hints.exiting::before {
+  animation: blurOut 0.24s ease-in forwards;
+}
+
+@keyframes fadeIn {
   from {
-    transform: translateY(100%);
+    transform: translateY(3px);
     opacity: 0;
   }
   to {
@@ -34,24 +42,51 @@
   }
 }
 
+@keyframes fadeOut {
+  from {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateY(2px);
+    opacity: 0;
+  }
+}
+
 @keyframes blurIn {
-  0% {
+  from {
     backdrop-filter: blur(0px);
     -webkit-backdrop-filter: blur(0px);
   }
-  100% {
+  to {
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
   }
 }
 
+@keyframes blurOut {
+  from {
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+  }
+  to {
+    backdrop-filter: blur(0px);
+    -webkit-backdrop-filter: blur(0px);
+  }
+}
+
 .keyboard-hints-content {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   gap: 12px;
-  justify-content: center;
-  max-width: 1200px;
-  margin: 0 auto;
+  justify-content: flex-start;
+  white-space: nowrap;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.keyboard-hints-content::-webkit-scrollbar {
+  display: none;
 }
 
 .keyboard-hint-item {
@@ -99,14 +134,5 @@
 
   .keyboard-hint-description {
     font-size: 10px;
-  }
-
-  /* Stack hints in columns on very small screens */
-  @media (max-width: 480px) {
-    .keyboard-hints-content {
-      flex-direction: column;
-      gap: 6px;
-      align-items: flex-start;
-    }
   }
 }

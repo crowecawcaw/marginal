@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import "./KeyboardHints.css";
 
 /**
@@ -7,7 +7,19 @@ import "./KeyboardHints.css";
  */
 const KeyboardHints: React.FC = () => {
   const [isVisible, setIsVisible] = useState(false);
+  const [isExiting, setIsExiting] = useState(false);
   const [isMac, setIsMac] = useState(false);
+  const isVisibleRef = useRef(isVisible);
+  const isExitingRef = useRef(isExiting);
+
+  // Keep refs in sync with state
+  useEffect(() => {
+    isVisibleRef.current = isVisible;
+  }, [isVisible]);
+
+  useEffect(() => {
+    isExitingRef.current = isExiting;
+  }, [isExiting]);
 
   useEffect(() => {
     // Detect platform
@@ -15,12 +27,19 @@ const KeyboardHints: React.FC = () => {
     setIsMac(platform.includes("mac"));
 
     let showTimer: number | null = null;
+    let exitTimer: number | null = null;
 
     const handleKeyDown = (e: KeyboardEvent) => {
       // Show hints after 0.8 seconds when Cmd (Mac) or Ctrl (Windows/Linux) is pressed
       // Only on initial keypress, not on repeat events
       if ((e.metaKey || e.ctrlKey) && !e.repeat) {
         if (!showTimer) {
+          // Cancel any pending exit
+          if (exitTimer) {
+            clearTimeout(exitTimer);
+            exitTimer = null;
+          }
+          setIsExiting(false);
           showTimer = setTimeout(() => {
             setIsVisible(true);
           }, 800);
@@ -28,24 +47,30 @@ const KeyboardHints: React.FC = () => {
       }
     };
 
+    const hideHints = () => {
+      if (showTimer) {
+        clearTimeout(showTimer);
+        showTimer = null;
+      }
+      if (isVisibleRef.current && !isExitingRef.current) {
+        setIsExiting(true);
+        exitTimer = setTimeout(() => {
+          setIsVisible(false);
+          setIsExiting(false);
+        }, 240);
+      }
+    };
+
     const handleKeyUp = (e: KeyboardEvent) => {
       // Hide hints when Cmd/Ctrl is released
       if (e.key === "Meta" || e.key === "Control") {
-        if (showTimer) {
-          clearTimeout(showTimer);
-          showTimer = null;
-        }
-        setIsVisible(false);
+        hideHints();
       }
     };
 
     // Also hide when window loses focus
     const handleBlur = () => {
-      if (showTimer) {
-        clearTimeout(showTimer);
-        showTimer = null;
-      }
-      setIsVisible(false);
+      hideHints();
     };
 
     window.addEventListener("keydown", handleKeyDown);
@@ -55,6 +80,9 @@ const KeyboardHints: React.FC = () => {
     return () => {
       if (showTimer) {
         clearTimeout(showTimer);
+      }
+      if (exitTimer) {
+        clearTimeout(exitTimer);
       }
       window.removeEventListener("keydown", handleKeyDown);
       window.removeEventListener("keyup", handleKeyUp);
@@ -83,7 +111,7 @@ const KeyboardHints: React.FC = () => {
   ];
 
   return (
-    <div className="keyboard-hints">
+    <div className={`keyboard-hints${isExiting ? " exiting" : ""}`}>
       <div className="keyboard-hints-content">
         {shortcuts.map((shortcut, index) => (
           <div key={index} className="keyboard-hint-item">
