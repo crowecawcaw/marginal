@@ -6,11 +6,11 @@ import "./Sidebar.css";
 
 const OutlineSidebar: React.FC = () => {
   const { outlineVisible, outlineWidth } = useUIStore();
-  const { tabs, activeTabId } = useEditorStore();
+  const { files, activeFileId } = useEditorStore();
 
-  // Get the active tab's content for outline
-  const activeTab = tabs.find((tab) => tab.id === activeTabId);
-  const activeContent = activeTab?.content || "";
+  // Get the active file's content for outline
+  const activeFile = files.find((file) => file.id === activeFileId);
+  const activeContent = activeFile?.content || "";
 
   if (!outlineVisible) return null;
 

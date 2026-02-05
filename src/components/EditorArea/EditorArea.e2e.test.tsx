@@ -35,8 +35,8 @@ describe("EditorArea E2E", () => {
   beforeEach(() => {
     // Reset the store and mocks
     useEditorStore.setState({
-      tabs: [],
-      activeTabId: null,
+      files: [],
+      activeFileId: null,
     });
     vi.clearAllMocks();
   });
@@ -44,13 +44,13 @@ describe("EditorArea E2E", () => {
   it("complete editing workflow: toggle views, verify content persistence", async () => {
     const user = userEvent.setup();
 
-    // Set up initial tab with content (instead of typing, which is flaky with ContentEditable)
-    const tabId = "test-tab-1";
+    // Set up initial file with content (instead of typing, which is flaky with ContentEditable)
+    const fileId = "test-tab-1";
     const testContent = "# Hello World\n\nThis is **bold** text.";
     useEditorStore.setState({
-      tabs: [
+      files: [
         {
-          id: tabId,
+          id: fileId,
           filePath: "/path/to/test.md",
           fileName: "test.md",
           content: testContent,
@@ -58,7 +58,7 @@ describe("EditorArea E2E", () => {
           frontmatter: undefined,
         },
       ],
-      activeTabId: tabId,
+      activeFileId: fileId,
     });
 
     render(<EditorArea />);
@@ -94,27 +94,27 @@ describe("EditorArea E2E", () => {
     // Step 5: Verify content is still preserved
     await waitFor(() => {
       const state = useEditorStore.getState();
-      const tab = state.tabs.find((t) => t.id === tabId);
+      const file = state.files.find((f) => f.id === fileId);
       // Content should still contain the key elements
-      expect(tab?.content).toContain("Hello World");
-      expect(tab?.content).toContain("bold");
+      expect(file?.content).toContain("Hello World");
+      expect(file?.content).toContain("bold");
     });
 
     // Step 6: Verify the file can be saved with correct content
     const finalState = useEditorStore.getState();
-    const finalTab = finalState.tabs.find((t) => t.id === tabId);
+    const finalFile = finalState.files.find((f) => f.id === fileId);
 
-    expect(finalTab).toBeDefined();
-    expect(finalTab?.filePath).toBe("/path/to/test.md");
+    expect(finalFile).toBeDefined();
+    expect(finalFile?.filePath).toBe("/path/to/test.md");
   });
 
   it("marks tab as dirty when content changes via store", async () => {
-    const tabId = "dirty-test-tab";
+    const fileId = "dirty-test-tab";
 
     useEditorStore.setState({
-      tabs: [
+      files: [
         {
-          id: tabId,
+          id: fileId,
           filePath: "/path/to/test.md",
           fileName: "test.md",
           content: "initial content",
@@ -122,31 +122,31 @@ describe("EditorArea E2E", () => {
           frontmatter: undefined,
         },
       ],
-      activeTabId: tabId,
+      activeFileId: fileId,
     });
 
     render(<EditorArea />);
 
     // Verify initial state is not dirty
     let state = useEditorStore.getState();
-    expect(state.tabs[0].isDirty).toBe(false);
+    expect(state.files[0].isDirty).toBe(false);
 
     // Simulate content change by updating the store directly
     // (This tests the dirty state logic without relying on ContentEditable typing)
-    useEditorStore.getState().updateTabContent(tabId, "modified content");
-    useEditorStore.getState().markTabDirty(tabId, true);
+    useEditorStore.getState().updateFileContent(fileId, "modified content");
+    useEditorStore.getState().markFileDirty(fileId, true);
 
-    // Verify tab is now marked as dirty
+    // Verify file is now marked as dirty
     state = useEditorStore.getState();
-    expect(state.tabs[0].isDirty).toBe(true);
-    expect(state.tabs[0].content).toBe("modified content");
+    expect(state.files[0].isDirty).toBe(true);
+    expect(state.files[0].content).toBe("modified content");
   });
 
   it("displays multiple tabs and switches between them", async () => {
     const user = userEvent.setup();
 
     useEditorStore.setState({
-      tabs: [
+      files: [
         {
           id: "tab-1",
           filePath: "/path/to/file1.md",
@@ -162,7 +162,7 @@ describe("EditorArea E2E", () => {
           isDirty: false,
         },
       ],
-      activeTabId: "tab-1",
+      activeFileId: "tab-1",
     });
 
     render(<EditorArea />);
@@ -184,13 +184,13 @@ describe("EditorArea E2E", () => {
     // Verify second file content is now shown
     await waitFor(() => {
       const state = useEditorStore.getState();
-      expect(state.activeTabId).toBe("tab-2");
+      expect(state.activeFileId).toBe("tab-2");
     });
   });
 
   it("shows dirty indicator on unsaved tabs", async () => {
     useEditorStore.setState({
-      tabs: [
+      files: [
         {
           id: "dirty-tab",
           filePath: "/path/to/dirty.md",
@@ -206,7 +206,7 @@ describe("EditorArea E2E", () => {
           isDirty: false,
         },
       ],
-      activeTabId: "dirty-tab",
+      activeFileId: "dirty-tab",
     });
 
     render(<EditorArea />);
@@ -226,7 +226,7 @@ describe("EditorArea E2E", () => {
     const user = userEvent.setup();
 
     useEditorStore.setState({
-      tabs: [
+      files: [
         {
           id: "tab-to-close",
           filePath: "/path/to/file.md",
@@ -242,7 +242,7 @@ describe("EditorArea E2E", () => {
           isDirty: false,
         },
       ],
-      activeTabId: "tab-to-close",
+      activeFileId: "tab-to-close",
     });
 
     render(<EditorArea />);
@@ -251,11 +251,11 @@ describe("EditorArea E2E", () => {
     const closeButtons = screen.getAllByText("×");
     await user.click(closeButtons[0]);
 
-    // Verify tab was removed
+    // Verify file was removed
     await waitFor(() => {
       const state = useEditorStore.getState();
-      expect(state.tabs).toHaveLength(1);
-      expect(state.tabs[0].id).toBe("tab-to-keep");
+      expect(state.files).toHaveLength(1);
+      expect(state.files[0].id).toBe("tab-to-keep");
     });
   });
 

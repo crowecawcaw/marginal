@@ -10,14 +10,14 @@ import prettier from "prettier/standalone";
 import prettierMarkdown from "prettier/plugins/markdown";
 
 const EditorArea: React.FC = () => {
-  const { tabs, activeTabId, updateTabContent, markTabDirty } = useEditorStore();
+  const { files, activeFileId, updateFileContent, markFileDirty } = useEditorStore();
   const { viewMode, codeZoom, renderedZoom } = useUIStore();
   const zoom = viewMode === "code" ? codeZoom : renderedZoom;
   const { addNotification } = useNotificationStore();
   const [findVisible, setFindVisible] = useState(false);
   const [editorKey, setEditorKey] = useState(0);
 
-  const activeTab = tabs.find((tab) => tab.id === activeTabId);
+  const activeFile = files.find((file) => file.id === activeFileId);
 
   // Handle keyboard shortcuts: Cmd+F for find, Cmd+Shift+F for format
   useEffect(() => {
@@ -46,7 +46,7 @@ const EditorArea: React.FC = () => {
     let cleanup: (() => void) | undefined;
 
     const handleFormat = async () => {
-      if (!activeTab) return;
+      if (!activeFile) return;
 
       if (viewMode !== "code") {
         addNotification(
@@ -57,15 +57,15 @@ const EditorArea: React.FC = () => {
       }
 
       try {
-        const formatted = await prettier.format(activeTab.content, {
+        const formatted = await prettier.format(activeFile.content, {
           parser: "markdown",
           plugins: [prettierMarkdown],
           proseWrap: "preserve",
           printWidth: 120,
         });
-        updateTabContent(activeTab.id, formatted);
-        if (!activeTab.isDirty) {
-          markTabDirty(activeTab.id, true);
+        updateFileContent(activeFile.id, formatted);
+        if (!activeFile.isDirty) {
+          markFileDirty(activeFile.id, true);
         }
         // Force editor remount to show formatted content
         setEditorKey((prev) => prev + 1);
@@ -83,29 +83,29 @@ const EditorArea: React.FC = () => {
     return () => {
       cleanup?.();
     };
-  }, [activeTab, viewMode, updateTabContent, markTabDirty, addNotification]);
+  }, [activeFile, viewMode, updateFileContent, markFileDirty, addNotification]);
 
   return (
     <div className="editor-area">
       <div className="editor-content">
-        {activeTab && (
+        {activeFile && (
           <>
             <MarkdownEditor
-              key={`${activeTab.id}-${viewMode}-${editorKey}`}
-              initialContent={activeTab.content}
+              key={`${activeFile.id}-${viewMode}-${editorKey}`}
+              initialContent={activeFile.content}
               viewMode={viewMode}
               zoom={zoom}
               onChange={(content) => {
-                const hasChanged = content !== activeTab.content;
-                updateTabContent(activeTab.id, content);
-                if (hasChanged && !activeTab.isDirty) {
-                  markTabDirty(activeTab.id, true);
+                const hasChanged = content !== activeFile.content;
+                updateFileContent(activeFile.id, content);
+                if (hasChanged && !activeFile.isDirty) {
+                  markFileDirty(activeFile.id, true);
                 }
               }}
             />
             {findVisible && (
               <FindInDocument
-                content={activeTab.content}
+                content={activeFile.content}
                 viewMode={viewMode}
                 onClose={() => setFindVisible(false)}
               />

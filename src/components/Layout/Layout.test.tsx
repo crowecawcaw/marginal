@@ -150,8 +150,8 @@ describe("Close tab with unsaved changes", () => {
     localStorageMock.clear();
     // Reset stores
     useEditorStore.setState({
-      tabs: [],
-      activeTabId: null,
+      files: [],
+      activeFileId: null,
     });
 
     // Setup spies
@@ -183,30 +183,30 @@ describe("Close tab with unsaved changes", () => {
     const { saveFile, saveFileAs } = useFileSystemModule.useFileSystem();
 
     const handleSaveTab = async (
-      tab: ReturnType<typeof useEditorStore.getState>["tabs"][0],
+      file: ReturnType<typeof useEditorStore.getState>["files"][0],
     ): Promise<boolean> => {
-      if (!tab) return false;
-      const { removeTab, openTab, markTabDirty } = useEditorStore.getState();
+      if (!file) return false;
+      const { removeFile, openFile, markFileDirty } = useEditorStore.getState();
 
       try {
-        if (!tab.filePath) {
-          const result = await saveFileAs(tab.content, tab.frontmatter);
+        if (!file.filePath) {
+          const result = await saveFileAs(file.content, file.frontmatter);
           if (result) {
-            removeTab(tab.id);
-            openTab({
+            removeFile(file.id);
+            openFile({
               id: result.path,
               filePath: result.path,
               fileName: result.fileName,
-              content: tab.content,
+              content: file.content,
               isDirty: false,
-              frontmatter: tab.frontmatter,
+              frontmatter: file.frontmatter,
             });
             return true;
           }
           return false;
         } else {
-          await saveFile(tab.filePath, tab.content, tab.frontmatter);
-          markTabDirty(tab.id, false);
+          await saveFile(file.filePath, file.content, file.frontmatter);
+          markFileDirty(file.id, false);
           return true;
         }
       } catch {
@@ -214,44 +214,44 @@ describe("Close tab with unsaved changes", () => {
       }
     };
 
-    return async (tabId?: string) => {
+    return async (fileId?: string) => {
       // Get current state from store to avoid stale closures
       const currentState = useEditorStore.getState();
-      const targetTabId = tabId ?? currentState.activeTabId;
-      if (!targetTabId) return;
+      const targetFileId = fileId ?? currentState.activeFileId;
+      if (!targetFileId) return;
 
-      const targetTab = currentState.tabs.find((t) => t.id === targetTabId);
-      if (!targetTab) return;
+      const targetFile = currentState.files.find((f) => f.id === targetFileId);
+      if (!targetFile) return;
 
-      const { removeTab } = currentState;
+      const { removeFile } = currentState;
 
-      if (targetTab.isDirty) {
+      if (targetFile.isDirty) {
         const result = await fileSystemAdapter.confirmUnsavedChanges(
-          targetTab.fileName,
+          targetFile.fileName,
         );
         if (result === "cancel") {
           return;
         }
         if (result === "save") {
-          const saved = await handleSaveTab(targetTab);
+          const saved = await handleSaveTab(targetFile);
           if (!saved) {
             return;
           }
-          if (!targetTab.filePath) {
+          if (!targetFile.filePath) {
             return;
           }
         }
-        removeTab(targetTab.id);
+        removeFile(targetFile.id);
       } else {
-        removeTab(targetTab.id);
+        removeFile(targetFile.id);
       }
     };
   };
 
   it("does not close tab when user cancels the confirm dialog", async () => {
-    // Setup: dirty untitled tab
+    // Setup: dirty untitled file
     useEditorStore.setState({
-      tabs: [
+      files: [
         {
           id: "untitled-1",
           filePath: "",
@@ -260,7 +260,7 @@ describe("Close tab with unsaved changes", () => {
           isDirty: true,
         },
       ],
-      activeTabId: "untitled-1",
+      activeFileId: "untitled-1",
     });
 
     confirmUnsavedChangesSpy.mockResolvedValue("cancel");
@@ -268,14 +268,14 @@ describe("Close tab with unsaved changes", () => {
     const handleCloseTab = createHandleCloseTab();
     await handleCloseTab();
 
-    // Tab should still exist
-    expect(useEditorStore.getState().tabs).toHaveLength(1);
-    expect(useEditorStore.getState().tabs[0].id).toBe("untitled-1");
+    // File should still exist
+    expect(useEditorStore.getState().files).toHaveLength(1);
+    expect(useEditorStore.getState().files[0].id).toBe("untitled-1");
   });
 
   it("closes tab without saving when user chooses discard", async () => {
     useEditorStore.setState({
-      tabs: [
+      files: [
         {
           id: "untitled-1",
           filePath: "",
@@ -284,7 +284,7 @@ describe("Close tab with unsaved changes", () => {
           isDirty: true,
         },
       ],
-      activeTabId: "untitled-1",
+      activeFileId: "untitled-1",
     });
 
     confirmUnsavedChangesSpy.mockResolvedValue("discard");
@@ -292,14 +292,14 @@ describe("Close tab with unsaved changes", () => {
     const handleCloseTab = createHandleCloseTab();
     await handleCloseTab();
 
-    // Tab should be removed
-    expect(useEditorStore.getState().tabs).toHaveLength(0);
+    // File should be removed
+    expect(useEditorStore.getState().files).toHaveLength(0);
     expect(saveFileAsSpy).not.toHaveBeenCalled();
   });
 
   it("does not close tab when user chooses save but cancels save dialog", async () => {
     useEditorStore.setState({
-      tabs: [
+      files: [
         {
           id: "untitled-1",
           filePath: "",
@@ -308,7 +308,7 @@ describe("Close tab with unsaved changes", () => {
           isDirty: true,
         },
       ],
-      activeTabId: "untitled-1",
+      activeFileId: "untitled-1",
     });
 
     confirmUnsavedChangesSpy.mockResolvedValue("save");
@@ -317,14 +317,14 @@ describe("Close tab with unsaved changes", () => {
     const handleCloseTab = createHandleCloseTab();
     await handleCloseTab();
 
-    // Tab should still exist because save was cancelled
-    expect(useEditorStore.getState().tabs).toHaveLength(1);
-    expect(useEditorStore.getState().tabs[0].id).toBe("untitled-1");
+    // File should still exist because save was cancelled
+    expect(useEditorStore.getState().files).toHaveLength(1);
+    expect(useEditorStore.getState().files[0].id).toBe("untitled-1");
   });
 
   it("closes tab when user chooses save and save succeeds (untitled file)", async () => {
     useEditorStore.setState({
-      tabs: [
+      files: [
         {
           id: "untitled-1",
           filePath: "",
@@ -333,7 +333,7 @@ describe("Close tab with unsaved changes", () => {
           isDirty: true,
         },
       ],
-      activeTabId: "untitled-1",
+      activeFileId: "untitled-1",
     });
 
     confirmUnsavedChangesSpy.mockResolvedValue("save");
@@ -345,16 +345,16 @@ describe("Close tab with unsaved changes", () => {
     const handleCloseTab = createHandleCloseTab();
     await handleCloseTab();
 
-    // Old untitled tab should be replaced with new saved tab
-    const tabs = useEditorStore.getState().tabs;
-    expect(tabs).toHaveLength(1);
-    expect(tabs[0].id).toBe("/path/to/saved.md");
-    expect(tabs[0].fileName).toBe("saved.md");
+    // Old untitled file should be replaced with new saved file
+    const files = useEditorStore.getState().files;
+    expect(files).toHaveLength(1);
+    expect(files[0].id).toBe("/path/to/saved.md");
+    expect(files[0].fileName).toBe("saved.md");
   });
 
   it("closes tab when user chooses save and save succeeds (existing file)", async () => {
     useEditorStore.setState({
-      tabs: [
+      files: [
         {
           id: "/existing/file.md",
           filePath: "/existing/file.md",
@@ -363,7 +363,7 @@ describe("Close tab with unsaved changes", () => {
           isDirty: true,
         },
       ],
-      activeTabId: "/existing/file.md",
+      activeFileId: "/existing/file.md",
     });
 
     confirmUnsavedChangesSpy.mockResolvedValue("save");
@@ -372,8 +372,8 @@ describe("Close tab with unsaved changes", () => {
     const handleCloseTab = createHandleCloseTab();
     await handleCloseTab();
 
-    // Tab should be removed after successful save
-    expect(useEditorStore.getState().tabs).toHaveLength(0);
+    // File should be removed after successful save
+    expect(useEditorStore.getState().files).toHaveLength(0);
     expect(saveFileSpy).toHaveBeenCalledWith(
       "/existing/file.md",
       "modified content",
@@ -383,7 +383,7 @@ describe("Close tab with unsaved changes", () => {
 
   it("does not close tab when save fails", async () => {
     useEditorStore.setState({
-      tabs: [
+      files: [
         {
           id: "/existing/file.md",
           filePath: "/existing/file.md",
@@ -392,7 +392,7 @@ describe("Close tab with unsaved changes", () => {
           isDirty: true,
         },
       ],
-      activeTabId: "/existing/file.md",
+      activeFileId: "/existing/file.md",
     });
 
     confirmUnsavedChangesSpy.mockResolvedValue("save");
@@ -401,13 +401,13 @@ describe("Close tab with unsaved changes", () => {
     const handleCloseTab = createHandleCloseTab();
     await handleCloseTab();
 
-    // Tab should still exist because save failed
-    expect(useEditorStore.getState().tabs).toHaveLength(1);
+    // File should still exist because save failed
+    expect(useEditorStore.getState().files).toHaveLength(1);
   });
 
   it("closes clean tab immediately without confirmation", async () => {
     useEditorStore.setState({
-      tabs: [
+      files: [
         {
           id: "tab-1",
           filePath: "/some/file.md",
@@ -416,20 +416,20 @@ describe("Close tab with unsaved changes", () => {
           isDirty: false,
         },
       ],
-      activeTabId: "tab-1",
+      activeFileId: "tab-1",
     });
 
     const handleCloseTab = createHandleCloseTab();
     await handleCloseTab();
 
-    // Tab should be removed without any confirmation
-    expect(useEditorStore.getState().tabs).toHaveLength(0);
+    // File should be removed without any confirmation
+    expect(useEditorStore.getState().files).toHaveLength(0);
     expect(confirmUnsavedChangesSpy).not.toHaveBeenCalled();
   });
 
   it("closes only the active tab when multiple tabs exist (menu close)", async () => {
     useEditorStore.setState({
-      tabs: [
+      files: [
         {
           id: "tab-1",
           filePath: "/file1.md",
@@ -452,21 +452,21 @@ describe("Close tab with unsaved changes", () => {
           isDirty: false,
         },
       ],
-      activeTabId: "tab-2",
+      activeFileId: "tab-2",
     });
 
     const handleCloseTab = createHandleCloseTab();
-    // Close without tabId - should close active tab (tab-2)
+    // Close without fileId - should close active tab (tab-2)
     await handleCloseTab();
 
-    const tabs = useEditorStore.getState().tabs;
-    expect(tabs).toHaveLength(2);
-    expect(tabs.map((t) => t.id)).toEqual(["tab-1", "tab-3"]);
+    const files = useEditorStore.getState().files;
+    expect(files).toHaveLength(2);
+    expect(files.map((f) => f.id)).toEqual(["tab-1", "tab-3"]);
   });
 
   it("closes specific tab by ID when multiple tabs exist (X button)", async () => {
     useEditorStore.setState({
-      tabs: [
+      files: [
         {
           id: "tab-1",
           filePath: "/file1.md",
@@ -489,23 +489,23 @@ describe("Close tab with unsaved changes", () => {
           isDirty: false,
         },
       ],
-      activeTabId: "tab-1", // Active is tab-1
+      activeFileId: "tab-1", // Active is tab-1
     });
 
     const handleCloseTab = createHandleCloseTab();
     // Close tab-3 specifically (clicking X on non-active tab)
     await handleCloseTab("tab-3");
 
-    const tabs = useEditorStore.getState().tabs;
-    expect(tabs).toHaveLength(2);
-    expect(tabs.map((t) => t.id)).toEqual(["tab-1", "tab-2"]);
-    // Active tab should still be tab-1
-    expect(useEditorStore.getState().activeTabId).toBe("tab-1");
+    const files = useEditorStore.getState().files;
+    expect(files).toHaveLength(2);
+    expect(files.map((f) => f.id)).toEqual(["tab-1", "tab-2"]);
+    // Active file should still be tab-1
+    expect(useEditorStore.getState().activeFileId).toBe("tab-1");
   });
 
   it("prompts for correct tab when closing specific dirty tab by ID", async () => {
     useEditorStore.setState({
-      tabs: [
+      files: [
         {
           id: "tab-1",
           filePath: "/file1.md",
@@ -521,7 +521,7 @@ describe("Close tab with unsaved changes", () => {
           isDirty: true,
         },
       ],
-      activeTabId: "tab-1",
+      activeFileId: "tab-1",
     });
 
     confirmUnsavedChangesSpy.mockResolvedValue("discard");
@@ -534,14 +534,14 @@ describe("Close tab with unsaved changes", () => {
     expect(confirmUnsavedChangesSpy).toHaveBeenCalledWith("file2.md");
     expect(confirmUnsavedChangesSpy).not.toHaveBeenCalledWith("file1.md");
 
-    const tabs = useEditorStore.getState().tabs;
-    expect(tabs).toHaveLength(1);
-    expect(tabs[0].id).toBe("tab-1");
+    const files = useEditorStore.getState().files;
+    expect(files).toHaveLength(1);
+    expect(files[0].id).toBe("tab-1");
   });
 
   it("does nothing when closing non-existent tab ID", async () => {
     useEditorStore.setState({
-      tabs: [
+      files: [
         {
           id: "tab-1",
           filePath: "/file1.md",
@@ -550,13 +550,13 @@ describe("Close tab with unsaved changes", () => {
           isDirty: false,
         },
       ],
-      activeTabId: "tab-1",
+      activeFileId: "tab-1",
     });
 
     const handleCloseTab = createHandleCloseTab();
     await handleCloseTab("non-existent-tab");
 
     // Nothing should have changed
-    expect(useEditorStore.getState().tabs).toHaveLength(1);
+    expect(useEditorStore.getState().files).toHaveLength(1);
   });
 });

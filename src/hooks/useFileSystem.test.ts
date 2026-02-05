@@ -23,8 +23,8 @@ describe("useFileSystem", () => {
   beforeEach(() => {
     // Reset all stores before each test
     useEditorStore.setState({
-      tabs: [],
-      activeTabId: null,
+      files: [],
+      activeFileId: null,
     });
 
     useFileStore.setState({
@@ -37,22 +37,22 @@ describe("useFileSystem", () => {
   });
 
   describe("newFile - untitled file name incrementing", () => {
-    it('creates "Untitled.md" when no tabs exist', () => {
+    it('creates "Untitled.md" when no files exist', () => {
       const { result } = renderHook(() => useFileSystem());
 
       act(() => {
         result.current.newFile();
       });
 
-      const tabs = useEditorStore.getState().tabs;
-      expect(tabs).toHaveLength(1);
-      expect(tabs[0].fileName).toBe("Untitled.md");
+      const files = useEditorStore.getState().files;
+      expect(files).toHaveLength(1);
+      expect(files[0].fileName).toBe("Untitled.md");
     });
 
     it('creates "Untitled2.md" when "Untitled.md" exists', () => {
       // Set up initial state with Untitled.md
       useEditorStore.setState({
-        tabs: [
+        files: [
           {
             id: "untitled-1",
             filePath: "",
@@ -61,7 +61,7 @@ describe("useFileSystem", () => {
             isDirty: false,
           },
         ],
-        activeTabId: "untitled-1",
+        activeFileId: "untitled-1",
       });
 
       const { result } = renderHook(() => useFileSystem());
@@ -70,14 +70,14 @@ describe("useFileSystem", () => {
         result.current.newFile();
       });
 
-      const tabs = useEditorStore.getState().tabs;
-      expect(tabs).toHaveLength(2);
-      expect(tabs[1].fileName).toBe("Untitled2.md");
+      const files = useEditorStore.getState().files;
+      expect(files).toHaveLength(2);
+      expect(files[1].fileName).toBe("Untitled2.md");
     });
 
     it('creates "Untitled3.md" when "Untitled.md" and "Untitled2.md" exist', () => {
       useEditorStore.setState({
-        tabs: [
+        files: [
           {
             id: "untitled-1",
             filePath: "",
@@ -93,7 +93,7 @@ describe("useFileSystem", () => {
             isDirty: false,
           },
         ],
-        activeTabId: "untitled-1",
+        activeFileId: "untitled-1",
       });
 
       const { result } = renderHook(() => useFileSystem());
@@ -102,14 +102,14 @@ describe("useFileSystem", () => {
         result.current.newFile();
       });
 
-      const tabs = useEditorStore.getState().tabs;
-      expect(tabs).toHaveLength(3);
-      expect(tabs[2].fileName).toBe("Untitled3.md");
+      const files = useEditorStore.getState().files;
+      expect(files).toHaveLength(3);
+      expect(files[2].fileName).toBe("Untitled3.md");
     });
 
     it('creates "Untitled.md" when no untitled files exist', () => {
       useEditorStore.setState({
-        tabs: [
+        files: [
           {
             id: "file-1",
             filePath: "/path/to/file.md",
@@ -118,7 +118,7 @@ describe("useFileSystem", () => {
             isDirty: false,
           },
         ],
-        activeTabId: "file-1",
+        activeFileId: "file-1",
       });
 
       const { result } = renderHook(() => useFileSystem());
@@ -127,14 +127,14 @@ describe("useFileSystem", () => {
         result.current.newFile();
       });
 
-      const tabs = useEditorStore.getState().tabs;
-      expect(tabs).toHaveLength(2);
-      expect(tabs[1].fileName).toBe("Untitled.md");
+      const files = useEditorStore.getState().files;
+      expect(files).toHaveLength(2);
+      expect(files[1].fileName).toBe("Untitled.md");
     });
 
     it("increments from highest number when gaps exist", () => {
       useEditorStore.setState({
-        tabs: [
+        files: [
           {
             id: "untitled-1",
             filePath: "",
@@ -150,7 +150,7 @@ describe("useFileSystem", () => {
             isDirty: false,
           },
         ],
-        activeTabId: "untitled-1",
+        activeFileId: "untitled-1",
       });
 
       const { result } = renderHook(() => useFileSystem());
@@ -159,14 +159,14 @@ describe("useFileSystem", () => {
         result.current.newFile();
       });
 
-      const tabs = useEditorStore.getState().tabs;
-      expect(tabs).toHaveLength(3);
-      expect(tabs[2].fileName).toBe("Untitled4.md");
+      const files = useEditorStore.getState().files;
+      expect(files).toHaveLength(3);
+      expect(files[2].fileName).toBe("Untitled4.md");
     });
 
     it("handles non-sequential numbers correctly", () => {
       useEditorStore.setState({
-        tabs: [
+        files: [
           {
             id: "untitled-5",
             filePath: "",
@@ -189,7 +189,7 @@ describe("useFileSystem", () => {
             isDirty: false,
           },
         ],
-        activeTabId: "untitled-5",
+        activeFileId: "untitled-5",
       });
 
       const { result } = renderHook(() => useFileSystem());
@@ -198,26 +198,26 @@ describe("useFileSystem", () => {
         result.current.newFile();
       });
 
-      const tabs = useEditorStore.getState().tabs;
-      expect(tabs).toHaveLength(4);
-      expect(tabs[3].fileName).toBe("Untitled11.md");
+      const files = useEditorStore.getState().files;
+      expect(files).toHaveLength(4);
+      expect(files[3].fileName).toBe("Untitled11.md");
     });
 
-    it("creates new tab with empty content and no frontmatter", () => {
+    it("creates new file with empty content and no frontmatter", () => {
       const { result } = renderHook(() => useFileSystem());
 
       act(() => {
         result.current.newFile();
       });
 
-      const tabs = useEditorStore.getState().tabs;
-      expect(tabs[0].content).toBe("");
-      expect(tabs[0].isDirty).toBe(false);
-      expect(tabs[0].frontmatter).toBeUndefined();
-      expect(tabs[0].filePath).toBe("");
+      const files = useEditorStore.getState().files;
+      expect(files[0].content).toBe("");
+      expect(files[0].isDirty).toBe(false);
+      expect(files[0].frontmatter).toBeUndefined();
+      expect(files[0].filePath).toBe("");
     });
 
-    it("generates unique tab IDs with timestamp format", () => {
+    it("generates unique file IDs with timestamp format", () => {
       const { result } = renderHook(() => useFileSystem());
 
       // Create first file
@@ -227,10 +227,10 @@ describe("useFileSystem", () => {
       });
       const afterTime = Date.now();
 
-      const tabs = useEditorStore.getState().tabs;
-      expect(tabs).toHaveLength(1);
+      const files = useEditorStore.getState().files;
+      expect(files).toHaveLength(1);
 
-      const id = tabs[0].id;
+      const id = files[0].id;
       expect(id).toMatch(/^untitled-\d+$/);
 
       // Extract timestamp from ID
@@ -241,7 +241,7 @@ describe("useFileSystem", () => {
   });
 
   describe("openFile", () => {
-    it("opens file with dialog and adds to tabs", async () => {
+    it("opens file with dialog and adds to editor", async () => {
       const mockInvoke = (await import("@tauri-apps/api/core")).invoke as any;
       const mockOpen = (await import("@tauri-apps/plugin-dialog")).open as any;
 
@@ -254,12 +254,12 @@ describe("useFileSystem", () => {
         await result.current.openFile();
       });
 
-      const tabs = useEditorStore.getState().tabs;
-      expect(tabs).toHaveLength(1);
-      expect(tabs[0].fileName).toBe("test.md");
-      expect(tabs[0].filePath).toBe("/path/to/test.md");
-      expect(tabs[0].content).toBe("# Test Content\n\nHello World");
-      expect(tabs[0].isDirty).toBe(false);
+      const files = useEditorStore.getState().files;
+      expect(files).toHaveLength(1);
+      expect(files[0].fileName).toBe("test.md");
+      expect(files[0].filePath).toBe("/path/to/test.md");
+      expect(files[0].content).toBe("# Test Content\n\nHello World");
+      expect(files[0].isDirty).toBe(false);
     });
 
     it("opens file with provided path directly", async () => {
@@ -273,11 +273,11 @@ describe("useFileSystem", () => {
         await result.current.openFile("/direct/path/file.md");
       });
 
-      const tabs = useEditorStore.getState().tabs;
-      expect(tabs).toHaveLength(1);
-      expect(tabs[0].fileName).toBe("file.md");
-      expect(tabs[0].filePath).toBe("/direct/path/file.md");
-      expect(tabs[0].content).toBe("# Direct Open\n\nContent");
+      const files = useEditorStore.getState().files;
+      expect(files).toHaveLength(1);
+      expect(files[0].fileName).toBe("file.md");
+      expect(files[0].filePath).toBe("/direct/path/file.md");
+      expect(files[0].content).toBe("# Direct Open\n\nContent");
     });
 
     it("parses frontmatter when opening file", async () => {
@@ -300,13 +300,13 @@ author: John Doe
         await result.current.openFile();
       });
 
-      const tabs = useEditorStore.getState().tabs;
-      expect(tabs[0].frontmatter).toEqual({
+      const files = useEditorStore.getState().files;
+      expect(files[0].frontmatter).toEqual({
         title: "Test Document",
         author: "John Doe",
       });
       // gray-matter includes the newline after frontmatter in content
-      expect(tabs[0].content.trim()).toBe("# Content here");
+      expect(files[0].content.trim()).toBe("# Content here");
     });
 
     it("adds file to recent files when opened", async () => {
@@ -337,8 +337,8 @@ author: John Doe
         await result.current.openFile();
       });
 
-      const tabs = useEditorStore.getState().tabs;
-      expect(tabs).toHaveLength(0);
+      const files = useEditorStore.getState().files;
+      expect(files).toHaveLength(0);
     });
   });
 

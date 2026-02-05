@@ -14,7 +14,7 @@ import { parseFrontmatter, serializeFrontmatter } from "../utils/frontmatter";
 
 export const useFileSystem = () => {
   const { setRootPath, setFileTree, addRecentFile } = useFileStore();
-  const { openTab } = useEditorStore();
+  const { openFile: openEditorFile } = useEditorStore();
 
   const openFolder = async () => {
     try {
@@ -66,7 +66,7 @@ export const useFileSystem = () => {
       // Parse frontmatter from the content
       const parsed = parseFrontmatter(rawContent);
 
-      openTab({
+      openEditorFile({
         id: path,
         filePath: path,
         fileName,
@@ -112,12 +112,12 @@ export const useFileSystem = () => {
   };
 
   const newFile = () => {
-    const currentTabs = useEditorStore.getState().tabs;
+    const currentFiles = useEditorStore.getState().files;
     const untitledPattern = /^Untitled(\d*)\.md$/;
 
-    const existingNumbers = currentTabs
-      .map((tab) => {
-        const match = tab.fileName.match(untitledPattern);
+    const existingNumbers = currentFiles
+      .map((file) => {
+        const match = file.fileName.match(untitledPattern);
         return match ? (match[1] === "" ? 1 : parseInt(match[1], 10)) : 0;
       })
       .filter((num) => num > 0);
@@ -125,8 +125,8 @@ export const useFileSystem = () => {
     let nextNumber = 1;
     if (existingNumbers.length > 0) {
       const maxNumber = Math.max(...existingNumbers);
-      const hasUntitled = currentTabs.some(
-        (tab) => tab.fileName === "Untitled.md",
+      const hasUntitled = currentFiles.some(
+        (file) => file.fileName === "Untitled.md",
       );
       nextNumber = hasUntitled ? maxNumber + 1 : 1;
     }
@@ -134,10 +134,10 @@ export const useFileSystem = () => {
     const fileName =
       nextNumber === 1 ? "Untitled.md" : `Untitled${nextNumber}.md`;
     const timestamp = Date.now();
-    const newTabId = `untitled-${timestamp}`;
+    const newFileId = `untitled-${timestamp}`;
 
-    openTab({
-      id: newTabId,
+    openEditorFile({
+      id: newFileId,
       filePath: "", // Empty path means unsaved file
       fileName,
       content: "",

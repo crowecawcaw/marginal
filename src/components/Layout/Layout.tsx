@@ -20,34 +20,34 @@ import "./Layout.css";
 
 const Layout: React.FC = () => {
   const { toggleOutline, toggleViewMode, zoomIn, zoomOut } = useUIStore();
-  const { tabs, activeTabId, removeTab, markTabDirty, openTab } =
+  const { files, activeFileId, removeFile, markFileDirty, openFile: openEditorFile } =
     useEditorStore();
   const { addNotification } = useNotificationStore();
   const { openFile, saveFile, saveFileAs, newFile } = useFileSystem();
 
-  // Get active tab for save functionality
-  const activeTab = tabs.find((tab) => tab.id === activeTabId);
+  // Get active file for save functionality
+  const activeFile = files.find((file) => file.id === activeFileId);
 
-  // Handle save for a specific tab - returns true if save succeeded, false if cancelled or failed
-  const handleSaveTab = async (tab: typeof activeTab): Promise<boolean> => {
-    if (!tab) {
+  // Handle save for a specific file - returns true if save succeeded, false if cancelled or failed
+  const handleSaveFile = async (file: typeof activeFile): Promise<boolean> => {
+    if (!file) {
       return false;
     }
 
     try {
       // If the file has no path (untitled), use Save As dialog
-      if (!tab.filePath) {
-        const result = await saveFileAs(tab.content, tab.frontmatter);
+      if (!file.filePath) {
+        const result = await saveFileAs(file.content, file.frontmatter);
         if (result) {
-          // Remove old untitled tab and open new saved tab
-          removeTab(tab.id);
-          openTab({
+          // Remove old untitled file and open new saved file
+          removeFile(file.id);
+          openEditorFile({
             id: result.path,
             filePath: result.path,
             fileName: result.fileName,
-            content: tab.content,
+            content: file.content,
             isDirty: false,
-            frontmatter: tab.frontmatter,
+            frontmatter: file.frontmatter,
           });
           showMessage(`Saved ${result.fileName}`, { title: "File Saved" });
           return true;
@@ -56,9 +56,9 @@ const Layout: React.FC = () => {
         return false;
       } else {
         // Regular save for existing files
-        await saveFile(tab.filePath, tab.content, tab.frontmatter);
-        markTabDirty(tab.id, false);
-        showMessage(`Saved ${tab.fileName}`, { title: "File Saved" });
+        await saveFile(file.filePath, file.content, file.frontmatter);
+        markFileDirty(file.id, false);
+        showMessage(`Saved ${file.fileName}`, { title: "File Saved" });
         return true;
       }
     } catch (error) {
@@ -71,9 +71,9 @@ const Layout: React.FC = () => {
     }
   };
 
-  // Handle save for the active tab
+  // Handle save for the active file
   const handleSave = async (): Promise<boolean> => {
-    return handleSaveTab(activeTab);
+    return handleSaveFile(activeFile);
   };
 
   // Handle new file
@@ -98,35 +98,35 @@ const Layout: React.FC = () => {
   };
 
   // Handle closing a specific tab by ID
-  // If no tabId provided, closes the active tab
-  const handleCloseTab = async (tabId?: string) => {
+  // If no fileId provided, closes the active file
+  const handleCloseTab = async (fileId?: string) => {
     // Get current state from store to avoid stale closures
     const currentState = useEditorStore.getState();
-    const targetTabId = tabId ?? currentState.activeTabId;
-    if (!targetTabId) return;
+    const targetFileId = fileId ?? currentState.activeFileId;
+    if (!targetFileId) return;
 
-    const targetTab = currentState.tabs.find((t) => t.id === targetTabId);
-    if (!targetTab) return;
+    const targetFile = currentState.files.find((f) => f.id === targetFileId);
+    if (!targetFile) return;
 
-    if (targetTab.isDirty) {
-      const result = await confirmUnsavedChanges(targetTab.fileName);
+    if (targetFile.isDirty) {
+      const result = await confirmUnsavedChanges(targetFile.fileName);
       if (result === "cancel") {
         return;
       }
       if (result === "save") {
-        const saved = await handleSaveTab(targetTab);
+        const saved = await handleSaveFile(targetFile);
         if (!saved) {
-          // User cancelled the save dialog, don't close the tab
+          // User cancelled the save dialog, don't close the file
           return;
         }
-        // Tab was already replaced by handleSaveTab for untitled files
-        if (!targetTab.filePath) {
+        // File was already replaced by handleSaveFile for untitled files
+        if (!targetFile.filePath) {
           return;
         }
       }
-      removeTab(targetTab.id);
+      removeFile(targetFile.id);
     } else {
-      removeTab(targetTab.id);
+      removeFile(targetFile.id);
     }
   };
 
@@ -136,7 +136,7 @@ const Layout: React.FC = () => {
       const readmeContent = await fetch("/src/assets/README.md").then((r) =>
         r.text(),
       );
-      openTab({
+      openEditorFile({
         id: "readme",
         filePath: "", // Empty path means it's not a real file
         fileName: "README.md",
@@ -210,22 +210,22 @@ const Layout: React.FC = () => {
     },
   ]);
 
-  // Create a blank file on startup if no tabs exist
+  // Create a blank file on startup if no files exist
   useEffect(() => {
-    if (tabs.length === 0) {
+    if (files.length === 0) {
       newFile();
     }
   }, []); // Only run once on mount
 
-  // Update page title based on active tab
+  // Update page title based on active file
   useEffect(() => {
-    if (activeTab) {
-      const unsavedIndicator = activeTab.isDirty ? " - Unsaved" : "";
-      document.title = `${activeTab.fileName}${unsavedIndicator}`;
+    if (activeFile) {
+      const unsavedIndicator = activeFile.isDirty ? " - Unsaved" : "";
+      document.title = `${activeFile.fileName}${unsavedIndicator}`;
     } else {
       document.title = "marginal";
     }
-  }, [activeTab?.fileName, activeTab?.isDirty]);
+  }, [activeFile?.fileName, activeFile?.isDirty]);
 
   // Listen for menu events (works in both Tauri and web)
   // These handlers get current state from store, so no need to re-register on state changes
@@ -252,9 +252,9 @@ const Layout: React.FC = () => {
     });
 
     // Close tab event with payload (from clicking X on tab)
-    listen<{ tabId: string }>("close-tab", (payload) => {
-      if (payload?.tabId) {
-        handleCloseTab(payload.tabId);
+    listen<{ fileId: string }>("close-tab", (payload) => {
+      if (payload?.fileId) {
+        handleCloseTab(payload.fileId);
       }
     }).then((unlisten) => {
       if (mounted) {

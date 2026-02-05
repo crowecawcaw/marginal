@@ -13,7 +13,7 @@ describe("EditorArea Keyboard Shortcuts", () => {
   beforeEach(() => {
     // Reset stores
     useEditorStore.setState({
-      tabs: [
+      files: [
         {
           id: "test-tab",
           filePath: "/path/to/test.md",
@@ -22,7 +22,7 @@ describe("EditorArea Keyboard Shortcuts", () => {
           isDirty: false,
         },
       ],
-      activeTabId: "test-tab",
+      activeFileId: "test-tab",
     });
 
     useNotificationStore.setState({

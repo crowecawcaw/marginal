@@ -6,7 +6,7 @@ import { emit } from "../../platform/eventAdapter";
 import "./Titlebar.css";
 
 const Titlebar: React.FC = () => {
-  const { tabs, activeTabId, setActiveTab } = useEditorStore();
+  const { files, activeFileId, setActiveFile } = useEditorStore();
   const { viewMode, setViewMode } = useUIStore();
 
   const handleDragStart = (e: React.MouseEvent) => {
@@ -19,11 +19,11 @@ const Titlebar: React.FC = () => {
     }
   };
 
-  const handleTabClose = (e: React.MouseEvent, tabId: string) => {
+  const handleTabClose = (e: React.MouseEvent, fileId: string) => {
     e.stopPropagation();
-    // Emit close event with the specific tab ID
+    // Emit close event with the specific file ID
     // Layout will handle the save confirmation
-    emit("close-tab", { tabId });
+    emit("close-tab", { fileId });
   };
 
   return (
@@ -31,22 +31,22 @@ const Titlebar: React.FC = () => {
       {/* Left drag region - includes space for traffic lights */}
       <div className="titlebar-drag-left" onMouseDown={handleDragStart} />
 
-      {/* Tab items */}
+      {/* Tab items - Render each file as a tab in the titlebar */}
       <div className="titlebar-tabs">
-        {tabs.map((tab) => (
+        {files.map((file) => (
           <button
-            key={tab.id}
-            className={`titlebar-tab ${tab.id === activeTabId ? "active" : ""}`}
-            onClick={() => setActiveTab(tab.id)}
+            key={file.id}
+            className={`titlebar-tab ${file.id === activeFileId ? "active" : ""}`}
+            onClick={() => setActiveFile(file.id)}
           >
             <span className="titlebar-tab-name">
-              {tab.isDirty && <span className="titlebar-tab-dirty">●</span>}
-              {tab.fileName}
+              {file.isDirty && <span className="titlebar-tab-dirty">●</span>}
+              {file.fileName}
             </span>
-            {tabs.length > 1 && (
+            {files.length > 1 && (
               <span
                 className="titlebar-tab-close"
-                onClick={(e) => handleTabClose(e, tab.id)}
+                onClick={(e) => handleTabClose(e, file.id)}
               >
                 ×
               </span>

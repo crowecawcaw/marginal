@@ -1,4 +1,4 @@
-export interface EditorTab {
+export interface EditorFile {
   id: string;
   filePath: string;
   fileName: string;

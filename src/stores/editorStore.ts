@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { EditorTab } from "../types";
+import { EditorFile } from "../types";
 
 // Extract first header from markdown content
 const extractFirstHeader = (content: string): string | null => {
@@ -15,67 +15,67 @@ const extractFirstHeader = (content: string): string | null => {
 };
 
 interface EditorState {
-  tabs: EditorTab[];
-  activeTabId: string | null;
-  openTab: (tab: EditorTab) => void;
-  addTab: (tab: EditorTab) => void;
-  removeTab: (id: string) => void;
-  setActiveTab: (id: string) => void;
-  updateTabContent: (id: string, content: string) => void;
-  markTabDirty: (id: string, isDirty: boolean) => void;
+  files: EditorFile[];
+  activeFileId: string | null;
+  openFile: (file: EditorFile) => void;
+  addFile: (file: EditorFile) => void;
+  removeFile: (id: string) => void;
+  setActiveFile: (id: string) => void;
+  updateFileContent: (id: string, content: string) => void;
+  markFileDirty: (id: string, isDirty: boolean) => void;
 }
 
 export const useEditorStore = create<EditorState>((set) => ({
-  tabs: [],
-  activeTabId: null,
-  openTab: (tab) =>
+  files: [],
+  activeFileId: null,
+  openFile: (file) =>
     set((state) => {
-      const existingTab = state.tabs.find((t) => t.id === tab.id);
-      if (existingTab) {
-        return { activeTabId: tab.id };
+      const existingFile = state.files.find((f) => f.id === file.id);
+      if (existingFile) {
+        return { activeFileId: file.id };
       }
       return {
-        tabs: [...state.tabs, tab],
-        activeTabId: tab.id,
+        files: [...state.files, file],
+        activeFileId: file.id,
       };
     }),
-  addTab: (tab) =>
+  addFile: (file) =>
     set((state) => ({
-      tabs: [...state.tabs, tab],
-      activeTabId: tab.id,
+      files: [...state.files, file],
+      activeFileId: file.id,
     })),
-  removeTab: (id) =>
+  removeFile: (id) =>
     set((state) => {
-      const newTabs = state.tabs.filter((t) => t.id !== id);
-      const newActiveTabId =
-        state.activeTabId === id
-          ? newTabs.length > 0
-            ? newTabs[newTabs.length - 1].id
+      const newFiles = state.files.filter((f) => f.id !== id);
+      const newActiveFileId =
+        state.activeFileId === id
+          ? newFiles.length > 0
+            ? newFiles[newFiles.length - 1].id
             : null
-          : state.activeTabId;
-      return { tabs: newTabs, activeTabId: newActiveTabId };
+          : state.activeFileId;
+      return { files: newFiles, activeFileId: newActiveFileId };
     }),
-  setActiveTab: (id) => set({ activeTabId: id }),
-  updateTabContent: (id, content) =>
+  setActiveFile: (id) => set({ activeFileId: id }),
+  updateFileContent: (id, content) =>
     set((state) => ({
-      tabs: state.tabs.map((tab) => {
-        if (tab.id === id) {
+      files: state.files.map((file) => {
+        if (file.id === id) {
           // For unsaved files, update fileName based on first header
-          if (!tab.filePath) {
+          if (!file.filePath) {
             const firstHeader = extractFirstHeader(content);
             if (firstHeader) {
-              return { ...tab, content, fileName: `${firstHeader}.md` };
+              return { ...file, content, fileName: `${firstHeader}.md` };
             }
           }
-          return { ...tab, content };
+          return { ...file, content };
         }
-        return tab;
+        return file;
       }),
     })),
-  markTabDirty: (id, isDirty) =>
+  markFileDirty: (id, isDirty) =>
     set((state) => ({
-      tabs: state.tabs.map((tab) =>
-        tab.id === id ? { ...tab, isDirty } : tab,
+      files: state.files.map((file) =>
+        file.id === id ? { ...file, isDirty } : file,
       ),
     })),
 }));
