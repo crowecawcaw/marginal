@@ -200,21 +200,23 @@ export async function confirmUnsavedChanges(
   fileName: string,
 ): Promise<ConfirmResult> {
   if (isTauri()) {
-    const { ask } = await import("@tauri-apps/plugin-dialog");
-    const shouldSave = await ask(
+    const { message } = await import("@tauri-apps/plugin-dialog");
+    const result = await message(
       `"${fileName}" has unsaved changes. Do you want to save before closing?`,
       {
         title: "Unsaved Changes",
         kind: "warning",
-        okLabel: "Save",
-        cancelLabel: "Don't Save",
+        buttons: {
+          yes: "Save",
+          no: "Don't Save",
+          cancel: "Cancel",
+        },
       },
     );
-    // Tauri's ask only returns boolean, so we use a workaround:
-    // true = Save, false = Don't Save
-    // For cancel, user would close the dialog, but ask doesn't distinguish
-    // We'll use a confirm for simplicity: Save or Don't Save
-    return shouldSave ? "save" : "discard";
+    // message() returns the button label that was clicked
+    if (result === "Save") return "save";
+    if (result === "Don't Save") return "discard";
+    return "cancel";
   } else {
     // Web implementation - use confirm dialog
     const result = window.confirm(
@@ -302,5 +304,26 @@ export function getFileName(path: string): string {
     const storage = getWebFileStorage();
     const file = storage.getFile(path);
     return file?.name || path.split("/").pop() || "Untitled";
+  }
+}
+
+export type MessageKind = "info" | "warning" | "error";
+
+/**
+ * Show a system message dialog
+ */
+export async function showMessage(
+  text: string,
+  options?: { title?: string; kind?: MessageKind },
+): Promise<void> {
+  if (isTauri()) {
+    const { message } = await import("@tauri-apps/plugin-dialog");
+    await message(text, {
+      title: options?.title,
+      kind: options?.kind,
+    });
+  } else {
+    // Web fallback - use alert
+    window.alert(text);
   }
 }

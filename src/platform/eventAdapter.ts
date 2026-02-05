@@ -7,27 +7,27 @@
 
 import { isTauri } from "./index";
 
-// Event callback type
-type EventCallback = () => void;
+// Event callback type - payload is optional
+type EventCallback<T = void> = (payload?: T) => void;
 type UnlistenFn = () => void;
 
 // Web event emitter singleton
 class WebEventEmitter {
-  private listeners: Map<string, Set<EventCallback>> = new Map();
+  private listeners: Map<string, Set<EventCallback<unknown>>> = new Map();
 
-  on(event: string, callback: EventCallback): UnlistenFn {
+  on<T = void>(event: string, callback: EventCallback<T>): UnlistenFn {
     if (!this.listeners.has(event)) {
       this.listeners.set(event, new Set());
     }
-    this.listeners.get(event)!.add(callback);
+    this.listeners.get(event)!.add(callback as EventCallback<unknown>);
 
     return () => {
-      this.listeners.get(event)?.delete(callback);
+      this.listeners.get(event)?.delete(callback as EventCallback<unknown>);
     };
   }
 
-  emit(event: string) {
-    this.listeners.get(event)?.forEach((callback) => callback());
+  emit<T = void>(event: string, payload?: T) {
+    this.listeners.get(event)?.forEach((callback) => callback(payload));
   }
 }
 
@@ -50,37 +50,43 @@ export const resetWebEventEmitter = (): void => {
 /**
  * Listen for an app event
  * Works in both Tauri and web environments
+ *
+ * In Tauri mode, listens to both:
+ * - Tauri events (from Rust backend, e.g., menu events)
+ * - WebEventEmitter events (from frontend, e.g., close-tab)
  */
-export async function listen(
+export async function listen<T = void>(
   event: string,
-  callback: EventCallback,
+  callback: EventCallback<T>,
 ): Promise<UnlistenFn> {
+  const emitter = getWebEventEmitter();
+  const webUnlisten = emitter.on(event, callback);
+
   if (isTauri()) {
     const { getCurrentWebviewWindow } =
       await import("@tauri-apps/api/webviewWindow");
     const appWindow = getCurrentWebviewWindow();
-    // Wrap callback to match Tauri's expected signature (event: Event<T>) => void
-    return appWindow.listen(event, () => callback());
-  } else {
-    const emitter = getWebEventEmitter();
-    return emitter.on(event, callback);
+    // Also listen for Tauri events (from Rust backend)
+    const tauriUnlisten = await appWindow.listen<T>(event, (e) =>
+      callback(e.payload),
+    );
+    return () => {
+      webUnlisten();
+      tauriUnlisten();
+    };
   }
+
+  return webUnlisten;
 }
 
 /**
- * Emit an app event
- * Works in both Tauri and web environments
+ * Emit an app event from the frontend
+ * Always uses WebEventEmitter for frontend-to-frontend communication
+ * (Tauri's event system is for backend-to-frontend communication)
  */
-export async function emit(event: string): Promise<void> {
-  if (isTauri()) {
-    const { getCurrentWebviewWindow } =
-      await import("@tauri-apps/api/webviewWindow");
-    const appWindow = getCurrentWebviewWindow();
-    await appWindow.emit(event);
-  } else {
-    const emitter = getWebEventEmitter();
-    emitter.emit(event);
-  }
+export function emit<T = void>(event: string, payload?: T): void {
+  const emitter = getWebEventEmitter();
+  emitter.emit(event, payload);
 }
 
 /**

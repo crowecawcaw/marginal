@@ -21,10 +21,9 @@ const Titlebar: React.FC = () => {
 
   const handleTabClose = (e: React.MouseEvent, tabId: string) => {
     e.stopPropagation();
-    // Set as active tab first, then emit close event
+    // Emit close event with the specific tab ID
     // Layout will handle the save confirmation
-    setActiveTab(tabId);
-    emit("menu:close-tab");
+    emit("close-tab", { tabId });
   };
 
   return (
