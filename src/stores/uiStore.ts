@@ -17,7 +17,7 @@ async function emitViewModeChange(mode: ViewMode): Promise<void> {
 // Zoom limits (percentage)
 const MIN_ZOOM = 50;
 const MAX_ZOOM = 200;
-const ZOOM_STEP = 10;
+const ZOOM_STEP = 25;
 
 interface UIState {
   sidebarVisible: boolean;
@@ -39,6 +39,7 @@ interface UIState {
   toggleViewMode: () => void;
   zoomIn: () => void;
   zoomOut: () => void;
+  resetZoom: () => void;
   setLoading: (isLoading: boolean, message?: string) => void;
 }
 
@@ -59,21 +60,21 @@ export const useUIStore = create<UIState>((set) => ({
   toggleSidebar: () =>
     set((state) => {
       const newVisible = !state.sidebarVisible;
-      saveSettings({ sidebarVisible: newVisible });
+      void saveSettings({ sidebarVisible: newVisible });
       return { sidebarVisible: newVisible };
     }),
   toggleOutline: () =>
     set((state) => {
       const newVisible = !state.outlineVisible;
-      saveSettings({ outlineVisible: newVisible });
+      void saveSettings({ outlineVisible: newVisible });
       return { outlineVisible: newVisible };
     }),
   setSidebarWidth: (width) => {
-    saveSettings({ sidebarWidth: width });
+    void saveSettings({ sidebarWidth: width });
     set({ sidebarWidth: width });
   },
   setOutlineWidth: (width) => {
-    saveSettings({ outlineWidth: width });
+    void saveSettings({ outlineWidth: width });
     set({ outlineWidth: width });
   },
   setSidebarView: (view) => set({ currentSidebarView: view }),
@@ -88,11 +89,11 @@ export const useUIStore = create<UIState>((set) => ({
     set((state) => {
       if (state.viewMode === "code") {
         const newZoom = Math.min(state.codeZoom + ZOOM_STEP, MAX_ZOOM);
-        saveSettings({ codeZoom: newZoom });
+        void saveSettings({ codeZoom: newZoom });
         return { codeZoom: newZoom };
       } else {
         const newZoom = Math.min(state.renderedZoom + ZOOM_STEP, MAX_ZOOM);
-        saveSettings({ renderedZoom: newZoom });
+        void saveSettings({ renderedZoom: newZoom });
         return { renderedZoom: newZoom };
       }
     }),
@@ -100,12 +101,23 @@ export const useUIStore = create<UIState>((set) => ({
     set((state) => {
       if (state.viewMode === "code") {
         const newZoom = Math.max(state.codeZoom - ZOOM_STEP, MIN_ZOOM);
-        saveSettings({ codeZoom: newZoom });
+        void saveSettings({ codeZoom: newZoom });
         return { codeZoom: newZoom };
       } else {
         const newZoom = Math.max(state.renderedZoom - ZOOM_STEP, MIN_ZOOM);
-        saveSettings({ renderedZoom: newZoom });
+        void saveSettings({ renderedZoom: newZoom });
         return { renderedZoom: newZoom };
+      }
+    }),
+  resetZoom: () =>
+    set((state) => {
+      const defaultZoom = 100;
+      if (state.viewMode === "code") {
+        void saveSettings({ codeZoom: defaultZoom });
+        return { codeZoom: defaultZoom };
+      } else {
+        void saveSettings({ renderedZoom: defaultZoom });
+        return { renderedZoom: defaultZoom };
       }
     }),
   setLoading: (isLoading, message = "") =>

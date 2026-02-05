@@ -90,50 +90,58 @@ describe("settings", () => {
   });
 
   describe("saveSettings", () => {
-    it("saves settings to localStorage", () => {
-      saveSettings({ sidebarVisible: true });
+    it("saves settings to localStorage", async () => {
+      await saveSettings({ sidebarVisible: true });
 
       const stored = JSON.parse(localStorage.getItem("marginal-settings")!);
       expect(stored.sidebarVisible).toBe(true);
     });
 
-    it("merges new settings with existing settings", () => {
-      saveSettings({ sidebarVisible: true });
-      saveSettings({ sidebarWidth: 300 });
+    it("merges new settings with existing settings", async () => {
+      await saveSettings({ sidebarVisible: true });
+      await saveSettings({ sidebarWidth: 300 });
 
       const settings = loadSettings();
       expect(settings.sidebarVisible).toBe(true);
       expect(settings.sidebarWidth).toBe(300);
     });
 
-    it("preserves unmodified settings", () => {
-      saveSettings({
+    it("preserves unmodified settings", async () => {
+      await saveSettings({
         sidebarVisible: true,
         recentFiles: ["/file1.md", "/file2.md"],
       });
 
-      saveSettings({ sidebarWidth: 300 });
+      await saveSettings({ sidebarWidth: 300 });
 
       const settings = loadSettings();
       expect(settings.sidebarVisible).toBe(true);
       expect(settings.recentFiles).toEqual(["/file1.md", "/file2.md"]);
       expect(settings.sidebarWidth).toBe(300);
     });
+
+    it("saves zoom settings correctly", async () => {
+      await saveSettings({ codeZoom: 125, renderedZoom: 75 });
+
+      const settings = loadSettings();
+      expect(settings.codeZoom).toBe(125);
+      expect(settings.renderedZoom).toBe(75);
+    });
   });
 
   describe("clearSettings", () => {
-    it("removes settings from localStorage", () => {
-      saveSettings({ sidebarVisible: true });
+    it("removes settings from localStorage", async () => {
+      await saveSettings({ sidebarVisible: true });
 
-      clearSettings();
+      await clearSettings();
 
       const stored = localStorage.getItem("marginal-settings");
       expect(stored).toBeNull();
     });
 
-    it("causes loadSettings to return defaults after clearing", () => {
-      saveSettings({ sidebarVisible: true, sidebarWidth: 300 });
-      clearSettings();
+    it("causes loadSettings to return defaults after clearing", async () => {
+      await saveSettings({ sidebarVisible: true, sidebarWidth: 300 });
+      await clearSettings();
 
       const settings = loadSettings();
       expect(settings).toEqual({

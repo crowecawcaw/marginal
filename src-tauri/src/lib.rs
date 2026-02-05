@@ -97,6 +97,7 @@ pub fn run() {
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_dialog::init())
+        .plugin(tauri_plugin_store::Builder::new().build())
         .invoke_handler(tauri::generate_handler![
             read_dir_tree,
             read_file_content,
@@ -183,6 +184,18 @@ pub fn run() {
                 .accelerator("CmdOrCtrl+Shift+P")
                 .build(app)?;
 
+            let zoom_in = MenuItemBuilder::with_id("zoom_in", "Zoom In")
+                .accelerator("CmdOrCtrl+Plus")
+                .build(app)?;
+
+            let zoom_out = MenuItemBuilder::with_id("zoom_out", "Zoom Out")
+                .accelerator("CmdOrCtrl+Minus")
+                .build(app)?;
+
+            let zoom_reset = MenuItemBuilder::with_id("zoom_reset", "Actual Size")
+                .accelerator("CmdOrCtrl+0")
+                .build(app)?;
+
             // Store the toggle_view menu item for dynamic text updates
             app.manage(Mutex::new(toggle_view.clone()));
 
@@ -190,6 +203,10 @@ pub fn run() {
                 .item(&toggle_outline)
                 .separator()
                 .item(&toggle_view)
+                .separator()
+                .item(&zoom_in)
+                .item(&zoom_out)
+                .item(&zoom_reset)
                 .build()?;
 
             let menu = MenuBuilder::new(app)
@@ -229,6 +246,15 @@ pub fn run() {
                     }
                     "toggle_view" => {
                         let _ = window.emit("menu:toggle-view", ());
+                    }
+                    "zoom_in" => {
+                        let _ = window.emit("menu:zoom-in", ());
+                    }
+                    "zoom_out" => {
+                        let _ = window.emit("menu:zoom-out", ());
+                    }
+                    "zoom_reset" => {
+                        let _ = window.emit("menu:zoom-reset", ());
                     }
                     "view_readme" => {
                         let _ = window.emit("menu:view-readme", ());

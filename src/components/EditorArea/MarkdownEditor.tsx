@@ -180,7 +180,7 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
   onChange,
 }) => {
   const zoomStyle = {
-    '--editor-zoom': `${zoom}%`,
+    '--editor-zoom': zoom,
     flex: 1,
     display: 'flex',
     flexDirection: 'column',

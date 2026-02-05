@@ -9,7 +9,7 @@
   margin: 0;
   font-family:
     "SF Mono", "Monaco", "Menlo", "Consolas", "Courier New", monospace;
-  font-size: 14px;
+  font-size: calc(14px * var(--editor-zoom, 100) / 100);
   line-height: 1.6;
   white-space: pre-wrap;
   word-wrap: break-word;

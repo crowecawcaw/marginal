@@ -34,7 +34,7 @@ describe("uiStore zoom functionality", () => {
 
       useUIStore.getState().zoomIn();
 
-      expect(useUIStore.getState().codeZoom).toBe(110);
+      expect(useUIStore.getState().codeZoom).toBe(125);
     });
 
     it("increases rendered zoom when in rendered view", () => {
@@ -42,7 +42,7 @@ describe("uiStore zoom functionality", () => {
 
       useUIStore.getState().zoomIn();
 
-      expect(useUIStore.getState().renderedZoom).toBe(110);
+      expect(useUIStore.getState().renderedZoom).toBe(125);
     });
 
     it("does not exceed maximum zoom (200%)", () => {
@@ -53,12 +53,12 @@ describe("uiStore zoom functionality", () => {
       expect(useUIStore.getState().codeZoom).toBe(200);
     });
 
-    it("increases by 10% step", () => {
-      useUIStore.setState({ viewMode: "code", codeZoom: 80 });
+    it("increases by 25% step", () => {
+      useUIStore.setState({ viewMode: "code", codeZoom: 75 });
 
       useUIStore.getState().zoomIn();
 
-      expect(useUIStore.getState().codeZoom).toBe(90);
+      expect(useUIStore.getState().codeZoom).toBe(100);
     });
   });
 
@@ -68,7 +68,7 @@ describe("uiStore zoom functionality", () => {
 
       useUIStore.getState().zoomOut();
 
-      expect(useUIStore.getState().codeZoom).toBe(90);
+      expect(useUIStore.getState().codeZoom).toBe(75);
     });
 
     it("decreases rendered zoom when in rendered view", () => {
@@ -76,7 +76,7 @@ describe("uiStore zoom functionality", () => {
 
       useUIStore.getState().zoomOut();
 
-      expect(useUIStore.getState().renderedZoom).toBe(90);
+      expect(useUIStore.getState().renderedZoom).toBe(75);
     });
 
     it("does not go below minimum zoom (50%)", () => {
@@ -87,12 +87,43 @@ describe("uiStore zoom functionality", () => {
       expect(useUIStore.getState().codeZoom).toBe(50);
     });
 
-    it("decreases by 10% step", () => {
-      useUIStore.setState({ viewMode: "code", codeZoom: 120 });
+    it("decreases by 25% step", () => {
+      useUIStore.setState({ viewMode: "code", codeZoom: 125 });
 
       useUIStore.getState().zoomOut();
 
-      expect(useUIStore.getState().codeZoom).toBe(110);
+      expect(useUIStore.getState().codeZoom).toBe(100);
+    });
+  });
+
+  describe("resetZoom", () => {
+    it("resets code zoom to 100% when in code view", () => {
+      useUIStore.setState({ viewMode: "code", codeZoom: 150 });
+
+      useUIStore.getState().resetZoom();
+
+      expect(useUIStore.getState().codeZoom).toBe(100);
+    });
+
+    it("resets rendered zoom to 100% when in rendered view", () => {
+      useUIStore.setState({ viewMode: "rendered", renderedZoom: 75 });
+
+      useUIStore.getState().resetZoom();
+
+      expect(useUIStore.getState().renderedZoom).toBe(100);
+    });
+
+    it("only resets current view zoom, not the other view", () => {
+      useUIStore.setState({
+        viewMode: "code",
+        codeZoom: 150,
+        renderedZoom: 75,
+      });
+
+      useUIStore.getState().resetZoom();
+
+      expect(useUIStore.getState().codeZoom).toBe(100);
+      expect(useUIStore.getState().renderedZoom).toBe(75);
     });
   });
 
@@ -106,14 +137,14 @@ describe("uiStore zoom functionality", () => {
 
       // Zoom in on code view
       useUIStore.getState().zoomIn();
-      expect(useUIStore.getState().codeZoom).toBe(110);
+      expect(useUIStore.getState().codeZoom).toBe(125);
       expect(useUIStore.getState().renderedZoom).toBe(100);
 
       // Switch to rendered view and zoom in
       useUIStore.setState({ viewMode: "rendered" });
       useUIStore.getState().zoomIn();
-      expect(useUIStore.getState().codeZoom).toBe(110);
-      expect(useUIStore.getState().renderedZoom).toBe(110);
+      expect(useUIStore.getState().codeZoom).toBe(125);
+      expect(useUIStore.getState().renderedZoom).toBe(125);
     });
   });
 

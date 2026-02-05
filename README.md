@@ -117,6 +117,13 @@ Comprehensive list of implemented behaviors for agent reference. Check of each i
   - [x] Formatting only available in code view (error shown if in rendered view)
   - [x] Formatting marks document as dirty
   - [x] Formatting settings: preserve prose wrap, 120 character print width
+- [x] Zoom
+  - [x] Zoom in with Cmd/Ctrl++ or View menu
+  - [x] Zoom out with Cmd/Ctrl+- or View menu
+  - [x] Reset zoom to 100% with Cmd/Ctrl+0 or View menu (Actual Size)
+  - [x] Code view and rendered view have independent zoom levels
+  - [x] Zoom range: 50% to 200% in 25% increments
+  - [x] Zoom levels persist across sessions (stored separately per view)
 - [x] Settings Persistence
   - [x] Sidebar visibility persists across sessions
   - [x] Sidebar width persists across sessions
@@ -124,12 +131,13 @@ Comprehensive list of implemented behaviors for agent reference. Check of each i
   - [x] Outline width persists across sessions
   - [x] Last opened folder path persists across sessions
   - [x] Recent files list persists across sessions (up to 10 files)
+  - [x] Zoom levels persist across sessions using tauri-plugin-store
 - [x] Keyboard Hints
   - [x] Shows keyboard shortcuts overlay when Cmd/Ctrl is held for 1 second
   - [x] Uses platform-appropriate labels (⌘ for Mac, Ctrl for Windows/Linux)
   - [x] Hides hints when Cmd/Ctrl is released
   - [x] Hides hints when window loses focus
-  - [x] Displays shortcuts for: New File, Open File, Save, Close Tab, Find, Format, Toggle View, Toggle Outline, Bold, Italic, and Headings
+  - [x] Displays shortcuts for: New File, Open File, Save, Close Tab, Find, Format, Toggle View, Toggle Outline, Zoom In, Zoom Out, Actual Size, Bold, Italic, and Headings
 - [ ] UI/UX
   - [ ] Loading overlay with message during long operations
   - [ ] Toast notifications for success/error messages

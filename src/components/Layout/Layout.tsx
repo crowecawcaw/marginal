@@ -19,7 +19,7 @@ import { useKeyboardShortcuts } from "../../hooks/useKeyboardShortcuts";
 import "./Layout.css";
 
 const Layout: React.FC = () => {
-  const { toggleOutline, toggleViewMode, zoomIn, zoomOut } = useUIStore();
+  const { toggleOutline, toggleViewMode, zoomIn, zoomOut, resetZoom } = useUIStore();
   const { files, activeFileId, removeFile, markFileDirty, openFile: openEditorFile } =
     useEditorStore();
   const { addNotification } = useNotificationStore();
@@ -208,6 +208,14 @@ const Layout: React.FC = () => {
         zoomOut();
       },
     },
+    {
+      key: "0",
+      ctrlOrCmd: true,
+      handler: (e) => {
+        e.preventDefault();
+        resetZoom();
+      },
+    },
   ]);
 
   // Create a blank file on startup if no files exist
@@ -242,6 +250,9 @@ const Layout: React.FC = () => {
       { event: "menu:close-tab", callback: () => handleCloseTab() },
       { event: "menu:toggle-outline", callback: () => toggleOutline() },
       { event: "menu:toggle-view", callback: () => toggleViewMode() },
+      { event: "menu:zoom-in", callback: () => zoomIn() },
+      { event: "menu:zoom-out", callback: () => zoomOut() },
+      { event: "menu:zoom-reset", callback: () => resetZoom() },
       { event: "menu:view-readme", callback: () => handleViewReadme() },
     ]).then((unlisten) => {
       if (mounted) {
