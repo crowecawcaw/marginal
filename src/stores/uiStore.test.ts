@@ -116,4 +116,50 @@ describe("uiStore zoom functionality", () => {
       expect(useUIStore.getState().renderedZoom).toBe(110);
     });
   });
+
+  describe("toggleViewMode", () => {
+    it("toggles from code to rendered view", () => {
+      useUIStore.setState({ viewMode: "code" });
+
+      useUIStore.getState().toggleViewMode();
+
+      expect(useUIStore.getState().viewMode).toBe("rendered");
+    });
+
+    it("toggles from rendered to code view", () => {
+      useUIStore.setState({ viewMode: "rendered" });
+
+      useUIStore.getState().toggleViewMode();
+
+      expect(useUIStore.getState().viewMode).toBe("code");
+    });
+
+    it("toggles back and forth correctly", () => {
+      useUIStore.setState({ viewMode: "code" });
+
+      useUIStore.getState().toggleViewMode();
+      expect(useUIStore.getState().viewMode).toBe("rendered");
+
+      useUIStore.getState().toggleViewMode();
+      expect(useUIStore.getState().viewMode).toBe("code");
+    });
+  });
+
+  describe("setViewMode", () => {
+    it("sets view mode to code", () => {
+      useUIStore.setState({ viewMode: "rendered" });
+
+      useUIStore.getState().setViewMode("code");
+
+      expect(useUIStore.getState().viewMode).toBe("code");
+    });
+
+    it("sets view mode to rendered", () => {
+      useUIStore.setState({ viewMode: "code" });
+
+      useUIStore.getState().setViewMode("rendered");
+
+      expect(useUIStore.getState().viewMode).toBe("rendered");
+    });
+  });
 });

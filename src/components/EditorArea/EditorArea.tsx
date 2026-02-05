@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { setupEventListeners, emit } from "../../platform/eventAdapter";
+import { setupEventListeners } from "../../platform/eventAdapter";
 import { useEditorStore } from "../../stores/editorStore";
 import { useUIStore } from "../../stores/uiStore";
 import { useNotificationStore } from "../../stores/notificationStore";
@@ -11,7 +11,7 @@ import prettierMarkdown from "prettier/plugins/markdown";
 
 const EditorArea: React.FC = () => {
   const { tabs, activeTabId, updateTabContent, markTabDirty } = useEditorStore();
-  const { viewMode, toggleViewMode, codeZoom, renderedZoom } = useUIStore();
+  const { viewMode, codeZoom, renderedZoom } = useUIStore();
   const zoom = viewMode === "code" ? codeZoom : renderedZoom;
   const { addNotification } = useNotificationStore();
   const [findVisible, setFindVisible] = useState(false);
@@ -19,18 +19,9 @@ const EditorArea: React.FC = () => {
 
   const activeTab = tabs.find((tab) => tab.id === activeTabId);
 
-  // Handle keyboard shortcuts: Cmd+F for find, Cmd+Shift+F for format, Cmd+Shift+P for toggle view
+  // Handle keyboard shortcuts: Cmd+F for find, Cmd+Shift+F for format
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Cmd+Shift+P - Toggle view
-      // Use emit() to dispatch event instead of directly toggling,
-      // to avoid double-toggle when Tauri menu accelerator also fires
-      if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key === "P") {
-        e.preventDefault();
-        emit("menu:toggle-view");
-        return;
-      }
-
       // Cmd+Shift+F - Format document
       if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key === "F") {
         e.preventDefault();
@@ -50,21 +41,6 @@ const EditorArea: React.FC = () => {
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
-
-  // Listen for toggle-view event
-  useEffect(() => {
-    let cleanup: (() => void) | undefined;
-
-    setupEventListeners([
-      { event: "menu:toggle-view", callback: toggleViewMode },
-    ]).then((unlisten) => {
-      cleanup = unlisten;
-    });
-
-    return () => {
-      cleanup?.();
-    };
-  }, [toggleViewMode]);
 
   // Listen for format-document event
   useEffect(() => {

@@ -41,6 +41,13 @@ export const getWebEventEmitter = (): WebEventEmitter => {
 };
 
 /**
+ * Reset the web event emitter (for testing purposes)
+ */
+export const resetWebEventEmitter = (): void => {
+  webEventEmitter = null;
+};
+
+/**
  * Listen for an app event
  * Works in both Tauri and web environments
  */
@@ -52,7 +59,8 @@ export async function listen(
     const { getCurrentWebviewWindow } =
       await import("@tauri-apps/api/webviewWindow");
     const appWindow = getCurrentWebviewWindow();
-    return appWindow.listen(event, callback);
+    // Wrap callback to match Tauri's expected signature (event: Event<T>) => void
+    return appWindow.listen(event, () => callback());
   } else {
     const emitter = getWebEventEmitter();
     return emitter.on(event, callback);
@@ -60,10 +68,16 @@ export async function listen(
 }
 
 /**
- * Emit an app event (primarily for web mode)
+ * Emit an app event
+ * Works in both Tauri and web environments
  */
-export function emit(event: string): void {
-  if (!isTauri()) {
+export async function emit(event: string): Promise<void> {
+  if (isTauri()) {
+    const { getCurrentWebviewWindow } =
+      await import("@tauri-apps/api/webviewWindow");
+    const appWindow = getCurrentWebviewWindow();
+    await appWindow.emit(event);
+  } else {
     const emitter = getWebEventEmitter();
     emitter.emit(event);
   }

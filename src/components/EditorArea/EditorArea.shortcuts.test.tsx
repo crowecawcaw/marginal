@@ -103,32 +103,8 @@ describe("EditorArea Keyboard Shortcuts", () => {
     expect(formatEvent.shiftKey).toBe(true);
   });
 
-  // Note: View toggle button tests removed - buttons moved to Titlebar component
-  // View mode can be tested through the uiStore directly
-
-  it("Cmd+Shift+P emits toggle-view event", async () => {
-    const user = userEvent.setup();
-    render(<EditorArea />);
-
-    // Track if the event was emitted to the web event emitter
-    // Note: In web mode (no Tauri), emit() dispatches to the WebEventEmitter
-    // and the keyboard shortcut should trigger the toggle behavior
-    let eventEmitted = false;
-
-    // Listen on the WebEventEmitter by importing it
-    const { getWebEventEmitter } = await import("../../platform/eventAdapter");
-    const emitter = getWebEventEmitter();
-    const unlisten = emitter.on("menu:toggle-view", () => {
-      eventEmitted = true;
-    });
-
-    // Press Cmd+Shift+P
-    await user.keyboard("{Meta>}{Shift>}P{/Shift}{/Meta}");
-
-    // Event should have been emitted
-    expect(eventEmitted).toBe(true);
-
-    // Cleanup
-    unlisten();
-  });
+  // Note: View toggle is now handled via menu event in Layout.tsx
+  // The Cmd+Shift+P keyboard shortcut is handled by the Tauri menu accelerator
+  // and emits menu:toggle-view which Layout listens for.
+  // View mode toggling can be tested through uiStore.test.ts
 });

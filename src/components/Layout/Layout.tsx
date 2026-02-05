@@ -14,11 +14,12 @@ import { useUIStore } from "../../stores/uiStore";
 import { useEditorStore } from "../../stores/editorStore";
 import { useNotificationStore } from "../../stores/notificationStore";
 import { useFileSystem } from "../../hooks/useFileSystem";
+import { showMessage } from "../../platform/fileSystemAdapter";
 import { useKeyboardShortcuts } from "../../hooks/useKeyboardShortcuts";
 import "./Layout.css";
 
 const Layout: React.FC = () => {
-  const { toggleOutline, zoomIn, zoomOut } = useUIStore();
+  const { toggleOutline, toggleViewMode, zoomIn, zoomOut } = useUIStore();
   const { tabs, activeTabId, removeTab, markTabDirty, openTab } =
     useEditorStore();
   const { addNotification } = useNotificationStore();
@@ -58,7 +59,7 @@ const Layout: React.FC = () => {
             isDirty: false,
             frontmatter: activeTab.frontmatter,
           });
-          addNotification(`Saved ${result.fileName}`, "success");
+          showMessage(`Saved ${result.fileName}`, { title: "File Saved" });
         }
       } else {
         // Regular save for existing files
@@ -239,6 +240,7 @@ const Layout: React.FC = () => {
       { event: "menu:save", callback: () => handleSave() },
       { event: "menu:close-tab", callback: () => handleCloseTab() },
       { event: "menu:toggle-outline", callback: () => toggleOutline() },
+      { event: "menu:toggle-view", callback: () => toggleViewMode() },
       { event: "menu:view-readme", callback: () => handleViewReadme() },
     ]).then((unlisten) => {
       cleanup = unlisten;

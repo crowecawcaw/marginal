@@ -1,7 +1,9 @@
 use serde::{Deserialize, Serialize};
 use std::fs;
 use std::path::Path;
-use tauri::{Emitter, Manager};
+use std::sync::Mutex;
+use tauri::menu::MenuItem;
+use tauri::{Emitter, Listener, Manager};
 
 #[derive(Debug, Serialize, Deserialize)]
 struct FileNode {
@@ -177,9 +179,12 @@ pub fn run() {
                 .accelerator("CmdOrCtrl+\\")
                 .build(app)?;
 
-            let toggle_view = MenuItemBuilder::with_id("toggle_view", "Toggle Presentation/Code View")
+            let toggle_view = MenuItemBuilder::with_id("toggle_view", "View document")
                 .accelerator("CmdOrCtrl+Shift+P")
                 .build(app)?;
+
+            // Store the toggle_view menu item for dynamic text updates
+            app.manage(Mutex::new(toggle_view.clone()));
 
             let view_menu = SubmenuBuilder::new(app, "View")
                 .item(&toggle_outline)
@@ -229,6 +234,24 @@ pub fn run() {
                         let _ = window.emit("menu:view-readme", ());
                     }
                     _ => {}
+                }
+            });
+
+            // Listen for view mode changes from frontend to update menu text
+            let app_handle = app.handle().clone();
+            app.listen("view-mode-changed", move |event| {
+                let payload = event.payload();
+                // Payload is the new view mode: "code" or "rendered"
+                let new_text = if payload.contains("code") {
+                    "View document"
+                } else {
+                    "View code"
+                };
+
+                if let Some(menu_item) = app_handle.try_state::<Mutex<MenuItem<tauri::Wry>>>() {
+                    if let Ok(item) = menu_item.lock() {
+                        let _ = item.set_text(new_text);
+                    }
                 }
             });
 

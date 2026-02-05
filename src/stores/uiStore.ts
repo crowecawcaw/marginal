@@ -1,6 +1,18 @@
 import { create } from "zustand";
 import { SidebarView, ViewMode } from "../types";
 import { loadSettings, saveSettings } from "../utils/settings";
+import { isTauri } from "../platform";
+
+// Emit view mode change to Tauri backend for menu text updates
+async function emitViewModeChange(mode: ViewMode): Promise<void> {
+  if (isTauri()) {
+    const { getCurrentWebviewWindow } = await import(
+      "@tauri-apps/api/webviewWindow"
+    );
+    const appWindow = getCurrentWebviewWindow();
+    await appWindow.emit("view-mode-changed", mode);
+  }
+}
 
 // Zoom limits (percentage)
 const MIN_ZOOM = 50;
@@ -67,9 +79,11 @@ export const useUIStore = create<UIState>((set) => ({
   setSidebarView: (view) => set({ currentSidebarView: view }),
   setViewMode: (mode) => set({ viewMode: mode }),
   toggleViewMode: () =>
-    set((state) => ({
-      viewMode: state.viewMode === "code" ? "rendered" : "code",
-    })),
+    set((state) => {
+      const newMode = state.viewMode === "code" ? "rendered" : "code";
+      emitViewModeChange(newMode);
+      return { viewMode: newMode };
+    }),
   zoomIn: () =>
     set((state) => {
       if (state.viewMode === "code") {
