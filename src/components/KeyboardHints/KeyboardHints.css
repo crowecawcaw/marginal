@@ -96,19 +96,9 @@
 }
 
 .keyboard-hint-keys {
-  font-family:
-    "SF Mono",
-    "Monaco",
-    "Menlo",
-    "Consolas",
-    "Courier New",
-    monospace;
   font-size: 11px;
-  background: rgba(255, 255, 255, 0.12);
-  padding: 2px 5px;
-  border-radius: 3px;
   white-space: nowrap;
-  font-weight: 600;
+  font-weight: 500;
 }
 
 .keyboard-hint-description {
@@ -129,7 +119,6 @@
 
   .keyboard-hint-keys {
     font-size: 10px;
-    padding: 2px 4px;
   }
 
   .keyboard-hint-description {
