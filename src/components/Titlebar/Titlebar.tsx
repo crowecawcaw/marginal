@@ -1,13 +1,11 @@
 import React from "react";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { useEditorStore } from "../../stores/editorStore";
-import { useUIStore } from "../../stores/uiStore";
 import { emit } from "../../platform/eventAdapter";
 import "./Titlebar.css";
 
 const Titlebar: React.FC = () => {
   const { files, activeFileId, setActiveFile } = useEditorStore();
-  const { viewMode, setViewMode } = useUIStore();
 
   const handleDragStart = (e: React.MouseEvent) => {
     if (e.buttons === 1) {
@@ -57,24 +55,6 @@ const Titlebar: React.FC = () => {
 
       {/* Right drag region */}
       <div className="titlebar-drag-right" onMouseDown={handleDragStart} />
-
-      {/* View mode toggle */}
-      <div className="titlebar-view-toggle">
-        <button
-          className={`titlebar-toggle-btn ${viewMode === "rendered" ? "active" : ""}`}
-          onClick={() => setViewMode("rendered")}
-          title="Rendered view"
-        >
-          Aa
-        </button>
-        <button
-          className={`titlebar-toggle-btn ${viewMode === "code" ? "active" : ""}`}
-          onClick={() => setViewMode("code")}
-          title="Code view"
-        >
-          &lt;/&gt;
-        </button>
-      </div>
     </div>
   );
 };

@@ -74,8 +74,6 @@ describe("EditorArea E2E", () => {
   });
 
   it("complete editing workflow: toggle views, verify content persistence", async () => {
-    const user = userEvent.setup();
-
     // Set up initial file with content (instead of typing, which is flaky with ContentEditable)
     const fileId = "test-tab-1";
     const testContent = "# Hello World\n\nThis is **bold** text.";
@@ -103,8 +101,7 @@ describe("EditorArea E2E", () => {
     });
 
     // Step 2: Toggle to rendered view
-    const renderedButton = screen.getByTitle("Rendered view");
-    await user.click(renderedButton);
+    useUIStore.setState({ viewMode: "rendered" });
 
     // Step 3: Verify content is rendered correctly in rendered view
     await waitFor(() => {
@@ -120,8 +117,7 @@ describe("EditorArea E2E", () => {
     });
 
     // Step 4: Toggle back to code view
-    const codeButton = screen.getByTitle("Code view");
-    await user.click(codeButton);
+    useUIStore.setState({ viewMode: "code" });
 
     // Step 5: Verify content is still preserved
     await waitFor(() => {

@@ -2,7 +2,7 @@
   display: flex;
   align-items: center;
   height: 52px;
-  background-color: var(--color-bg-primary);
+  background-color: transparent;
   user-select: none;
 }
 
