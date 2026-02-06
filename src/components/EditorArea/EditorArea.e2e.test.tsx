@@ -2,7 +2,9 @@ import { describe, it, expect, beforeEach, vi } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import EditorArea from "./EditorArea";
+import Titlebar from "../Titlebar/Titlebar";
 import { useEditorStore } from "../../stores/editorStore";
+import { useUIStore } from "../../stores/uiStore";
 
 // Mock Tauri APIs
 const mockInvoke = vi.fn();
@@ -20,6 +22,13 @@ vi.mock("@tauri-apps/api/webviewWindow", () => ({
   }),
 }));
 
+vi.mock("@tauri-apps/api/window", () => ({
+  getCurrentWindow: () => ({
+    toggleMaximize: vi.fn(),
+    startDragging: vi.fn(),
+  }),
+}));
+
 // Mock prettier
 vi.mock("prettier/standalone", () => ({
   default: {
@@ -31,12 +40,35 @@ vi.mock("prettier/plugins/markdown", () => ({
   default: {},
 }));
 
+// Mock event adapter
+vi.mock("../../platform/eventAdapter", async () => {
+  const actual = await vi.importActual<typeof import("../../platform/eventAdapter")>("../../platform/eventAdapter");
+  return {
+    ...actual,
+    emit: vi.fn(),
+    setupEventListeners: vi.fn(() => Promise.resolve(() => {})),
+  };
+});
+
+// Helper to render EditorArea with Titlebar (for E2E tests that need tabs)
+const renderWithTitlebar = () => {
+  return render(
+    <>
+      <Titlebar />
+      <EditorArea />
+    </>
+  );
+};
+
 describe("EditorArea E2E", () => {
   beforeEach(() => {
-    // Reset the store and mocks
+    // Reset the stores and mocks
     useEditorStore.setState({
       files: [],
       activeFileId: null,
+    });
+    useUIStore.setState({
+      viewMode: "code",
     });
     vi.clearAllMocks();
   });
@@ -61,7 +93,7 @@ describe("EditorArea E2E", () => {
       activeFileId: fileId,
     });
 
-    render(<EditorArea />);
+    renderWithTitlebar();
 
     // Step 1: Verify we're in code view (default) and content is displayed
     await waitFor(() => {
@@ -165,11 +197,11 @@ describe("EditorArea E2E", () => {
       activeFileId: "tab-1",
     });
 
-    render(<EditorArea />);
+    renderWithTitlebar();
 
-    // Verify both tabs are visible
-    expect(screen.getByText("file1.md")).toBeInTheDocument();
-    expect(screen.getByText("file2.md")).toBeInTheDocument();
+    // Verify both tabs are visible in titlebar
+    const tabs = screen.getAllByText(/file[12]\.md/);
+    expect(tabs.length).toBeGreaterThanOrEqual(2);
 
     // Verify first file content is shown (ContentEditable uses textContent, not value)
     await waitFor(() => {
@@ -178,8 +210,8 @@ describe("EditorArea E2E", () => {
     });
 
     // Click on second tab
-    const tab2 = screen.getByText("file2.md");
-    await user.click(tab2);
+    const tab2Button = screen.getByRole("button", { name: /file2\.md/ });
+    await user.click(tab2Button);
 
     // Verify second file content is now shown
     await waitFor(() => {
@@ -209,21 +241,25 @@ describe("EditorArea E2E", () => {
       activeFileId: "dirty-tab",
     });
 
-    render(<EditorArea />);
+    renderWithTitlebar();
 
-    // Find the dirty tab - it should show bullet indicator
+    // Find the dirty tab - it should show filled circle indicator
     const dirtyTabElement = screen.getByText((content, element) => {
       return Boolean(
-        element?.classList.contains("editor-tab-name") &&
+        element?.classList.contains("titlebar-tab-name") &&
         content.includes("dirty.md"),
       );
     });
 
-    expect(dirtyTabElement.textContent).toContain("•");
+    expect(dirtyTabElement.textContent).toContain("●");
   });
 
   it("closes tab when close button is clicked", async () => {
     const user = userEvent.setup();
+
+    // Mock the event adapter emit function
+    const { emit } = await import("../../platform/eventAdapter");
+    vi.mocked(emit);
 
     useEditorStore.setState({
       files: [
@@ -245,18 +281,16 @@ describe("EditorArea E2E", () => {
       activeFileId: "tab-to-close",
     });
 
-    render(<EditorArea />);
+    renderWithTitlebar();
 
     // Find and click close button on first tab
     const closeButtons = screen.getAllByText("×");
     await user.click(closeButtons[0]);
 
-    // Verify file was removed
-    await waitFor(() => {
-      const state = useEditorStore.getState();
-      expect(state.files).toHaveLength(1);
-      expect(state.files[0].id).toBe("tab-to-keep");
-    });
+    // Verify that emit was called with close-tab event
+    // In a real app, Layout would handle this event and remove the file
+    // For this test, we just verify the event was emitted
+    expect(emit).toHaveBeenCalledWith("close-tab", { fileId: "tab-to-close" });
   });
 
   // Note: Format functionality is tested in EditorArea.format.test.tsx

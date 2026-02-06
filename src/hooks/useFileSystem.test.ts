@@ -428,6 +428,7 @@ author: John Doe
       });
 
       expect(mockSave).toHaveBeenCalledWith({
+        defaultPath: "Untitled.md",
         filters: [
           {
             name: "Markdown",

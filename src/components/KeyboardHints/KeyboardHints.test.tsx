@@ -1,6 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
-import { render, screen, waitFor, act } from "@testing-library/react";
-import { userEvent } from "@testing-library/user-event";
+import { render, screen, act } from "@testing-library/react";
 import KeyboardHints from "./KeyboardHints";
 
 describe("KeyboardHints", () => {
@@ -19,17 +18,18 @@ describe("KeyboardHints", () => {
   });
 
   it("shows hints after 0.8 seconds when Cmd/Ctrl is pressed", async () => {
-    const user = userEvent.setup({ delay: null });
     const { container } = render(<KeyboardHints />);
 
     // Press Cmd key
-    await user.keyboard("{Meta>}");
+    act(() => {
+      window.dispatchEvent(new KeyboardEvent("keydown", { metaKey: true, repeat: false }));
+    });
 
     // Hints should NOT be visible immediately
     expect(container.querySelector(".keyboard-hints")).not.toBeInTheDocument();
 
     // Advance time by 0.8 seconds
-    await act(async () => {
+    act(() => {
       vi.advanceTimersByTime(800);
     });
 
@@ -38,30 +38,39 @@ describe("KeyboardHints", () => {
   });
 
   it("hides hints when Cmd/Ctrl is released", async () => {
-    const user = userEvent.setup({ delay: null });
     const { container } = render(<KeyboardHints />);
 
     // Press and hold Cmd
-    await user.keyboard("{Meta>}");
-    await act(async () => {
+    act(() => {
+      window.dispatchEvent(new KeyboardEvent("keydown", { metaKey: true, repeat: false }));
+    });
+    act(() => {
       vi.advanceTimersByTime(800);
     });
     expect(container.querySelector(".keyboard-hints")).toBeInTheDocument();
 
     // Release Cmd
-    await user.keyboard("{/Meta}");
+    act(() => {
+      window.dispatchEvent(new KeyboardEvent("keyup", { key: "Meta" }));
+    });
+
+    // Advance timers for exit animation
+    act(() => {
+      vi.advanceTimersByTime(240);
+    });
 
     // Hints should be hidden
     expect(container.querySelector(".keyboard-hints")).not.toBeInTheDocument();
   });
 
   it("displays correct shortcuts", async () => {
-    const user = userEvent.setup({ delay: null });
     render(<KeyboardHints />);
 
     // Press Cmd to show hints
-    await user.keyboard("{Meta>}");
-    await act(async () => {
+    act(() => {
+      window.dispatchEvent(new KeyboardEvent("keydown", { metaKey: true, repeat: false }));
+    });
+    act(() => {
       vi.advanceTimersByTime(800);
     });
 
@@ -80,11 +89,12 @@ describe("KeyboardHints", () => {
       configurable: true,
     });
 
-    const user = userEvent.setup({ delay: null });
     const { container } = render(<KeyboardHints />);
 
-    await user.keyboard("{Meta>}");
-    await act(async () => {
+    act(() => {
+      window.dispatchEvent(new KeyboardEvent("keydown", { metaKey: true, repeat: false }));
+    });
+    act(() => {
       vi.advanceTimersByTime(800);
     });
 
@@ -100,11 +110,12 @@ describe("KeyboardHints", () => {
       configurable: true,
     });
 
-    const user = userEvent.setup({ delay: null });
     const { container } = render(<KeyboardHints />);
 
-    await user.keyboard("{Control>}");
-    await act(async () => {
+    act(() => {
+      window.dispatchEvent(new KeyboardEvent("keydown", { ctrlKey: true, repeat: false }));
+    });
+    act(() => {
       vi.advanceTimersByTime(800);
     });
 
@@ -114,42 +125,51 @@ describe("KeyboardHints", () => {
   });
 
   it("hides hints when window loses focus", async () => {
-    const user = userEvent.setup({ delay: null });
     const { container } = render(<KeyboardHints />);
 
     // Press Cmd to show hints
-    await user.keyboard("{Meta>}");
-    await act(async () => {
+    act(() => {
+      window.dispatchEvent(new KeyboardEvent("keydown", { metaKey: true, repeat: false }));
+    });
+    act(() => {
       vi.advanceTimersByTime(800);
     });
     expect(container.querySelector(".keyboard-hints")).toBeInTheDocument();
 
     // Simulate window blur
-    window.dispatchEvent(new Event("blur"));
+    act(() => {
+      window.dispatchEvent(new Event("blur"));
+    });
+
+    // Advance timer for exit animation
+    act(() => {
+      vi.advanceTimersByTime(240);
+    });
 
     // Hints should be hidden after state update
-    await waitFor(() => {
-      expect(container.querySelector(".keyboard-hints")).not.toBeInTheDocument();
-    });
+    expect(container.querySelector(".keyboard-hints")).not.toBeInTheDocument();
   });
 
   it("cancels timer if key is released before 0.8 seconds", async () => {
-    const user = userEvent.setup({ delay: null });
     const { container } = render(<KeyboardHints />);
 
     // Press Cmd
-    await user.keyboard("{Meta>}");
+    act(() => {
+      window.dispatchEvent(new KeyboardEvent("keydown", { metaKey: true, repeat: false }));
+    });
 
     // Wait 400ms (less than 0.8 seconds)
-    await act(async () => {
+    act(() => {
       vi.advanceTimersByTime(400);
     });
 
     // Release Cmd before timer completes
-    await user.keyboard("{/Meta}");
+    act(() => {
+      window.dispatchEvent(new KeyboardEvent("keyup", { key: "Meta" }));
+    });
 
     // Advance remaining time
-    await act(async () => {
+    act(() => {
       vi.advanceTimersByTime(400);
     });
 
