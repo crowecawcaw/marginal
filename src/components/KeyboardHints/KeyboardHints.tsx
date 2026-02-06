@@ -103,7 +103,7 @@ const KeyboardHints: React.FC = () => {
     { keys: `${modKey} W`, description: "Close Tab" },
     { keys: `${modKey} F`, description: "Find" },
     { keys: `${modKey} ⇧ F`, description: "Format" },
-    { keys: `${modKey} ⇧ P`, description: "Toggle View" },
+    { keys: `${modKey} /`, description: "Toggle View" },
     { keys: `${modKey} \\`, description: "Toggle Outline" },
     { keys: `${modKey} B`, description: "Bold" },
     { keys: `${modKey} I`, description: "Italic" },

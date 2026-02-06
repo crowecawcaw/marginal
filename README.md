@@ -54,7 +54,7 @@ Comprehensive list of implemented behaviors for agent reference. Check of each i
   - [ ] Print document via File menu
 - [x] Editor Views
   - [x] Two view modes: rendered (presentation/WYSIWYG) and code (plain text)
-  - [x] Toggle between views with Cmd/Ctrl+Shift+P or view toggle buttons
+  - [x] Toggle between views with Cmd/Ctrl+/ or view toggle buttons
   - [x] Rendered view uses Lexical rich text editor with live markdown rendering
   - [x] Code view shows raw markdown in plain text editor
   - [x] Content persists when switching between views

@@ -13,13 +13,13 @@
 
 ### View
 
-| Shortcut           | Action                        |
-| ------------------ | ----------------------------- |
-| `Cmd/Ctrl+B`       | Toggle Sidebar (files)        |
-| `Cmd/Ctrl+\`       | Toggle Outline                |
-| `Cmd/Ctrl+Shift+P` | Toggle Presentation/Code View |
-| `Cmd/Ctrl++`       | Increase Text Size            |
-| `Cmd/Ctrl+-`       | Decrease Text Size            |
+| Shortcut      | Action                        |
+| ------------- | ----------------------------- |
+| `Cmd/Ctrl+B`  | Toggle Sidebar (files)        |
+| `Cmd/Ctrl+\`  | Toggle Outline                |
+| `Cmd/Ctrl+/`  | Toggle Presentation/Code View |
+| `Cmd/Ctrl++`  | Increase Text Size            |
+| `Cmd/Ctrl+-`  | Decrease Text Size            |
 
 ### Editing
 
@@ -41,7 +41,7 @@
 
 - **Rendered View**: See your markdown rendered in real-time
 - **Code View**: Edit raw markdown with syntax support
-- Toggle between views with `Cmd/Ctrl+Shift+P`
+- Toggle between views with `Cmd/Ctrl+/`
 
 ### Sidebars
 

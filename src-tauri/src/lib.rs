@@ -181,7 +181,7 @@ pub fn run() {
                 .build(app)?;
 
             let toggle_view = MenuItemBuilder::with_id("toggle_view", "View document")
-                .accelerator("CmdOrCtrl+Shift+P")
+                .accelerator("CmdOrCtrl+/")
                 .build(app)?;
 
             let zoom_in = MenuItemBuilder::with_id("zoom_in", "Zoom In")
