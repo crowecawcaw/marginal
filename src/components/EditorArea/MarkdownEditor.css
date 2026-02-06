@@ -15,6 +15,8 @@
   white-space: pre-wrap;
   word-wrap: break-word;
   caret-color: var(--color-text-primary, currentColor);
+  /* CRITICAL: Must match overlay padding in MarkdownSyntaxHighlightPlugin.css for proper alignment */
+  padding: var(--size-editor-padding);
 }
 
 .markdown-code-view .markdown-editor-placeholder {
@@ -35,7 +37,7 @@
 .markdown-editor-input {
   flex: 1;
   outline: none;
-  padding: 2rem;
+  padding: var(--size-editor-padding);
   font-family:
     -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica", "Arial",
     sans-serif;
@@ -49,8 +51,8 @@
 
 .markdown-editor-placeholder {
   position: absolute;
-  top: 2rem;
-  left: 2rem;
+  top: var(--size-editor-padding);
+  left: var(--size-editor-padding);
   color: var(--color-text-secondary);
   pointer-events: none;
   user-select: none;
