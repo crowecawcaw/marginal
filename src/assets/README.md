@@ -1,4 +1,4 @@
-# marginal - Help Guide
+# marginal - Guide
 
 ## Keyboard Shortcuts
 

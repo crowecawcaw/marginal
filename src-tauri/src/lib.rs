@@ -145,7 +145,7 @@ pub fn run() {
             // On macOS, the first submenu becomes the app menu, so we create it explicitly
             let about = PredefinedMenuItem::about(app, None, None)?;
 
-            let view_readme = MenuItemBuilder::with_id("view_readme", "View README")
+            let view_readme = MenuItemBuilder::with_id("view_readme", "View guide")
                 .build(app)?;
 
             let hide = PredefinedMenuItem::hide(app, None)?;
