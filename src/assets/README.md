@@ -65,6 +65,17 @@ In rendered view, tables support:
 
 Use **Format Document** to clean up table alignment in code view.
 
+### Links
+
+In rendered view, click a link to edit it. A tooltip appears with:
+
+- **URL input**: Edit the link destination and press Enter to apply
+- **Apply button** (checkmark): Save the new URL
+- **Remove button** (X icon): Remove the link, keeping the text
+- **Open button** (external arrow): Open the link in your default browser
+
+You can also `Cmd+Click` (Mac) or `Ctrl+Click` (Windows/Linux) a link to open it directly.
+
 ### Document Formatting
 
 Use **Edit > Format Document** (or Cmd/Ctrl+Shift+F) to format your markdown, especially useful for tables.
@@ -81,3 +92,7 @@ When closing a file with unsaved changes, you'll be prompted to save:
 - Single document? Tabs are hidden automatically
 - Untitled files show the first heading as their name
 - Blue dot indicates unsaved changes
+
+## More Info
+
+Visit the [marginal GitHub repository](https://github.com/crowecawcaw/marginal) for updates, issues, and more.

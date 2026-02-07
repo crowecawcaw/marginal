@@ -7,6 +7,7 @@ import {
   $setSelection,
 } from "lexical";
 import { LinkEditTooltip } from "../LinkEditTooltip";
+import { openUrl } from "@tauri-apps/plugin-opener";
 
 interface ActiveLink {
   nodeKey: string;
@@ -55,7 +56,25 @@ export function LinkEditPlugin() {
     const rootElement = editor.getRootElement();
     if (!rootElement) return;
 
+    const handleMouseDown = (event: MouseEvent) => {
+      if (!(event.metaKey || event.ctrlKey)) return;
+
+      const target = event.target as HTMLElement;
+      const linkElement = target.closest("a.editor-link") as HTMLElement | null;
+      if (!linkElement) return;
+
+      const href = linkElement.getAttribute("href");
+      if (!href) return;
+
+      event.preventDefault();
+      event.stopPropagation();
+      openUrl(href);
+    };
+
     const handleClick = (event: MouseEvent) => {
+      // Ignore cmd/ctrl clicks — handled by mousedown
+      if (event.metaKey || event.ctrlKey) return;
+
       const target = event.target as HTMLElement;
       const linkResult = findLinkNode(target);
 
@@ -67,17 +86,6 @@ export function LinkEditPlugin() {
 
       const { node, element } = linkResult;
 
-      // Cmd+Click (Mac) or Ctrl+Click (Win/Linux) → open the URL
-      if (event.metaKey || event.ctrlKey) {
-        event.preventDefault();
-        event.stopPropagation();
-        const url = node.__url;
-        if (url) {
-          window.open(url, "_blank", "noopener,noreferrer");
-        }
-        return;
-      }
-
       // Regular click → open edit tooltip
       event.preventDefault();
       event.stopPropagation();
@@ -87,14 +95,16 @@ export function LinkEditPlugin() {
       editor.getEditorState().read(() => {
         setActiveLink({
           nodeKey: node.getKey(),
-          url: node.__url,
+          url: node.getURL(),
           rect,
         });
       });
     };
 
+    rootElement.addEventListener("mousedown", handleMouseDown);
     rootElement.addEventListener("click", handleClick);
     return () => {
+      rootElement.removeEventListener("mousedown", handleMouseDown);
       rootElement.removeEventListener("click", handleClick);
     };
   }, [editor, findLinkNode]);
@@ -155,7 +165,7 @@ export function LinkEditPlugin() {
 
   const handleOpenLink = useCallback(() => {
     if (!activeLink) return;
-    window.open(activeLink.url, "_blank", "noopener,noreferrer");
+    openUrl(activeLink.url);
     setActiveLink(null);
   }, [activeLink]);
 
