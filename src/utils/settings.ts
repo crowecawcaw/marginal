@@ -5,6 +5,7 @@ interface AppSettings {
   sidebarWidth: number;
   outlineVisible: boolean;
   outlineWidth: number;
+  viewMode: "code" | "rendered";
   codeZoom: number;
   renderedZoom: number;
   recentFiles: string[];
@@ -18,6 +19,7 @@ const defaultSettings: AppSettings = {
   sidebarWidth: 250,
   outlineVisible: true,
   outlineWidth: 250,
+  viewMode: "code",
   codeZoom: 100,
   renderedZoom: 100,
   recentFiles: [],

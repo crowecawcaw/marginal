@@ -52,7 +52,7 @@ export const useUIStore = create<UIState>((set) => ({
   outlineVisible: settings.outlineVisible,
   outlineWidth: settings.outlineWidth,
   currentSidebarView: "files",
-  viewMode: "code",
+  viewMode: settings.viewMode,
   codeZoom: settings.codeZoom,
   renderedZoom: settings.renderedZoom,
   isLoading: false,
@@ -78,10 +78,15 @@ export const useUIStore = create<UIState>((set) => ({
     set({ outlineWidth: width });
   },
   setSidebarView: (view) => set({ currentSidebarView: view }),
-  setViewMode: (mode) => set({ viewMode: mode }),
+  setViewMode: (mode) => {
+    void saveSettings({ viewMode: mode });
+    emitViewModeChange(mode);
+    set({ viewMode: mode });
+  },
   toggleViewMode: () =>
     set((state) => {
       const newMode = state.viewMode === "code" ? "rendered" : "code";
+      void saveSettings({ viewMode: newMode });
       emitViewModeChange(newMode);
       return { viewMode: newMode };
     }),
@@ -123,3 +128,6 @@ export const useUIStore = create<UIState>((set) => ({
   setLoading: (isLoading, message = "") =>
     set({ isLoading, loadingMessage: message }),
 }));
+
+// Emit initial view mode to Tauri so menu text matches persisted state
+void emitViewModeChange(settings.viewMode);
