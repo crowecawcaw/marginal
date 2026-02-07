@@ -309,7 +309,7 @@ const Layout: React.FC = () => {
 
   return (
     <div className="layout">
-      <div className="layout-tabs">
+      <div className="layout-tabs" data-tauri-drag-region>
         {files.map((file) => (
           <button
             key={file.id}
