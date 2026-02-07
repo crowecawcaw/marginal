@@ -1,7 +1,11 @@
 import { useEffect, useState, useCallback } from "react";
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
 import { $isLinkNode, LinkNode, $toggleLink } from "@lexical/link";
-import { $getNodeByKey, $getSelection, $isRangeSelection, $createRangeSelection, $setSelection } from "lexical";
+import {
+  $getNodeByKey,
+  $createRangeSelection,
+  $setSelection,
+} from "lexical";
 import { LinkEditTooltip } from "../LinkEditTooltip";
 
 interface ActiveLink {
@@ -17,7 +21,9 @@ export function LinkEditPlugin() {
   // Find the LinkNode for a given DOM element
   const findLinkNode = useCallback(
     (element: HTMLElement): { node: LinkNode; element: HTMLElement } | null => {
-      const linkElement = element.closest("a.editor-link") as HTMLElement | null;
+      const linkElement = element.closest(
+        "a.editor-link"
+      ) as HTMLElement | null;
       if (!linkElement) return null;
 
       let foundLink: { node: LinkNode; element: HTMLElement } | null = null;
@@ -41,7 +47,7 @@ export function LinkEditPlugin() {
 
       return foundLink;
     },
-    [editor],
+    [editor]
   );
 
   // Handle clicks on links
@@ -118,7 +124,7 @@ export function LinkEditPlugin() {
       });
       setActiveLink(null);
     },
-    [activeLink, editor],
+    [activeLink, editor]
   );
 
   const handleRemoveLink = useCallback(() => {
@@ -137,7 +143,7 @@ export function LinkEditPlugin() {
           selection.focus.set(
             lastChild.getKey(),
             lastChild.getTextContentSize(),
-            "text",
+            "text"
           );
           $setSelection(selection);
           $toggleLink(null);

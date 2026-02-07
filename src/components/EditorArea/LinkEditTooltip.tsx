@@ -98,7 +98,7 @@ export function LinkEditTooltip({
         onClose();
       }
     },
-    [editUrl, url, onUrlChange, onClose],
+    [editUrl, url, onUrlChange, onClose]
   );
 
   const handleApply = useCallback(() => {
