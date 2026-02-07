@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, vi } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import EditorArea from "./EditorArea";
-import Titlebar from "../Titlebar/Titlebar";
+import Layout from "../Layout/Layout";
 import { useEditorStore } from "../../stores/editorStore";
 import { useUIStore } from "../../stores/uiStore";
 
@@ -50,14 +50,53 @@ vi.mock("../../platform/eventAdapter", async () => {
   };
 });
 
-// Helper to render EditorArea with Titlebar (for E2E tests that need tabs)
-const renderWithTitlebar = () => {
-  return render(
-    <>
-      <Titlebar />
-      <EditorArea />
-    </>
-  );
+// Mock Layout's child components that aren't relevant to these tests
+vi.mock("../Sidebar/Sidebar", () => ({ default: () => null }));
+vi.mock("../Sidebar/OutlineSidebar", () => ({ default: () => null }));
+vi.mock("../Toast/Toast", () => ({ default: () => null }));
+vi.mock("../LoadingOverlay/LoadingOverlay", () => ({ default: () => null }));
+vi.mock("../SettingsDialog/SettingsDialog", () => ({ default: () => null }));
+
+// Mock Layout dependencies
+vi.mock("../../hooks/useFileSystem", () => ({
+  useFileSystem: () => ({
+    openFile: vi.fn(),
+    saveFile: vi.fn(),
+    saveFileAs: vi.fn(),
+    newFile: vi.fn(),
+    restoreFiles: vi.fn().mockResolvedValue(undefined),
+    openFolder: vi.fn(),
+    readFile: vi.fn(),
+    downloadCurrentFile: vi.fn(),
+  }),
+}));
+
+vi.mock("../../utils/settings", () => ({
+  loadSettings: () => ({ openFiles: [], activeFilePath: null }),
+  saveSettings: vi.fn(),
+}));
+
+vi.mock("../../utils/autosave", () => ({
+  loadAutosaveEntries: () => ({}),
+  removeAutosaveEntry: vi.fn(),
+  saveAutosaveEntry: vi.fn(),
+}));
+
+vi.mock("../../platform/fileSystemAdapter", () => ({
+  showMessage: vi.fn(),
+  confirmUnsavedChanges: vi.fn(),
+  openDialog: vi.fn(),
+  saveDialog: vi.fn(),
+  readDirTree: vi.fn(),
+  readFileContent: vi.fn(),
+  writeFileContent: vi.fn(),
+  downloadFile: vi.fn(),
+  getFileName: vi.fn((path: string) => path.split("/").pop() || ""),
+}));
+
+// Helper to render Layout (which includes tabs and EditorArea)
+const renderWithLayout = () => {
+  return render(<Layout />);
 };
 
 describe("EditorArea E2E", () => {
@@ -91,7 +130,7 @@ describe("EditorArea E2E", () => {
       activeFileId: fileId,
     });
 
-    renderWithTitlebar();
+    renderWithLayout();
 
     // Step 1: Verify we're in code view (default) and content is displayed
     await waitFor(() => {
@@ -193,9 +232,9 @@ describe("EditorArea E2E", () => {
       activeFileId: "tab-1",
     });
 
-    renderWithTitlebar();
+    renderWithLayout();
 
-    // Verify both tabs are visible in titlebar
+    // Verify both tabs are visible
     const tabs = screen.getAllByText(/file[12]\.md/);
     expect(tabs.length).toBeGreaterThanOrEqual(2);
 
@@ -237,12 +276,12 @@ describe("EditorArea E2E", () => {
       activeFileId: "dirty-tab",
     });
 
-    renderWithTitlebar();
+    renderWithLayout();
 
     // Find the dirty tab - it should show filled circle indicator
     const dirtyTabElement = screen.getByText((content, element) => {
       return Boolean(
-        element?.classList.contains("titlebar-tab-name") &&
+        element?.classList.contains("layout-tab-name") &&
         content.includes("dirty.md"),
       );
     });
@@ -277,15 +316,13 @@ describe("EditorArea E2E", () => {
       activeFileId: "tab-to-close",
     });
 
-    renderWithTitlebar();
+    renderWithLayout();
 
     // Find and click close button on first tab
     const closeButtons = screen.getAllByText("×");
     await user.click(closeButtons[0]);
 
     // Verify that emit was called with close-tab event
-    // In a real app, Layout would handle this event and remove the file
-    // For this test, we just verify the event was emitted
     expect(emit).toHaveBeenCalledWith("close-tab", { fileId: "tab-to-close" });
   });
 
