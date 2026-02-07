@@ -18,8 +18,10 @@ export default defineConfig(async () => ({
   },
 
   // Base path for GitHub Pages deployment
-  // When building for web, use the repo name as base path
-  base: isWebBuild ? '/marginal/' : '/',
+  // BASE_PATH env var allows overriding for PR previews (e.g. /marginal/pr/123/)
+  // Otherwise, web builds default to /marginal/
+  // @ts-expect-error process is a nodejs global
+  base: process.env.BASE_PATH || (isWebBuild ? '/marginal/' : '/'),
 
   // Define global constants
   define: {
