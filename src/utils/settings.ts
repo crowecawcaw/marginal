@@ -10,6 +10,8 @@ interface AppSettings {
   renderedZoom: number;
   recentFiles: string[];
   lastOpenedFolder: string | null;
+  openFiles: string[];
+  activeFilePath: string | null;
 }
 
 const SETTINGS_KEY = "marginal-settings";
@@ -24,6 +26,8 @@ const defaultSettings: AppSettings = {
   renderedZoom: 100,
   recentFiles: [],
   lastOpenedFolder: null,
+  openFiles: [],
+  activeFilePath: null,
 };
 
 // Check if we're running in Tauri

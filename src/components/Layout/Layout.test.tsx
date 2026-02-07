@@ -169,6 +169,7 @@ describe("Close tab with unsaved changes", () => {
       saveFileAs: saveFileAsSpy,
       readFile: vi.fn(),
       newFile: vi.fn(),
+      restoreFiles: vi.fn().mockResolvedValue(undefined),
       downloadCurrentFile: vi.fn(),
     });
   });

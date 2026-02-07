@@ -342,6 +342,124 @@ author: John Doe
     });
   });
 
+  describe("restoreFiles", () => {
+    it("restores multiple files from paths", async () => {
+      const mockInvoke = (await import("@tauri-apps/api/core")).invoke as any;
+
+      mockInvoke
+        .mockResolvedValueOnce("# File A")
+        .mockResolvedValueOnce("# File B");
+
+      const { result } = renderHook(() => useFileSystem());
+
+      await act(async () => {
+        await result.current.restoreFiles(
+          ["/path/a.md", "/path/b.md"],
+          null,
+        );
+      });
+
+      const files = useEditorStore.getState().files;
+      expect(files).toHaveLength(2);
+      expect(files[0].filePath).toBe("/path/a.md");
+      expect(files[0].content).toBe("# File A");
+      expect(files[1].filePath).toBe("/path/b.md");
+      expect(files[1].content).toBe("# File B");
+    });
+
+    it("silently skips files that fail to read", async () => {
+      const mockInvoke = (await import("@tauri-apps/api/core")).invoke as any;
+
+      mockInvoke
+        .mockResolvedValueOnce("# File A")
+        .mockRejectedValueOnce(new Error("File not found"))
+        .mockResolvedValueOnce("# File C");
+
+      const { result } = renderHook(() => useFileSystem());
+
+      await act(async () => {
+        await result.current.restoreFiles(
+          ["/path/a.md", "/path/missing.md", "/path/c.md"],
+          null,
+        );
+      });
+
+      const files = useEditorStore.getState().files;
+      expect(files).toHaveLength(2);
+      expect(files[0].filePath).toBe("/path/a.md");
+      expect(files[1].filePath).toBe("/path/c.md");
+    });
+
+    it("sets the active file to activeFilePath", async () => {
+      const mockInvoke = (await import("@tauri-apps/api/core")).invoke as any;
+
+      mockInvoke
+        .mockResolvedValueOnce("# File A")
+        .mockResolvedValueOnce("# File B");
+
+      const { result } = renderHook(() => useFileSystem());
+
+      await act(async () => {
+        await result.current.restoreFiles(
+          ["/path/a.md", "/path/b.md"],
+          "/path/a.md",
+        );
+      });
+
+      expect(useEditorStore.getState().activeFileId).toBe("/path/a.md");
+    });
+
+    it("does not set active file if activeFilePath was not restored", async () => {
+      const mockInvoke = (await import("@tauri-apps/api/core")).invoke as any;
+
+      mockInvoke.mockResolvedValueOnce("# File A");
+
+      const { result } = renderHook(() => useFileSystem());
+
+      await act(async () => {
+        await result.current.restoreFiles(
+          ["/path/a.md"],
+          "/path/missing.md",
+        );
+      });
+
+      // activeFileId should be /path/a.md (set by openFile, not overridden)
+      expect(useEditorStore.getState().activeFileId).toBe("/path/a.md");
+    });
+
+    it("handles empty paths array", async () => {
+      const { result } = renderHook(() => useFileSystem());
+
+      await act(async () => {
+        await result.current.restoreFiles([], null);
+      });
+
+      expect(useEditorStore.getState().files).toHaveLength(0);
+    });
+
+    it("parses frontmatter when restoring files", async () => {
+      const mockInvoke = (await import("@tauri-apps/api/core")).invoke as any;
+
+      mockInvoke.mockResolvedValueOnce(
+        `---
+title: Restored Doc
+---
+
+# Content`,
+      );
+
+      const { result } = renderHook(() => useFileSystem());
+
+      await act(async () => {
+        await result.current.restoreFiles(["/path/doc.md"], null);
+      });
+
+      const files = useEditorStore.getState().files;
+      expect(files[0].frontmatter).toEqual({ title: "Restored Doc" });
+      expect(files[0].content.trim()).toBe("# Content");
+    });
+  });
+
   describe("saveFile", () => {
     it("saves file content without frontmatter", async () => {
       const mockInvoke = (await import("@tauri-apps/api/core")).invoke as any;

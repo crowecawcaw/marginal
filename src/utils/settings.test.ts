@@ -16,10 +16,13 @@ describe("settings", () => {
         sidebarWidth: 250,
         outlineVisible: true,
         outlineWidth: 250,
+        viewMode: "code",
         codeZoom: 100,
         renderedZoom: 100,
         recentFiles: [],
         lastOpenedFolder: null,
+        openFiles: [],
+        activeFilePath: null,
       });
     });
 
@@ -29,10 +32,13 @@ describe("settings", () => {
         sidebarWidth: 300,
         outlineVisible: true,
         outlineWidth: 300,
+        viewMode: "code" as const,
         codeZoom: 120,
         renderedZoom: 80,
         recentFiles: ["/path/to/file.md"],
         lastOpenedFolder: "/path/to/folder",
+        openFiles: ["/path/to/file.md"],
+        activeFilePath: "/path/to/file.md",
       };
 
       localStorage.setItem("marginal-settings", JSON.stringify(storedSettings));
@@ -58,10 +64,13 @@ describe("settings", () => {
         sidebarWidth: 250,
         outlineVisible: true,
         outlineWidth: 250,
+        viewMode: "code",
         codeZoom: 100,
         renderedZoom: 100,
         recentFiles: [],
         lastOpenedFolder: null,
+        openFiles: [],
+        activeFilePath: null,
       });
     });
 
@@ -79,10 +88,13 @@ describe("settings", () => {
         sidebarWidth: 250,
         outlineVisible: true,
         outlineWidth: 250,
+        viewMode: "code",
         codeZoom: 100,
         renderedZoom: 100,
         recentFiles: [],
         lastOpenedFolder: null,
+        openFiles: [],
+        activeFilePath: null,
       });
 
       consoleSpy.mockRestore();
@@ -149,11 +161,42 @@ describe("settings", () => {
         sidebarWidth: 250,
         outlineVisible: true,
         outlineWidth: 250,
+        viewMode: "code",
         codeZoom: 100,
         renderedZoom: 100,
         recentFiles: [],
         lastOpenedFolder: null,
+        openFiles: [],
+        activeFilePath: null,
       });
+    });
+  });
+
+  describe("openFiles and activeFilePath", () => {
+    it("saves and loads openFiles", async () => {
+      await saveSettings({ openFiles: ["/path/a.md", "/path/b.md"] });
+
+      const settings = loadSettings();
+      expect(settings.openFiles).toEqual(["/path/a.md", "/path/b.md"]);
+    });
+
+    it("saves and loads activeFilePath", async () => {
+      await saveSettings({ activeFilePath: "/path/a.md" });
+
+      const settings = loadSettings();
+      expect(settings.activeFilePath).toBe("/path/a.md");
+    });
+
+    it("preserves openFiles when saving other settings", async () => {
+      await saveSettings({
+        openFiles: ["/path/a.md"],
+        activeFilePath: "/path/a.md",
+      });
+      await saveSettings({ sidebarVisible: true });
+
+      const settings = loadSettings();
+      expect(settings.openFiles).toEqual(["/path/a.md"]);
+      expect(settings.activeFilePath).toBe("/path/a.md");
     });
   });
 

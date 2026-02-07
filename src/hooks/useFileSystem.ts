@@ -197,6 +197,39 @@ export const useFileSystem = () => {
     downloadFile(finalContent, fileName);
   };
 
+  const restoreFiles = async (
+    paths: string[],
+    activeFilePath: string | null,
+  ) => {
+    for (const path of paths) {
+      try {
+        const rawContent = await readFileContent(path);
+        const fileName = getFileName(path);
+        const parsed = parseFrontmatter(rawContent);
+
+        openEditorFile({
+          id: path,
+          filePath: path,
+          fileName,
+          content: parsed.content,
+          isDirty: false,
+          frontmatter: parsed.frontmatter,
+        });
+      } catch {
+        // File no longer exists or can't be read — silently skip
+      }
+    }
+
+    // Set the active file if it was successfully opened
+    if (activeFilePath) {
+      const state = useEditorStore.getState();
+      const restored = state.files.find((f) => f.filePath === activeFilePath);
+      if (restored) {
+        useEditorStore.getState().setActiveFile(restored.id);
+      }
+    }
+  };
+
   return {
     openFolder,
     openFile,
@@ -204,6 +237,7 @@ export const useFileSystem = () => {
     saveFileAs,
     readFile,
     newFile,
+    restoreFiles,
     downloadCurrentFile,
   };
 };

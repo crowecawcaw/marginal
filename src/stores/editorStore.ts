@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { EditorFile } from "../types";
+import { saveSettings } from "../utils/settings";
 
 // Extract first header from markdown content
 const extractFirstHeader = (content: string): string | null => {
@@ -79,3 +80,15 @@ export const useEditorStore = create<EditorState>((set) => ({
       ),
     })),
 }));
+
+// Persist open file paths whenever files or activeFileId changes
+useEditorStore.subscribe((state, prevState) => {
+  if (state.files !== prevState.files || state.activeFileId !== prevState.activeFileId) {
+    const openFiles = state.files
+      .map((f) => f.filePath)
+      .filter((p) => p !== "");
+    const activeFile = state.files.find((f) => f.id === state.activeFileId);
+    const activeFilePath = activeFile?.filePath || null;
+    saveSettings({ openFiles, activeFilePath });
+  }
+});

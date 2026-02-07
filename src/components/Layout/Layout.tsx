@@ -16,6 +16,7 @@ import {
   confirmUnsavedChanges,
 } from "../../platform/fileSystemAdapter";
 import { useKeyboardShortcuts } from "../../hooks/useKeyboardShortcuts";
+import { loadSettings } from "../../utils/settings";
 import "./Layout.css";
 
 const Layout: React.FC = () => {
@@ -23,7 +24,7 @@ const Layout: React.FC = () => {
   const { files, activeFileId, removeFile, markFileDirty, openFile: openEditorFile } =
     useEditorStore();
   const { addNotification } = useNotificationStore();
-  const { openFile, saveFile, saveFileAs, newFile } = useFileSystem();
+  const { openFile, saveFile, saveFileAs, newFile, restoreFiles } = useFileSystem();
 
   // Get active file for save functionality
   const activeFile = files.find((file) => file.id === activeFileId);
@@ -218,10 +219,20 @@ const Layout: React.FC = () => {
     },
   ]);
 
-  // Create a blank file on startup if no files exist
+  // Restore previously open files on startup, or create a blank file
   useEffect(() => {
     if (files.length === 0) {
-      newFile();
+      const settings = loadSettings();
+      if (settings.openFiles.length > 0) {
+        restoreFiles(settings.openFiles, settings.activeFilePath).then(() => {
+          // If no files were restored (all missing from disk), create a blank file
+          if (useEditorStore.getState().files.length === 0) {
+            newFile();
+          }
+        });
+      } else {
+        newFile();
+      }
     }
   }, []); // Only run once on mount
 
