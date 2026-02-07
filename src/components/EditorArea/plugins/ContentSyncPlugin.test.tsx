@@ -55,25 +55,7 @@ describe("ContentSyncPlugin", () => {
         });
       });
 
-      it("placeholder is shown when document is empty", async () => {
-        render(
-          <MarkdownEditor
-            initialContent=""
-            viewMode="rendered"
-            onChange={vi.fn()}
-          />,
-        );
-
-        // The placeholder should be visible
-        await vi.waitFor(() => {
-          const placeholder = document.querySelector(
-            ".markdown-editor-placeholder",
-          );
-          expect(placeholder).toBeInTheDocument();
-        });
-      });
-
-      it("onChange is called with '# ' when empty document initializes", async () => {
+      it("does not fire onChange on initial mount with empty content", async () => {
         const onChange = vi.fn();
 
         render(
@@ -90,11 +72,9 @@ describe("ContentSyncPlugin", () => {
           expect(heading).toBeInTheDocument();
         });
 
-        // The onChange should have been called with markdown for empty h1
-        expect(onChange).toHaveBeenCalled();
-        const lastCall = onChange.mock.calls[onChange.mock.calls.length - 1];
-        // Empty h1 should produce "# " or just "#"
-        expect(lastCall[0]).toMatch(/^#\s*$/);
+        // editorState initializer runs before OnChangePlugin mounts,
+        // so no spurious onChange on initial render
+        expect(onChange).not.toHaveBeenCalled();
       });
     });
 

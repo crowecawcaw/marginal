@@ -214,7 +214,6 @@ describe("Link Editing E2E Tests", () => {
       const link = document.querySelector("a.editor-link");
       expect(link).toBeTruthy();
       expect(link?.textContent).toBe("here");
-      expect(onChange).toHaveBeenCalled();
     });
 
     // Switch to code view

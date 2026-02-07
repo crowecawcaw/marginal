@@ -15,18 +15,17 @@ import { TabIndentationPlugin } from "@lexical/react/LexicalTabIndentationPlugin
 import { TablePlugin } from "@lexical/react/LexicalTablePlugin";
 import { LexicalErrorBoundary } from "@lexical/react/LexicalErrorBoundary";
 import { CodeNode, CodeHighlightNode } from "@lexical/code";
-import { HeadingNode, QuoteNode } from "@lexical/rich-text";
+import { $createHeadingNode, HeadingNode, QuoteNode } from "@lexical/rich-text";
 import { ListItemNode, ListNode } from "@lexical/list";
 import { LinkNode, AutoLinkNode } from "@lexical/link";
 import { TableNode, TableCellNode, TableRowNode } from "@lexical/table";
 import { EditorState, $getRoot } from "lexical";
-import { $convertToMarkdownString, TRANSFORMERS } from "@lexical/markdown";
-import { TABLE } from "./tableTransformer";
+import { $convertFromMarkdownString, $convertToMarkdownString, TRANSFORMERS } from "@lexical/markdown";
+import { TABLE, $createTableFromMarkdown } from "./tableTransformer";
 import { TableContextMenuPlugin } from "./TableContextMenuPlugin";
 import { InsertTablePlugin } from "./InsertTablePlugin";
 import { TableResizePlugin } from "./TableResizePlugin";
 import {
-  RenderedContentSyncPlugin,
   CodeContentSyncPlugin,
   CodeHighlightPlugin,
   LinkEditPlugin,
@@ -63,6 +62,67 @@ const RENDERED_EDITOR_NODES = [
   TableRowNode,
 ];
 
+// Build the editorState initializer for the rendered editor.
+// Runs synchronously during editor construction, before any plugin
+// useEffect fires — which eliminates the race between content population
+// and transform registration (e.g. CodeHighlightPlugin).
+function buildEditorState(content: string): () => void {
+  return () => {
+    if (!content || content.trim() === "") {
+      const root = $getRoot();
+      root.clear();
+      const heading = $createHeadingNode("h1");
+      root.append(heading);
+      return;
+    }
+
+    // Extract table blocks and process them separately
+    const tableRegex = /(\|.+\|\n\|[-:\s|]+\|\n(?:\|.+\|\n?)*)/g;
+    const tables: { text: string; index: number }[] = [];
+    let match;
+
+    while ((match = tableRegex.exec(content)) !== null) {
+      tables.push({ text: match[1], index: match.index });
+    }
+
+    // If there are tables, replace them with placeholders
+    let processedContent = content;
+    const placeholder = "<!--TABLE_PLACEHOLDER-->";
+
+    if (tables.length > 0) {
+      for (let i = tables.length - 1; i >= 0; i--) {
+        const table = tables[i];
+        processedContent =
+          processedContent.slice(0, table.index) +
+          placeholder +
+          processedContent.slice(table.index + table.text.length);
+      }
+    }
+
+    // Convert the processed markdown
+    $convertFromMarkdownString(processedContent, CUSTOM_TRANSFORMERS);
+
+    // Now insert tables where placeholders are
+    if (tables.length > 0) {
+      const root = $getRoot();
+      const children = root.getChildren();
+      let tableIndex = 0;
+
+      children.forEach((child) => {
+        const text = child.getTextContent();
+        if (text.includes(placeholder) && tableIndex < tables.length) {
+          const tableNode = $createTableFromMarkdown(tables[tableIndex].text);
+          if (tableNode) {
+            child.insertAfter(tableNode);
+            child.remove();
+            tableIndex++;
+          }
+        }
+      });
+    }
+  };
+}
+
 // Rendered view editor (WYSIWYG markdown)
 function RenderedEditor({
   initialContent,
@@ -75,6 +135,7 @@ function RenderedEditor({
     namespace: "MarkdownEditor-Rendered",
     theme: renderedEditorTheme,
     nodes: RENDERED_EDITOR_NODES,
+    editorState: buildEditorState(initialContent),
     onError: (error: Error) => {
       console.error("Lexical Error:", error);
     },
@@ -110,7 +171,6 @@ function RenderedEditor({
         <LinkEditPlugin />
         <TablePlugin hasCellMerge={false} hasCellBackgroundColor={false} />
         <TabIndentationPlugin />
-        <RenderedContentSyncPlugin content={initialContent} />
         <CodeHighlightPlugin />
         <ListExitPlugin />
         <RichTextFormattingPlugin />

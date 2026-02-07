@@ -25,7 +25,6 @@ describe("Bold and Italic End-to-End Roundtrip Tests", () => {
       const boldElement = document.querySelector(".editor-text-bold");
       expect(boldElement).toBeTruthy();
       expect(boldElement?.textContent).toBe("bold");
-      expect(onChange).toHaveBeenCalled();
     });
 
     // Step 2: Switch to code view
@@ -87,7 +86,6 @@ describe("Bold and Italic End-to-End Roundtrip Tests", () => {
       const italicElement = document.querySelector(".editor-text-italic");
       expect(italicElement).toBeTruthy();
       expect(italicElement?.textContent).toBe("italic");
-      expect(onChange).toHaveBeenCalled();
     });
 
     // Step 2: Switch to code view

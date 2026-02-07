@@ -22,11 +22,10 @@ describe("Table End-to-End Roundtrip Tests", () => {
       />
     );
 
-    // Wait for table to render and onChange to be called
+    // Wait for table to render
     await waitFor(() => {
       const table = document.querySelector(".editor-table");
       expect(table).toBeTruthy();
-      expect(onChange).toHaveBeenCalled();
     });
 
     // Step 2: Get the content from rendered view, switch to code view
