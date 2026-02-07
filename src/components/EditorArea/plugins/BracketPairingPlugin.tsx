@@ -1,6 +1,11 @@
 import { useEffect } from "react";
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
-import { $getSelection, $isRangeSelection } from "lexical";
+import {
+  $getSelection,
+  $isRangeSelection,
+  KEY_DOWN_COMMAND,
+  COMMAND_PRIORITY_HIGH,
+} from "lexical";
 
 /**
  * Plugin to auto-close brackets and parentheses in code view.
@@ -16,89 +21,59 @@ export function BracketPairingPlugin() {
   const [editor] = useLexicalComposerContext();
 
   useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "[") {
-        event.preventDefault();
-        editor.update(
-          () => {
-            const selection = $getSelection();
-            if (!$isRangeSelection(selection)) return;
-            selection.insertRawText("[]");
-            // Move cursor back between the brackets
-            selection.anchor.offset -= 1;
-            selection.focus.offset = selection.anchor.offset;
-          },
-          { discrete: true },
-        );
-        return;
-      }
-
-      if (event.key === "]" || event.key === ")") {
-        // Overtype: if next char matches, skip over it instead of inserting
-        let shouldSkip = false;
-        editor.getEditorState().read(() => {
+    return editor.registerCommand(
+      KEY_DOWN_COMMAND,
+      (event: KeyboardEvent) => {
+        if (event.key === "[") {
           const selection = $getSelection();
-          if (!$isRangeSelection(selection) || !selection.isCollapsed()) return;
+          if (!$isRangeSelection(selection)) return false;
+          event.preventDefault();
+          selection.insertRawText("[]");
+          selection.anchor.offset -= 1;
+          selection.focus.offset = selection.anchor.offset;
+          return true;
+        }
+
+        if (event.key === "]" || event.key === ")") {
+          const selection = $getSelection();
+          if (!$isRangeSelection(selection) || !selection.isCollapsed())
+            return false;
           const anchorNode = selection.anchor.getNode();
           const text = anchorNode.getTextContent();
           const offset = selection.anchor.offset;
           if (offset < text.length && text[offset] === event.key) {
-            shouldSkip = true;
+            event.preventDefault();
+            // Select the next character and replace with itself to move
+            // cursor past it. A plain offset change doesn't persist across
+            // Lexical update boundaries because no text mutation occurs.
+            selection.focus.offset = offset + 1;
+            selection.insertRawText(event.key);
+            return true;
           }
-        });
-
-        if (shouldSkip) {
-          event.preventDefault();
-          editor.update(
-            () => {
-              const selection = $getSelection();
-              if (!$isRangeSelection(selection)) return;
-              selection.anchor.offset += 1;
-              selection.focus.offset = selection.anchor.offset;
-            },
-            { discrete: true },
-          );
-          return;
+          return false;
         }
-      }
 
-      if (event.key === "(") {
-        // Only auto-close if character before cursor is `]`
-        let shouldPair = false;
-        editor.getEditorState().read(() => {
+        if (event.key === "(") {
           const selection = $getSelection();
-          if (!$isRangeSelection(selection) || !selection.isCollapsed()) return;
+          if (!$isRangeSelection(selection) || !selection.isCollapsed())
+            return false;
           const anchorNode = selection.anchor.getNode();
           const text = anchorNode.getTextContent();
           const offset = selection.anchor.offset;
           if (offset > 0 && text[offset - 1] === "]") {
-            shouldPair = true;
+            event.preventDefault();
+            selection.insertRawText("()");
+            selection.anchor.offset -= 1;
+            selection.focus.offset = selection.anchor.offset;
+            return true;
           }
-        });
-
-        if (shouldPair) {
-          event.preventDefault();
-          editor.update(
-            () => {
-              const selection = $getSelection();
-              if (!$isRangeSelection(selection)) return;
-              selection.insertRawText("()");
-              selection.anchor.offset -= 1;
-              selection.focus.offset = selection.anchor.offset;
-            },
-            { discrete: true },
-          );
+          return false;
         }
-      }
-    };
 
-    const rootElement = editor.getRootElement();
-    if (rootElement) {
-      rootElement.addEventListener("keydown", handleKeyDown);
-      return () => {
-        rootElement.removeEventListener("keydown", handleKeyDown);
-      };
-    }
+        return false;
+      },
+      COMMAND_PRIORITY_HIGH,
+    );
   }, [editor]);
 
   return null;

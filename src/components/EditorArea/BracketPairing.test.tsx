@@ -12,6 +12,7 @@ import {
   $createTextNode,
   $createParagraphNode,
   LexicalEditor,
+  KEY_DOWN_COMMAND,
 } from "lexical";
 import { BracketPairingPlugin } from "./plugins/BracketPairingPlugin";
 
@@ -103,14 +104,17 @@ function getCursorOffset(editor: LexicalEditor): number {
 }
 
 function dispatchKey(editor: LexicalEditor, key: string) {
-  const rootElement = editor.getRootElement();
-  if (!rootElement) throw new Error("No root element");
   const event = new KeyboardEvent("keydown", {
     key,
     bubbles: true,
     cancelable: true,
   });
-  rootElement.dispatchEvent(event);
+  editor.update(
+    () => {
+      editor.dispatchCommand(KEY_DOWN_COMMAND, event);
+    },
+    { discrete: true },
+  );
 }
 
 describe("BracketPairingPlugin", () => {
@@ -145,18 +149,9 @@ describe("BracketPairingPlugin", () => {
     const editor = renderTestEditor();
 
     dispatchKey(editor, "[");
-
-    // Move cursor past the ]
-    editor.update(
-      () => {
-        const selection = $getSelection();
-        if ($isRangeSelection(selection)) {
-          selection.anchor.offset = 2;
-          selection.focus.offset = 2;
-        }
-      },
-      { discrete: true },
-    );
+    // Overtype past the ]
+    dispatchKey(editor, "]");
+    expect(getCursorOffset(editor)).toBe(2);
 
     dispatchKey(editor, "(");
 
@@ -191,18 +186,9 @@ describe("BracketPairingPlugin", () => {
     );
     expect(getEditorText(editor)).toBe("[click here]");
 
-    // Move cursor after ]
-    editor.update(
-      () => {
-        const selection = $getSelection();
-        if ($isRangeSelection(selection)) {
-          const offset = selection.anchor.offset;
-          selection.anchor.offset = offset + 1;
-          selection.focus.offset = offset + 1;
-        }
-      },
-      { discrete: true },
-    );
+    // Overtype past the ]
+    dispatchKey(editor, "]");
+    expect(getCursorOffset(editor)).toBe(12);
 
     dispatchKey(editor, "(");
     expect(getEditorText(editor)).toBe("[click here]()");
