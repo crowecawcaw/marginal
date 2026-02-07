@@ -40,7 +40,7 @@ jobs:
         env:
           WEB_BUILD: "true"
           BASE_PATH: "/marginal/pr/${{ github.event.number }}/"
-        run: tsc && vite build
+        run: npx tsc && npx vite build
 
       - name: Deploy preview to gh-pages branch
         run: |
