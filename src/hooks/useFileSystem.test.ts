@@ -217,26 +217,21 @@ describe("useFileSystem", () => {
       expect(files[0].filePath).toBe("");
     });
 
-    it("generates unique file IDs with timestamp format", () => {
+    it("generates unique file IDs as UUIDs", () => {
       const { result } = renderHook(() => useFileSystem());
 
-      // Create first file
-      const beforeTime = Date.now();
       act(() => {
         result.current.newFile();
       });
-      const afterTime = Date.now();
 
       const files = useEditorStore.getState().files;
       expect(files).toHaveLength(1);
 
       const id = files[0].id;
-      expect(id).toMatch(/^untitled-\d+$/);
-
-      // Extract timestamp from ID
-      const timestamp = parseInt(id.replace("untitled-", ""));
-      expect(timestamp).toBeGreaterThanOrEqual(beforeTime);
-      expect(timestamp).toBeLessThanOrEqual(afterTime);
+      // UUID v4 format
+      expect(id).toMatch(
+        /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/,
+      );
     });
   });
 

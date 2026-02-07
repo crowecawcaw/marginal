@@ -133,8 +133,7 @@ export const useFileSystem = () => {
 
     const fileName =
       nextNumber === 1 ? "Untitled.md" : `Untitled${nextNumber}.md`;
-    const timestamp = Date.now();
-    const newFileId = `untitled-${timestamp}`;
+    const newFileId = crypto.randomUUID();
 
     openEditorFile({
       id: newFileId,

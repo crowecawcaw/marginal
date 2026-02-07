@@ -1,6 +1,11 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import { loadSettings, saveSettings, clearSettings } from "./settings";
 
+// Mock Tauri store
+vi.mock("@tauri-apps/plugin-store", () => ({
+  Store: { load: vi.fn() },
+}));
+
 describe("settings", () => {
   beforeEach(() => {
     // Clear localStorage before each test
@@ -23,6 +28,7 @@ describe("settings", () => {
         lastOpenedFolder: null,
         openFiles: [],
         activeFilePath: null,
+        theme: "system",
       });
     });
 
@@ -39,9 +45,10 @@ describe("settings", () => {
         lastOpenedFolder: "/path/to/folder",
         openFiles: ["/path/to/file.md"],
         activeFilePath: "/path/to/file.md",
+        theme: "system" as const,
       };
 
-      localStorage.setItem("marginal-settings", JSON.stringify(storedSettings));
+      localStorage.setItem("marginal:settings", JSON.stringify(storedSettings));
 
       const settings = loadSettings();
       expect(settings).toEqual(storedSettings);
@@ -54,7 +61,7 @@ describe("settings", () => {
       };
 
       localStorage.setItem(
-        "marginal-settings",
+        "marginal:settings",
         JSON.stringify(partialSettings),
       );
 
@@ -71,6 +78,7 @@ describe("settings", () => {
         lastOpenedFolder: null,
         openFiles: [],
         activeFilePath: null,
+        theme: "system",
       });
     });
 
@@ -80,7 +88,7 @@ describe("settings", () => {
         .spyOn(console, "error")
         .mockImplementation(() => {});
 
-      localStorage.setItem("marginal-settings", "invalid json");
+      localStorage.setItem("marginal:settings", "invalid json");
 
       const settings = loadSettings();
       expect(settings).toEqual({
@@ -95,6 +103,7 @@ describe("settings", () => {
         lastOpenedFolder: null,
         openFiles: [],
         activeFilePath: null,
+        theme: "system",
       });
 
       consoleSpy.mockRestore();
@@ -105,7 +114,7 @@ describe("settings", () => {
     it("saves settings to localStorage", async () => {
       await saveSettings({ sidebarVisible: true });
 
-      const stored = JSON.parse(localStorage.getItem("marginal-settings")!);
+      const stored = JSON.parse(localStorage.getItem("marginal:settings")!);
       expect(stored.sidebarVisible).toBe(true);
     });
 
@@ -147,7 +156,7 @@ describe("settings", () => {
 
       await clearSettings();
 
-      const stored = localStorage.getItem("marginal-settings");
+      const stored = localStorage.getItem("marginal:settings");
       expect(stored).toBeNull();
     });
 
@@ -168,6 +177,7 @@ describe("settings", () => {
         lastOpenedFolder: null,
         openFiles: [],
         activeFilePath: null,
+        theme: "system",
       });
     });
   });

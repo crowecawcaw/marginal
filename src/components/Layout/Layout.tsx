@@ -18,6 +18,10 @@ import {
 } from "../../platform/fileSystemAdapter";
 import { useKeyboardShortcuts } from "../../hooks/useKeyboardShortcuts";
 import { loadSettings } from "../../utils/settings";
+import {
+  loadAutosaveEntries,
+  removeAutosaveEntry,
+} from "../../utils/autosave";
 import "./Layout.css";
 
 const Layout: React.FC = () => {
@@ -42,6 +46,7 @@ const Layout: React.FC = () => {
       if (!file.filePath) {
         const result = await saveFileAs(file.content, file.frontmatter);
         if (result) {
+          const oldFileId = file.id;
           // Remove old untitled file and open new saved file
           removeFile(file.id);
           openEditorFile({
@@ -52,6 +57,7 @@ const Layout: React.FC = () => {
             isDirty: false,
             frontmatter: file.frontmatter,
           });
+          removeAutosaveEntry(oldFileId);
           showMessage(`Saved ${result.fileName}`, { title: "File Saved" });
           return true;
         }
@@ -61,6 +67,7 @@ const Layout: React.FC = () => {
         // Regular save for existing files
         await saveFile(file.filePath, file.content, file.frontmatter);
         markFileDirty(file.id, false);
+        removeAutosaveEntry(file.id);
         showMessage(`Saved ${file.fileName}`, { title: "File Saved" });
         return true;
       }
@@ -233,16 +240,42 @@ const Layout: React.FC = () => {
   useEffect(() => {
     if (files.length === 0) {
       const settings = loadSettings();
-      if (settings.openFiles.length > 0) {
-        restoreFiles(settings.openFiles, settings.activeFilePath).then(() => {
-          // If no files were restored (all missing from disk), create a blank file
-          if (useEditorStore.getState().files.length === 0) {
-            newFile();
+      const doRestore = settings.openFiles.length > 0
+        ? restoreFiles(settings.openFiles, settings.activeFilePath)
+        : Promise.resolve();
+
+      doRestore.then(() => {
+        // Restore autosaved content
+        const autosaveEntries = loadAutosaveEntries();
+        const state = useEditorStore.getState();
+
+        for (const [id, entry] of Object.entries(autosaveEntries)) {
+          if (entry.filePath) {
+            // Saved file: find already-restored file by its path (id === filePath for saved files)
+            const existing = state.files.find((f) => f.id === id);
+            if (existing) {
+              state.updateFileContent(id, entry.content);
+              state.markFileDirty(id, true);
+            }
+          } else {
+            // Unsaved file: reopen with autosaved content
+            state.openFile({
+              id,
+              filePath: "",
+              fileName: entry.fileName,
+              content: entry.content,
+              isDirty: true,
+              frontmatter: entry.frontmatter,
+            });
           }
-        });
-      } else {
-        newFile();
-      }
+          removeAutosaveEntry(id);
+        }
+
+        // If no files were restored at all, create a blank file
+        if (useEditorStore.getState().files.length === 0) {
+          newFile();
+        }
+      });
     }
   }, []); // Only run once on mount
 
