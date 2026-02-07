@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeAll } from "vitest";
+import { describe, it, expect, beforeAll } from "vitest";
 import { render } from "@testing-library/react";
 import { LexicalComposer } from "@lexical/react/LexicalComposer";
 import { PlainTextPlugin } from "@lexical/react/LexicalPlainTextPlugin";
@@ -11,6 +11,7 @@ import {
   $isRangeSelection,
   $createTextNode,
   $createParagraphNode,
+  $isTextNode,
   LexicalEditor,
   KEY_DOWN_COMMAND,
 } from "lexical";
@@ -214,7 +215,7 @@ describe("BracketPairingPlugin", () => {
       () => {
         const root = $getRoot();
         const textNode = root.getFirstDescendant();
-        if (textNode) {
+        if (textNode && $isTextNode(textNode)) {
           textNode.select(4, 4);
         }
       },
@@ -282,7 +283,7 @@ describe("BracketPairingPlugin", () => {
       () => {
         const root = $getRoot();
         const textNode = root.getFirstDescendant();
-        if (textNode) {
+        if (textNode && $isTextNode(textNode)) {
           textNode.select(1, 1);
         }
       },
