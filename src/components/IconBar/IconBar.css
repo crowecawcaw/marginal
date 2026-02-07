@@ -34,3 +34,7 @@
   background-color: var(--color-bg-active);
   color: var(--color-accent);
 }
+
+.icon-bar-spacer {
+  flex: 1;
+}

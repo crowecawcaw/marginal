@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { SidebarView, ViewMode } from "../types";
-import { loadSettings, saveSettings } from "../utils/settings";
+import { loadSettings, saveSettings, Theme } from "../utils/settings";
 import { isTauri } from "../platform";
 
 // Emit view mode change to Tauri backend for menu text updates
@@ -28,8 +28,10 @@ interface UIState {
   viewMode: ViewMode;
   codeZoom: number;
   renderedZoom: number;
+  theme: Theme;
   isLoading: boolean;
   loadingMessage: string;
+  setTheme: (theme: Theme) => void;
   toggleSidebar: () => void;
   toggleOutline: () => void;
   setSidebarWidth: (width: number) => void;
@@ -55,8 +57,13 @@ export const useUIStore = create<UIState>((set) => ({
   viewMode: settings.viewMode,
   codeZoom: settings.codeZoom,
   renderedZoom: settings.renderedZoom,
+  theme: settings.theme,
   isLoading: false,
   loadingMessage: "",
+  setTheme: (theme) => {
+    void saveSettings({ theme });
+    set({ theme });
+  },
   toggleSidebar: () =>
     set((state) => {
       const newVisible = !state.sidebarVisible;

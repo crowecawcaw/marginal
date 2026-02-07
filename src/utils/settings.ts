@@ -1,5 +1,7 @@
 import { Store } from "@tauri-apps/plugin-store";
 
+export type Theme = "system" | "light" | "dark";
+
 interface AppSettings {
   sidebarVisible: boolean;
   sidebarWidth: number;
@@ -12,6 +14,7 @@ interface AppSettings {
   lastOpenedFolder: string | null;
   openFiles: string[];
   activeFilePath: string | null;
+  theme: Theme;
 }
 
 const SETTINGS_KEY = "marginal-settings";
@@ -28,6 +31,7 @@ const defaultSettings: AppSettings = {
   lastOpenedFolder: null,
   openFiles: [],
   activeFilePath: null,
+  theme: "system",
 };
 
 // Check if we're running in Tauri

@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { setupEventListeners, listen } from "../../platform/eventAdapter";
 import Titlebar from "../Titlebar/Titlebar";
 import Sidebar from "../Sidebar/Sidebar";
@@ -7,6 +7,7 @@ import EditorArea from "../EditorArea/EditorArea";
 import Toast from "../Toast/Toast";
 import LoadingOverlay from "../LoadingOverlay/LoadingOverlay";
 import KeyboardHints from "../KeyboardHints/KeyboardHints";
+import SettingsDialog from "../SettingsDialog/SettingsDialog";
 import { useUIStore } from "../../stores/uiStore";
 import { useEditorStore } from "../../stores/editorStore";
 import { useNotificationStore } from "../../stores/notificationStore";
@@ -25,6 +26,7 @@ const Layout: React.FC = () => {
     useEditorStore();
   const { addNotification } = useNotificationStore();
   const { openFile, saveFile, saveFileAs, newFile, restoreFiles } = useFileSystem();
+  const [settingsOpen, setSettingsOpen] = useState(false);
 
   // Get active file for save functionality
   const activeFile = files.find((file) => file.id === activeFileId);
@@ -217,6 +219,14 @@ const Layout: React.FC = () => {
         resetZoom();
       },
     },
+    {
+      key: ",",
+      ctrlOrCmd: true,
+      handler: (e) => {
+        e.preventDefault();
+        setSettingsOpen(true);
+      },
+    },
   ]);
 
   // Restore previously open files on startup, or create a blank file
@@ -265,6 +275,7 @@ const Layout: React.FC = () => {
       { event: "menu:zoom-out", callback: () => zoomOut() },
       { event: "menu:zoom-reset", callback: () => resetZoom() },
       { event: "menu:view-readme", callback: () => handleViewReadme() },
+      { event: "menu:settings", callback: () => setSettingsOpen(true) },
     ]).then((unlisten) => {
       if (mounted) {
         menuCleanup = unlisten;
@@ -305,6 +316,7 @@ const Layout: React.FC = () => {
       <Toast />
       <LoadingOverlay />
       <KeyboardHints />
+      <SettingsDialog isOpen={settingsOpen} onClose={() => setSettingsOpen(false)} />
     </div>
   );
 };
