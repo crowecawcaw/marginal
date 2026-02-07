@@ -2,6 +2,8 @@
 
 A lightweight desktop markdown editor with multiple viewing modes, built with Tauri and React.
 
+![marginal screenshot](screenshot.png)
+
 ## Features
 
 - **Multiple View Modes**: Edit, code, and presentation views for different workflows
