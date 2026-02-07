@@ -8,7 +8,7 @@
 import { isTauri } from "./index";
 
 // Event callback type - payload is optional
-type EventCallback<T = void> = (payload?: T) => void;
+export type EventCallback<T = void> = (payload?: T) => void;
 type UnlistenFn = () => void;
 
 // Web event emitter singleton

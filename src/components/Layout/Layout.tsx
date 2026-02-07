@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { setupEventListeners, listen, emit } from "../../platform/eventAdapter";
+import { emit } from "../../platform/eventAdapter";
+import { useEventListener, useEventListeners } from "../../platform/useEventListener";
 import Sidebar from "../Sidebar/Sidebar";
 import OutlineSidebar from "../Sidebar/OutlineSidebar";
 import EditorArea from "../EditorArea/EditorArea";
@@ -281,51 +282,25 @@ const Layout: React.FC = () => {
 
   // Listen for menu events (works in both Tauri and web)
   // These handlers get current state from store, so no need to re-register on state changes
-  useEffect(() => {
-    let menuCleanup: (() => void) | undefined;
-    let closeTabCleanup: (() => void) | undefined;
-    let mounted = true;
+  useEventListeners([
+    { event: "menu:new-file", callback: () => handleNewFile() },
+    { event: "menu:open-file", callback: () => handleOpenFile() },
+    { event: "menu:save", callback: () => handleSave() },
+    { event: "menu:close-tab", callback: () => handleCloseTab() },
+    { event: "menu:toggle-outline", callback: () => toggleOutline() },
+    { event: "menu:toggle-view", callback: () => toggleViewMode() },
+    { event: "menu:zoom-in", callback: () => zoomIn() },
+    { event: "menu:zoom-out", callback: () => zoomOut() },
+    { event: "menu:zoom-reset", callback: () => resetZoom() },
+    { event: "menu:view-readme", callback: () => handleViewReadme() },
+  ], []);
 
-    // Menu events (no payload)
-    setupEventListeners([
-      { event: "menu:new-file", callback: () => handleNewFile() },
-      { event: "menu:open-file", callback: () => handleOpenFile() },
-      { event: "menu:save", callback: () => handleSave() },
-      { event: "menu:close-tab", callback: () => handleCloseTab() },
-      { event: "menu:toggle-outline", callback: () => toggleOutline() },
-      { event: "menu:toggle-view", callback: () => toggleViewMode() },
-      { event: "menu:zoom-in", callback: () => zoomIn() },
-      { event: "menu:zoom-out", callback: () => zoomOut() },
-      { event: "menu:zoom-reset", callback: () => resetZoom() },
-      { event: "menu:view-readme", callback: () => handleViewReadme() },
-    ]).then((unlisten) => {
-      if (mounted) {
-        menuCleanup = unlisten;
-      } else {
-        unlisten();
-      }
-    });
-
-    // Close tab event with payload (from clicking X on tab)
-    listen<{ fileId: string }>("close-tab", (payload) => {
-      if (payload?.fileId) {
-        handleCloseTab(payload.fileId);
-      }
-    }).then((unlisten) => {
-      if (mounted) {
-        closeTabCleanup = unlisten;
-      } else {
-        unlisten();
-      }
-    });
-
-    // Cleanup listeners on unmount
-    return () => {
-      mounted = false;
-      menuCleanup?.();
-      closeTabCleanup?.();
-    };
-  }, []); // Empty deps - handlers get current state from store
+  // Close tab event with payload (from clicking X on tab)
+  useEventListener<{ fileId: string }>("close-tab", (payload) => {
+    if (payload?.fileId) {
+      handleCloseTab(payload.fileId);
+    }
+  }, []);
 
   const handleTabClose = (e: React.MouseEvent, fileId: string) => {
     e.stopPropagation();

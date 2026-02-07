@@ -1,4 +1,3 @@
-import { useEffect } from "react";
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
 import {
   $createTableNode,
@@ -7,60 +6,50 @@ import {
   TableCellHeaderStates,
 } from "@lexical/table";
 import { $getSelection, $isRangeSelection, $createParagraphNode } from "lexical";
-import { listen } from "../../platform/eventAdapter";
+import { useEventListener } from "../../platform/useEventListener";
 
 export function InsertTablePlugin() {
   const [editor] = useLexicalComposerContext();
 
-  useEffect(() => {
-    let cleanup: (() => void) | undefined;
+  useEventListener("menu:insert-table", () => {
+    editor.update(() => {
+      const selection = $getSelection();
+      if (!$isRangeSelection(selection)) return;
 
-    listen("menu:insert-table", () => {
-      editor.update(() => {
-        const selection = $getSelection();
-        if (!$isRangeSelection(selection)) return;
+      // Create a 3x3 table (default size)
+      const table = $createTableNode();
 
-        // Create a 3x3 table (default size)
-        const table = $createTableNode();
+      // Create header row
+      const headerRow = $createTableRowNode();
+      for (let col = 0; col < 3; col++) {
+        const cell = $createTableCellNode(TableCellHeaderStates.ROW);
+        const paragraph = $createParagraphNode();
+        cell.append(paragraph);
+        headerRow.append(cell);
+      }
+      table.append(headerRow);
 
-        // Create header row
-        const headerRow = $createTableRowNode();
+      // Create data rows
+      for (let row = 0; row < 2; row++) {
+        const tableRow = $createTableRowNode();
         for (let col = 0; col < 3; col++) {
-          const cell = $createTableCellNode(TableCellHeaderStates.ROW);
+          const cell = $createTableCellNode(TableCellHeaderStates.NO_STATUS);
           const paragraph = $createParagraphNode();
           cell.append(paragraph);
-          headerRow.append(cell);
+          tableRow.append(cell);
         }
-        table.append(headerRow);
+        table.append(tableRow);
+      }
 
-        // Create data rows
-        for (let row = 0; row < 2; row++) {
-          const tableRow = $createTableRowNode();
-          for (let col = 0; col < 3; col++) {
-            const cell = $createTableCellNode(TableCellHeaderStates.NO_STATUS);
-            const paragraph = $createParagraphNode();
-            cell.append(paragraph);
-            tableRow.append(cell);
-          }
-          table.append(tableRow);
-        }
-
-        // Insert table at current selection
-        const anchorNode = selection.anchor.getNode();
-        const element = anchorNode.getTopLevelElement();
-        if (element) {
-          element.insertAfter(table);
-        } else {
-          selection.insertNodes([table]);
-        }
-      });
-    }).then((unlisten) => {
-      cleanup = unlisten;
+      // Insert table at current selection
+      const anchorNode = selection.anchor.getNode();
+      const element = anchorNode.getTopLevelElement();
+      if (element) {
+        element.insertAfter(table);
+      } else {
+        selection.insertNodes([table]);
+      }
     });
-
-    return () => {
-      cleanup?.();
-    };
   }, [editor]);
 
   return null;

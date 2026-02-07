@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { setupEventListeners, emit } from "../../platform/eventAdapter";
+import { emit } from "../../platform/eventAdapter";
+import { useEventListeners } from "../../platform/useEventListener";
 import { useEditorStore } from "../../stores/editorStore";
 import { useUIStore } from "../../stores/uiStore";
 import { useNotificationStore } from "../../stores/notificationStore";
@@ -41,50 +42,40 @@ const EditorArea: React.FC = () => {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
 
-  // Listen for format-document event
-  useEffect(() => {
-    let cleanup: (() => void) | undefined;
+  // Listen for format-document and find events
+  const handleFormat = async () => {
+    if (!activeFile) return;
 
-    const handleFormat = async () => {
-      if (!activeFile) return;
+    if (viewMode !== "code") {
+      addNotification(
+        "Format document is only available in code view",
+        "error",
+      );
+      return;
+    }
 
-      if (viewMode !== "code") {
-        addNotification(
-          "Format document is only available in code view",
-          "error",
-        );
-        return;
+    try {
+      const formatted = await prettier.format(activeFile.content, {
+        parser: "markdown",
+        plugins: [prettierMarkdown],
+        proseWrap: "preserve",
+        printWidth: 120,
+      });
+      updateFileContent(activeFile.id, formatted);
+      if (!activeFile.isDirty) {
+        markFileDirty(activeFile.id, true);
       }
+      // Force editor remount to show formatted content
+      setEditorKey((prev) => prev + 1);
+    } catch (error) {
+      console.error("Failed to format document:", error);
+    }
+  };
 
-      try {
-        const formatted = await prettier.format(activeFile.content, {
-          parser: "markdown",
-          plugins: [prettierMarkdown],
-          proseWrap: "preserve",
-          printWidth: 120,
-        });
-        updateFileContent(activeFile.id, formatted);
-        if (!activeFile.isDirty) {
-          markFileDirty(activeFile.id, true);
-        }
-        // Force editor remount to show formatted content
-        setEditorKey((prev) => prev + 1);
-      } catch (error) {
-        console.error("Failed to format document:", error);
-      }
-    };
-
-    setupEventListeners([
-      { event: "menu:format-document", callback: handleFormat },
-      { event: "menu:find", callback: () => setFindVisible(true) },
-    ]).then((unlisten) => {
-      cleanup = unlisten;
-    });
-
-    return () => {
-      cleanup?.();
-    };
-  }, [activeFile, viewMode, updateFileContent, markFileDirty, addNotification]);
+  useEventListeners([
+    { event: "menu:format-document", callback: handleFormat },
+    { event: "menu:find", callback: () => setFindVisible(true) },
+  ], [activeFile, viewMode, updateFileContent, markFileDirty, addNotification]);
 
   return (
     <div className={`editor-area${outlineVisible ? '' : ' no-outline'}`}>
