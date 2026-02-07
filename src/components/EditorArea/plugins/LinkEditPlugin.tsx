@@ -15,19 +15,25 @@ interface ActiveLink {
   rect: DOMRect;
 }
 
+interface FoundLink {
+  nodeKey: string;
+  url: string;
+  element: HTMLElement;
+}
+
 export function LinkEditPlugin() {
   const [editor] = useLexicalComposerContext();
   const [activeLink, setActiveLink] = useState<ActiveLink | null>(null);
 
   // Find the LinkNode for a given DOM element
   const findLinkNode = useCallback(
-    (element: HTMLElement): { node: LinkNode; element: HTMLElement } | null => {
+    (element: HTMLElement): FoundLink | null => {
       const linkElement = element.closest(
         "a.editor-link"
       ) as HTMLElement | null;
       if (!linkElement) return null;
 
-      let foundLink: { node: LinkNode; element: HTMLElement } | null = null;
+      let foundLink: FoundLink | null = null;
 
       editor.getEditorState().read(() => {
         const editorElement = editor.getRootElement();
@@ -39,7 +45,7 @@ export function LinkEditPlugin() {
           if ($isLinkNode(node)) {
             const dom = editor.getElementByKey(key);
             if (dom === linkElement) {
-              foundLink = { node: node as LinkNode, element: linkElement };
+              foundLink = { nodeKey: key, url: (node as LinkNode).getURL(), element: linkElement };
               break;
             }
           }
@@ -84,7 +90,7 @@ export function LinkEditPlugin() {
         return;
       }
 
-      const { node, element } = linkResult;
+      const { nodeKey, url, element } = linkResult;
 
       // Regular click → open edit tooltip
       event.preventDefault();
@@ -92,13 +98,7 @@ export function LinkEditPlugin() {
 
       const rect = element.getBoundingClientRect();
 
-      editor.getEditorState().read(() => {
-        setActiveLink({
-          nodeKey: node.getKey(),
-          url: node.getURL(),
-          rect,
-        });
-      });
+      setActiveLink({ nodeKey, url, rect });
     };
 
     rootElement.addEventListener("mousedown", handleMouseDown);
