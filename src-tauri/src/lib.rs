@@ -5,6 +5,42 @@ use std::sync::Mutex;
 use tauri::menu::MenuItem;
 use tauri::{Emitter, Listener, Manager};
 
+struct ViewMenuItems {
+    toggle_view: MenuItem<tauri::Wry>,
+    format_document: MenuItem<tauri::Wry>,
+    bold: MenuItem<tauri::Wry>,
+    italic: MenuItem<tauri::Wry>,
+    heading_1: MenuItem<tauri::Wry>,
+    heading_2: MenuItem<tauri::Wry>,
+    heading_3: MenuItem<tauri::Wry>,
+    heading_4: MenuItem<tauri::Wry>,
+    heading_5: MenuItem<tauri::Wry>,
+    insert_table: MenuItem<tauri::Wry>,
+}
+
+impl ViewMenuItems {
+    fn apply_view_mode(&self, mode: &str) {
+        let is_code = mode.contains("code");
+
+        let _ = self.format_document.set_enabled(is_code);
+        let _ = self.bold.set_enabled(!is_code);
+        let _ = self.italic.set_enabled(!is_code);
+        let _ = self.heading_1.set_enabled(!is_code);
+        let _ = self.heading_2.set_enabled(!is_code);
+        let _ = self.heading_3.set_enabled(!is_code);
+        let _ = self.heading_4.set_enabled(!is_code);
+        let _ = self.heading_5.set_enabled(!is_code);
+        let _ = self.insert_table.set_enabled(!is_code);
+
+        let new_text = if is_code {
+            "View document"
+        } else {
+            "View code"
+        };
+        let _ = self.toggle_view.set_text(new_text);
+    }
+}
+
 #[derive(Debug, Serialize, Deserialize)]
 struct FileNode {
     name: String,
@@ -240,8 +276,19 @@ pub fn run() {
                 .accelerator("CmdOrCtrl+0")
                 .build(app)?;
 
-            // Store the toggle_view menu item for dynamic text updates
-            app.manage(Mutex::new(toggle_view.clone()));
+            // Store view-specific menu items for dynamic enable/disable
+            app.manage(Mutex::new(ViewMenuItems {
+                toggle_view: toggle_view.clone(),
+                format_document: format_document.clone(),
+                bold: bold.clone(),
+                italic: italic.clone(),
+                heading_1: heading_1.clone(),
+                heading_2: heading_2.clone(),
+                heading_3: heading_3.clone(),
+                heading_4: heading_4.clone(),
+                heading_5: heading_5.clone(),
+                insert_table: insert_table.clone(),
+            }));
 
             let view_menu = SubmenuBuilder::new(app, "View")
                 .item(&toggle_outline)
@@ -340,20 +387,13 @@ pub fn run() {
                     .expect("Failed to apply vibrancy");
             }
 
-            // Listen for view mode changes from frontend to update menu text
+            // Listen for view mode changes from frontend to update menu items
             let app_handle = app.handle().clone();
             app.listen("view-mode-changed", move |event| {
                 let payload = event.payload();
-                // Payload is the new view mode: "code" or "rendered"
-                let new_text = if payload.contains("code") {
-                    "View document"
-                } else {
-                    "View code"
-                };
-
-                if let Some(menu_item) = app_handle.try_state::<Mutex<MenuItem<tauri::Wry>>>() {
-                    if let Ok(item) = menu_item.lock() {
-                        let _ = item.set_text(new_text);
+                if let Some(items) = app_handle.try_state::<Mutex<ViewMenuItems>>() {
+                    if let Ok(items) = items.lock() {
+                        items.apply_view_mode(payload);
                     }
                 }
             });

@@ -3,7 +3,7 @@ import { emit } from "../../platform/eventAdapter";
 import { useEventListeners } from "../../platform/useEventListener";
 import { useEditorStore } from "../../stores/editorStore";
 import { useUIStore } from "../../stores/uiStore";
-import { useNotificationStore } from "../../stores/notificationStore";
+import { isCommandAvailable } from "../../utils/viewCommands";
 import MarkdownEditor from "./MarkdownEditor";
 import FindInDocument from "./FindInDocument";
 import "./EditorArea.css";
@@ -14,7 +14,6 @@ const EditorArea: React.FC = () => {
   const { files, activeFileId, updateFileContent, markFileDirty } = useEditorStore();
   const { viewMode, codeZoom, renderedZoom, outlineVisible } = useUIStore();
   const zoom = viewMode === "code" ? codeZoom : renderedZoom;
-  const { addNotification } = useNotificationStore();
   const [findVisible, setFindVisible] = useState(false);
   const [editorKey, setEditorKey] = useState(0);
 
@@ -23,10 +22,12 @@ const EditorArea: React.FC = () => {
   // Handle keyboard shortcuts: Cmd+F for find, Cmd+Shift+F for format
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Cmd+Shift+F - Format document
+      // Cmd+Shift+F - Format document (only in code view)
       if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key === "F") {
         e.preventDefault();
-        emit("menu:format-document");
+        if (isCommandAvailable("format-document", viewMode)) {
+          emit("menu:format-document");
+        }
         return;
       }
 
@@ -40,19 +41,12 @@ const EditorArea: React.FC = () => {
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, []);
+  }, [viewMode]);
 
   // Listen for format-document and find events
   const handleFormat = async () => {
     if (!activeFile) return;
-
-    if (viewMode !== "code") {
-      addNotification(
-        "Format document is only available in code view",
-        "error",
-      );
-      return;
-    }
+    if (viewMode !== "code") return;
 
     try {
       const formatted = await prettier.format(activeFile.content, {
@@ -75,7 +69,7 @@ const EditorArea: React.FC = () => {
   useEventListeners([
     { event: "menu:format-document", callback: handleFormat },
     { event: "menu:find", callback: () => setFindVisible(true) },
-  ], [activeFile, viewMode, updateFileContent, markFileDirty, addNotification]);
+  ], [activeFile, viewMode, updateFileContent, markFileDirty]);
 
   return (
     <div className={`editor-area${outlineVisible ? '' : ' no-outline'}`}>
