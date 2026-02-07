@@ -8,6 +8,7 @@ import {
 } from "lexical";
 import { $setBlocksType } from "@lexical/selection";
 import { $createHeadingNode, HeadingTagType } from "@lexical/rich-text";
+import { setupEventListeners } from "../../../platform/eventAdapter";
 
 /**
  * Plugin to handle rich text formatting keyboard shortcuts in rendered view
@@ -76,6 +77,38 @@ export function RichTextFormattingPlugin() {
         rootElement.removeEventListener("keydown", handleKeyDown);
       };
     }
+  }, [editor]);
+
+  // Listen for menu events to dispatch formatting commands
+  useEffect(() => {
+    let cleanup: (() => void) | undefined;
+
+    const setHeading = (level: 1 | 2 | 3 | 4 | 5) => {
+      editor.update(() => {
+        const selection = $getSelection();
+        if ($isRangeSelection(selection)) {
+          $setBlocksType(selection, () =>
+            $createHeadingNode(`h${level}` as HeadingTagType),
+          );
+        }
+      });
+    };
+
+    setupEventListeners([
+      { event: "menu:bold", callback: () => editor.dispatchCommand(FORMAT_TEXT_COMMAND, "bold") },
+      { event: "menu:italic", callback: () => editor.dispatchCommand(FORMAT_TEXT_COMMAND, "italic") },
+      { event: "menu:heading-1", callback: () => setHeading(1) },
+      { event: "menu:heading-2", callback: () => setHeading(2) },
+      { event: "menu:heading-3", callback: () => setHeading(3) },
+      { event: "menu:heading-4", callback: () => setHeading(4) },
+      { event: "menu:heading-5", callback: () => setHeading(5) },
+    ]).then((unlisten) => {
+      cleanup = unlisten;
+    });
+
+    return () => {
+      cleanup?.();
+    };
   }, [editor]);
 
   return null;

@@ -89,6 +89,7 @@ fn write_file_content(path: String, content: String) -> Result<(), String> {
         .map_err(|e| format!("Failed to write file: {}", e))
 }
 
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     use tauri::menu::{MenuBuilder, MenuItemBuilder, PredefinedMenuItem, SubmenuBuilder};
@@ -144,6 +145,38 @@ pub fn run() {
                 .accelerator("CmdOrCtrl+W")
                 .build(app)?;
 
+            let find = MenuItemBuilder::with_id("find", "Find")
+                .accelerator("CmdOrCtrl+F")
+                .build(app)?;
+
+            let bold = MenuItemBuilder::with_id("bold", "Bold")
+                .accelerator("CmdOrCtrl+B")
+                .build(app)?;
+
+            let italic = MenuItemBuilder::with_id("italic", "Italic")
+                .accelerator("CmdOrCtrl+I")
+                .build(app)?;
+
+            let heading_1 = MenuItemBuilder::with_id("heading_1", "Heading 1")
+                .accelerator("CmdOrCtrl+1")
+                .build(app)?;
+
+            let heading_2 = MenuItemBuilder::with_id("heading_2", "Heading 2")
+                .accelerator("CmdOrCtrl+2")
+                .build(app)?;
+
+            let heading_3 = MenuItemBuilder::with_id("heading_3", "Heading 3")
+                .accelerator("CmdOrCtrl+3")
+                .build(app)?;
+
+            let heading_4 = MenuItemBuilder::with_id("heading_4", "Heading 4")
+                .accelerator("CmdOrCtrl+4")
+                .build(app)?;
+
+            let heading_5 = MenuItemBuilder::with_id("heading_5", "Heading 5")
+                .accelerator("CmdOrCtrl+5")
+                .build(app)?;
+
             let format_document = MenuItemBuilder::with_id("format_document", "Format Document")
                 .accelerator("CmdOrCtrl+Shift+F")
                 .build(app)?;
@@ -171,9 +204,20 @@ pub fn run() {
                 .item(&paste)
                 .item(&select_all)
                 .separator()
-                .item(&format_document)
+                .item(&find)
+                .separator()
+                .item(&bold)
+                .item(&italic)
+                .separator()
+                .item(&heading_1)
+                .item(&heading_2)
+                .item(&heading_3)
+                .item(&heading_4)
+                .item(&heading_5)
                 .separator()
                 .item(&insert_table)
+                .separator()
+                .item(&format_document)
                 .build()?;
 
             let toggle_outline = MenuItemBuilder::with_id("toggle_outline", "Toggle Outline")
@@ -235,6 +279,30 @@ pub fn run() {
                     "close_tab" => {
                         let _ = window.emit("menu:close-tab", ());
                     }
+                    "find" => {
+                        let _ = window.emit("menu:find", ());
+                    }
+                    "bold" => {
+                        let _ = window.emit("menu:bold", ());
+                    }
+                    "italic" => {
+                        let _ = window.emit("menu:italic", ());
+                    }
+                    "heading_1" => {
+                        let _ = window.emit("menu:heading-1", ());
+                    }
+                    "heading_2" => {
+                        let _ = window.emit("menu:heading-2", ());
+                    }
+                    "heading_3" => {
+                        let _ = window.emit("menu:heading-3", ());
+                    }
+                    "heading_4" => {
+                        let _ = window.emit("menu:heading-4", ());
+                    }
+                    "heading_5" => {
+                        let _ = window.emit("menu:heading-5", ());
+                    }
                     "format_document" => {
                         let _ = window.emit("menu:format-document", ());
                     }
@@ -262,6 +330,15 @@ pub fn run() {
                     _ => {}
                 }
             });
+
+            // Apply window vibrancy
+            let main_window = app.get_webview_window("main").unwrap();
+            #[cfg(target_os = "macos")]
+            {
+                use window_vibrancy::{apply_vibrancy, NSVisualEffectMaterial};
+                apply_vibrancy(&main_window, NSVisualEffectMaterial::Sidebar, None, None)
+                    .expect("Failed to apply vibrancy");
+            }
 
             // Listen for view mode changes from frontend to update menu text
             let app_handle = app.handle().clone();

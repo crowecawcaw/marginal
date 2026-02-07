@@ -11,7 +11,6 @@
   pointer-events: none;
   /* CRITICAL: Must match editable input padding in MarkdownEditor.css for proper alignment */
   padding: var(--size-editor-padding);
-  padding-left: calc(var(--size-editor-padding) + var(--outline-offset, 0px));
   margin: 0;
   font-family:
     "SF Mono", "Monaco", "Menlo", "Consolas", "Courier New", monospace;

@@ -57,7 +57,6 @@ const Outline: React.FC<OutlineProps> = ({ content }) => {
 
   return (
     <div className="outline">
-      <h3 className="outline-title">Outline</h3>
       <nav className="outline-nav">
         <ul className="outline-list">
           {headings.map((heading, index) => (

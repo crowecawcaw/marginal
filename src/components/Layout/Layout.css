@@ -4,11 +4,87 @@
   height: 100vh;
   width: 100vw;
   overflow: hidden;
+  background-color: transparent;
+}
+
+.layout-tabs {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 8px 16px 6px 78px;
+  flex-shrink: 0;
+  -webkit-app-region: drag;
+  app-region: drag;
+}
+
+.layout-tab {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  background-color: transparent;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  user-select: none;
+  transition: all 0.15s ease;
+  -webkit-app-region: no-drag;
+  app-region: no-drag;
+}
+
+.layout-tab:hover {
+  background-color: var(--color-bg-hover);
+}
+
+.layout-tab.active {
+  background-color: rgba(128, 128, 128, 0.15);
+}
+
+.layout-tab.active .layout-tab-name {
+  color: var(--color-text-primary);
+}
+
+.layout-tab-name {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+}
+
+.layout-tab-dirty {
+  color: var(--color-accent-primary);
+  font-size: 8px;
+}
+
+.layout-tab-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  font-size: 14px;
+  line-height: 1;
+  color: var(--color-text-secondary);
+  transition: all 0.1s ease;
+}
+
+.layout-tab-close:hover {
+  color: var(--color-text-primary);
+  background-color: var(--color-bg-active);
 }
 
 .layout-main {
   display: flex;
   flex: 1;
   overflow: hidden;
-  position: relative;
+}
+
+.layout-main.outline-open {
+  padding-right: 8px;
+  padding-bottom: 8px;
 }

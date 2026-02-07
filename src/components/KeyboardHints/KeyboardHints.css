@@ -1,12 +1,11 @@
 .keyboard-hints {
-  position: fixed;
+  position: absolute;
   bottom: 0;
   left: 0;
   right: 0;
-  background: transparent;
-  color: rgba(255, 255, 255, 0.7);
   padding: 10px 16px;
-  z-index: 1000;
+  z-index: 10;
+  color: var(--color-text-secondary);
   animation: fadeIn 0.3s ease-out forwards;
 }
 
@@ -20,6 +19,7 @@
   inset: 0;
   backdrop-filter: blur(0px);
   -webkit-backdrop-filter: blur(0px);
+  background: linear-gradient(to bottom, transparent 0%, var(--color-bg-primary) 40%);
   mask-image: linear-gradient(to bottom, transparent 0%, black 30%, black 100%);
   -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 30%, black 100%);
   z-index: -1;
@@ -99,11 +99,12 @@
   font-size: 11px;
   white-space: nowrap;
   font-weight: 500;
+  color: var(--color-text-primary);
 }
 
 .keyboard-hint-description {
   font-size: 11px;
-  opacity: 0.7;
+  color: var(--color-text-tertiary);
   white-space: nowrap;
 }
 

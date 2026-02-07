@@ -1,12 +1,10 @@
 import React, { useEffect, useState } from "react";
-import { setupEventListeners, listen } from "../../platform/eventAdapter";
-import Titlebar from "../Titlebar/Titlebar";
+import { setupEventListeners, listen, emit } from "../../platform/eventAdapter";
 import Sidebar from "../Sidebar/Sidebar";
 import OutlineSidebar from "../Sidebar/OutlineSidebar";
 import EditorArea from "../EditorArea/EditorArea";
 import Toast from "../Toast/Toast";
 import LoadingOverlay from "../LoadingOverlay/LoadingOverlay";
-import KeyboardHints from "../KeyboardHints/KeyboardHints";
 import SettingsDialog from "../SettingsDialog/SettingsDialog";
 import { useUIStore } from "../../stores/uiStore";
 import { useEditorStore } from "../../stores/editorStore";
@@ -25,7 +23,7 @@ import {
 import "./Layout.css";
 
 const Layout: React.FC = () => {
-  const { toggleOutline, toggleViewMode, zoomIn, zoomOut, resetZoom } = useUIStore();
+  const { toggleOutline, toggleViewMode, zoomIn, zoomOut, resetZoom, outlineVisible } = useUIStore();
   const { files, activeFileId, removeFile, markFileDirty, openFile: openEditorFile } =
     useEditorStore();
   const { addNotification } = useNotificationStore();
@@ -226,14 +224,6 @@ const Layout: React.FC = () => {
         resetZoom();
       },
     },
-    {
-      key: ",",
-      ctrlOrCmd: true,
-      handler: (e) => {
-        e.preventDefault();
-        setSettingsOpen(true);
-      },
-    },
   ]);
 
   // Restore previously open files on startup, or create a blank file
@@ -308,7 +298,6 @@ const Layout: React.FC = () => {
       { event: "menu:zoom-out", callback: () => zoomOut() },
       { event: "menu:zoom-reset", callback: () => resetZoom() },
       { event: "menu:view-readme", callback: () => handleViewReadme() },
-      { event: "menu:settings", callback: () => setSettingsOpen(true) },
     ]).then((unlisten) => {
       if (mounted) {
         menuCleanup = unlisten;
@@ -338,17 +327,42 @@ const Layout: React.FC = () => {
     };
   }, []); // Empty deps - handlers get current state from store
 
+  const handleTabClose = (e: React.MouseEvent, fileId: string) => {
+    e.stopPropagation();
+    emit("close-tab", { fileId });
+  };
+
   return (
     <div className="layout">
-      <Titlebar />
-      <div className="layout-main">
+      <div className="layout-tabs">
+        {files.map((file) => (
+          <button
+            key={file.id}
+            className={`layout-tab ${file.id === activeFileId ? "active" : ""}`}
+            onClick={() => useEditorStore.getState().setActiveFile(file.id)}
+          >
+            <span className="layout-tab-name">
+              {file.isDirty && <span className="layout-tab-dirty">●</span>}
+              {file.fileName}
+            </span>
+            {files.length > 1 && (
+              <span
+                className="layout-tab-close"
+                onClick={(e) => handleTabClose(e, file.id)}
+              >
+                ×
+              </span>
+            )}
+          </button>
+        ))}
+      </div>
+      <div className={`layout-main${outlineVisible ? ' outline-open' : ''}`}>
         <Sidebar />
         <OutlineSidebar />
         <EditorArea />
       </div>
       <Toast />
       <LoadingOverlay />
-      <KeyboardHints />
       <SettingsDialog isOpen={settingsOpen} onClose={() => setSettingsOpen(false)} />
     </div>
   );
