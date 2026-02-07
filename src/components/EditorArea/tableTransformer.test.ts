@@ -128,6 +128,66 @@ describe("tableTransformer", () => {
         expect(nodes[1].getTextContent()).toBe("b");
       });
     });
+
+    it("parses bold text", () => {
+      withEditor(() => {
+        const nodes = $parseInlineMarkdown("**bold**");
+        expect(nodes.length).toBe(1);
+        expect(nodes[0].getTextContent()).toBe("bold");
+        expect((nodes[0] as any).getFormat() & 1).toBeTruthy(); // bold flag
+      });
+    });
+
+    it("parses italic text", () => {
+      withEditor(() => {
+        const nodes = $parseInlineMarkdown("*italic*");
+        expect(nodes.length).toBe(1);
+        expect(nodes[0].getTextContent()).toBe("italic");
+        expect((nodes[0] as any).getFormat() & 2).toBeTruthy(); // italic flag
+      });
+    });
+
+    it("parses bold+italic text", () => {
+      withEditor(() => {
+        const nodes = $parseInlineMarkdown("***both***");
+        expect(nodes.length).toBe(1);
+        expect(nodes[0].getTextContent()).toBe("both");
+        expect((nodes[0] as any).getFormat() & 1).toBeTruthy(); // bold
+        expect((nodes[0] as any).getFormat() & 2).toBeTruthy(); // italic
+      });
+    });
+
+    it("parses strikethrough text", () => {
+      withEditor(() => {
+        const nodes = $parseInlineMarkdown("~~deleted~~");
+        expect(nodes.length).toBe(1);
+        expect(nodes[0].getTextContent()).toBe("deleted");
+        expect((nodes[0] as any).getFormat() & 4).toBeTruthy(); // strikethrough flag
+      });
+    });
+
+    it("parses bold with surrounding text", () => {
+      withEditor(() => {
+        const nodes = $parseInlineMarkdown("some **bold** text");
+        expect(nodes.length).toBe(3);
+        expect(nodes[0].getTextContent()).toBe("some ");
+        expect(nodes[1].getTextContent()).toBe("bold");
+        expect((nodes[1] as any).getFormat() & 1).toBeTruthy();
+        expect(nodes[2].getTextContent()).toBe(" text");
+      });
+    });
+
+    it("parses mixed inline formats", () => {
+      withEditor(() => {
+        const nodes = $parseInlineMarkdown("**bold** and *italic*");
+        expect(nodes.length).toBe(3);
+        expect(nodes[0].getTextContent()).toBe("bold");
+        expect((nodes[0] as any).getFormat() & 1).toBeTruthy();
+        expect(nodes[1].getTextContent()).toBe(" and ");
+        expect(nodes[2].getTextContent()).toBe("italic");
+        expect((nodes[2] as any).getFormat() & 2).toBeTruthy();
+      });
+    });
   });
 
   describe("$createTableFromMarkdown", () => {
@@ -396,6 +456,58 @@ describe("tableTransformer", () => {
         const exported = TABLE.export(table!, () => "")!;
 
         expect(exported).toContain("`test`");
+      });
+    });
+
+    it("preserves bold text through parse and export", () => {
+      withEditor(() => {
+        const original = `| Header |
+|--------|
+| **bold** |`;
+
+        const table = $createTableFromMarkdown(original);
+        const exported = TABLE.export(table!, () => "")!;
+
+        expect(exported).toContain("**bold**");
+      });
+    });
+
+    it("preserves italic text through parse and export", () => {
+      withEditor(() => {
+        const original = `| Header |
+|--------|
+| *italic* |`;
+
+        const table = $createTableFromMarkdown(original);
+        const exported = TABLE.export(table!, () => "")!;
+
+        expect(exported).toContain("*italic*");
+      });
+    });
+
+    it("preserves bold+italic through parse and export", () => {
+      withEditor(() => {
+        const original = `| Header |
+|--------|
+| ***both*** |`;
+
+        const table = $createTableFromMarkdown(original);
+        const exported = TABLE.export(table!, () => "")!;
+
+        expect(exported).toContain("***both***");
+      });
+    });
+
+    it("preserves strikethrough through parse and export", () => {
+      withEditor(() => {
+        const original = `| Header |
+|--------|
+| ~~deleted~~ |`;
+
+        const table = $createTableFromMarkdown(original);
+        const exported = TABLE.export(table!, () => "")!;
+
+        expect(exported).toContain("~~deleted~~");
       });
     });
 

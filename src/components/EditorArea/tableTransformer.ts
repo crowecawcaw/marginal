@@ -9,63 +9,78 @@ import {
   TableRowNode,
   TableCellNode,
 } from "@lexical/table";
-import { $createParagraphNode, $createTextNode, $isParagraphNode, $isTextNode, TextFormatType, LexicalNode } from "lexical";
+import { $createParagraphNode, $createTextNode, $isParagraphNode, $isTextNode, LexicalNode } from "lexical";
 import type { ElementTransformer } from "@lexical/markdown";
+
+// Format bitmask values from Lexical: bold=1, italic=2, strikethrough=4, code=16
+function $wrapTextWithFormat(text: string, format: number): string {
+  if (format & 16) return `\`${text}\``; // code — no other formatting inside code spans
+  let result = text;
+  if (format & 4) result = `~~${result}~~`;
+  if ((format & 3) === 3) result = `***${result}***`;
+  else if (format & 1) result = `**${result}**`;
+  else if (format & 2) result = `*${result}*`;
+  return result;
+}
 
 // Helper function to parse inline markdown in cell text
 export function $parseInlineMarkdown(text: string): LexicalNode[] {
   const nodes: LexicalNode[] = [];
   let currentIndex = 0;
 
-  // Regular expressions for inline markdown
-  const inlineCodeRegex = /`([^`]+)`/g;
+  // Matches inline formats in priority order via alternation:
+  // Group 1: code (`text`)
+  // Group 2: bold+italic (***text***)
+  // Group 3: bold (**text**)
+  // Group 4: italic (*text*) — lookaround prevents matching inside ** pairs
+  // Group 5: strikethrough (~~text~~)
+  const inlineRegex = /`([^`]+)`|\*\*\*(.+?)\*\*\*|\*\*(.+?)\*\*|(?<!\*)\*([^*]+)\*(?!\*)|~~(.+?)~~/g;
 
-  // Find all inline code matches
-  const codeMatches: Array<{ start: number; end: number; text: string }> = [];
   let match;
-
-  inlineCodeRegex.lastIndex = 0;
-  while ((match = inlineCodeRegex.exec(text)) !== null) {
-    codeMatches.push({
-      start: match.index,
-      end: match.index + match[0].length,
-      text: match[1],
-    });
-  }
-
-  // Sort matches by start position
-  codeMatches.sort((a, b) => a.start - b.start);
-
-  // Process text with inline code
-  codeMatches.forEach((codeMatch) => {
-    // Add text before code
-    if (currentIndex < codeMatch.start) {
-      const beforeText = text.slice(currentIndex, codeMatch.start);
+  while ((match = inlineRegex.exec(text)) !== null) {
+    // Add plain text before this match
+    if (currentIndex < match.index) {
+      const beforeText = text.slice(currentIndex, match.index);
       if (beforeText) {
-        // Process bold/italic in the before text
-        const textNode = $createTextNode(beforeText);
-        nodes.push(textNode);
+        nodes.push($createTextNode(beforeText));
       }
     }
 
-    // Add inline code
-    const codeNode = $createTextNode(codeMatch.text);
-    codeNode.setFormat('code' as TextFormatType);
-    nodes.push(codeNode);
+    let innerText: string;
+    let format: number;
 
-    currentIndex = codeMatch.end;
-  });
+    if (match[1] !== undefined) {
+      innerText = match[1];
+      format = 16; // code
+    } else if (match[2] !== undefined) {
+      innerText = match[2];
+      format = 3; // bold (1) + italic (2)
+    } else if (match[3] !== undefined) {
+      innerText = match[3];
+      format = 1; // bold
+    } else if (match[4] !== undefined) {
+      innerText = match[4];
+      format = 2; // italic
+    } else {
+      innerText = match[5];
+      format = 4; // strikethrough
+    }
 
-  // Add remaining text
+    const node = $createTextNode(innerText);
+    node.setFormat(format);
+    nodes.push(node);
+
+    currentIndex = match.index + match[0].length;
+  }
+
+  // Add remaining text after last match
   if (currentIndex < text.length) {
     const remainingText = text.slice(currentIndex);
     if (remainingText) {
-      const textNode = $createTextNode(remainingText);
-      nodes.push(textNode);
+      nodes.push($createTextNode(remainingText));
     }
   }
 
-  // If no matches, return plain text
   if (nodes.length === 0) {
     nodes.push($createTextNode(text));
   }
@@ -105,13 +120,7 @@ export const TABLE: ElementTransformer = {
               if ($isTextNode(textNode)) {
                 const text = textNode.getTextContent();
                 const format = textNode.getFormat();
-
-                // Check if it has code format
-                if (format & 16) { // 16 is the code format flag
-                  cellText += `\`${text}\``;
-                } else {
-                  cellText += text;
-                }
+                cellText += $wrapTextWithFormat(text, format);
               } else {
                 cellText += textNode.getTextContent();
               }
