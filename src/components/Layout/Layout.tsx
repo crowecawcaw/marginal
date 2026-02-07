@@ -5,7 +5,6 @@ import Sidebar from "../Sidebar/Sidebar";
 import OutlineSidebar from "../Sidebar/OutlineSidebar";
 import EditorArea from "../EditorArea/EditorArea";
 import Toast from "../Toast/Toast";
-import LoadingOverlay from "../LoadingOverlay/LoadingOverlay";
 import SettingsDialog from "../SettingsDialog/SettingsDialog";
 import { useUIStore } from "../../stores/uiStore";
 import { useEditorStore } from "../../stores/editorStore";
@@ -338,7 +337,6 @@ const Layout: React.FC = () => {
         <EditorArea />
       </div>
       <Toast />
-      <LoadingOverlay />
       <SettingsDialog isOpen={settingsOpen} onClose={() => setSettingsOpen(false)} />
     </div>
   );
