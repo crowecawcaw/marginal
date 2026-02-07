@@ -5,11 +5,13 @@ on:
     types: [closed]
 
 permissions:
-  contents: write
+  contents: read
+  pages: write
+  id-token: write
 
 concurrency:
-  group: pr-preview-cleanup
-  cancel-in-progress: false
+  group: "pages"
+  cancel-in-progress: true
 
 defaults:
   run:
@@ -18,25 +20,34 @@ defaults:
 jobs:
   cleanup:
     runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
     steps:
-      - name: Checkout gh-pages
+      - name: Checkout repository
         uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          ref: gh-pages
+          node-version: "20"
+          cache: "npm"
 
-      - name: Remove preview directory
-        run: |
-          if [ -d "pr/${{ github.event.number }}" ]; then
-            git config --local user.email "action@github.com"
-            git config --local user.name "GitHub Action"
+      - name: Install dependencies
+        run: npm ci
 
-            git rm -rf "pr/${{ github.event.number }}"
+      - name: Build for web
+        run: npm run build:web
 
-            # Remove pr dir itself if empty
-            if [ -d "pr" ] && [ -z "$(ls -A pr 2>/dev/null)" ]; then
-              git rm -rf pr
-            fi
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
 
-            git commit -m "Remove PR #${{ github.event.number }} preview"
-            git push origin gh-pages
-          fi
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: "./dist"
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
