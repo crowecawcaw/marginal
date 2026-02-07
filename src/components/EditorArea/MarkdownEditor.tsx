@@ -29,6 +29,7 @@ import {
   RenderedContentSyncPlugin,
   CodeContentSyncPlugin,
   CodeHighlightPlugin,
+  LinkEditPlugin,
   ListExitPlugin,
   MarkdownSyntaxHighlightPlugin,
   RichTextFormattingPlugin,
@@ -85,7 +86,7 @@ function RenderedEditor({
         onChange(markdown);
       });
     },
-    [onChange],
+    [onChange]
   );
 
   return (
@@ -105,6 +106,7 @@ function RenderedEditor({
         <MarkdownShortcutPlugin transformers={CUSTOM_TRANSFORMERS} />
         <ListPlugin />
         <LinkPlugin />
+        <LinkEditPlugin />
         <TablePlugin hasCellMerge={false} hasCellBackgroundColor={false} />
         <TabIndentationPlugin />
         <RenderedContentSyncPlugin content={initialContent} />
@@ -144,7 +146,7 @@ function CodeEditor({
         onChange(text);
       });
     },
-    [onChange],
+    [onChange]
   );
 
   return (
@@ -180,11 +182,11 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
   onChange,
 }) => {
   const zoomStyle = {
-    '--editor-zoom': zoom,
+    "--editor-zoom": zoom,
     flex: 1,
-    display: 'flex',
-    flexDirection: 'column',
-    height: '100%',
+    display: "flex",
+    flexDirection: "column",
+    height: "100%",
   } as React.CSSProperties;
 
   if (viewMode === "code") {
