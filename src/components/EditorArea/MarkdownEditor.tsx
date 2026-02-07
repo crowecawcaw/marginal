@@ -29,6 +29,7 @@ import {
   RenderedContentSyncPlugin,
   CodeContentSyncPlugin,
   CodeHighlightPlugin,
+  LinkEditPlugin,
   ListExitPlugin,
   MarkdownSyntaxHighlightPlugin,
   RichTextFormattingPlugin,
@@ -105,6 +106,7 @@ function RenderedEditor({
         <MarkdownShortcutPlugin transformers={CUSTOM_TRANSFORMERS} />
         <ListPlugin />
         <LinkPlugin />
+        <LinkEditPlugin />
         <TablePlugin hasCellMerge={false} hasCellBackgroundColor={false} />
         <TabIndentationPlugin />
         <RenderedContentSyncPlugin content={initialContent} />

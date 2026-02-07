@@ -181,11 +181,18 @@
 .editor-link {
   color: var(--color-accent-primary);
   text-decoration: underline;
+  text-decoration-color: transparent;
+  text-underline-offset: 2px;
   cursor: pointer;
+  border-radius: 2px;
+  transition:
+    text-decoration-color var(--transition-fast, 150ms ease),
+    background-color var(--transition-fast, 150ms ease);
 }
 
 .editor-link:hover {
-  text-decoration: none;
+  text-decoration-color: var(--color-accent-primary);
+  background-color: rgba(52, 152, 219, 0.08);
 }
 
 /* Code highlighting tokens */
