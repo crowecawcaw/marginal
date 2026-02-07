@@ -21,6 +21,7 @@ import {
   loadAutosaveEntries,
   removeAutosaveEntry,
 } from "../../utils/autosave";
+import readmeRaw from "../../assets/README.md?raw";
 import "./Layout.css";
 
 const Layout: React.FC = () => {
@@ -140,23 +141,23 @@ const Layout: React.FC = () => {
   };
 
   // Handle viewing README
-  const handleViewReadme = async () => {
-    try {
-      const readmeContent = await fetch("/src/assets/README.md").then((r) =>
-        r.text(),
-      );
-      openEditorFile({
-        id: "readme",
-        filePath: "", // Empty path means it's not a real file
-        fileName: "README.md",
-        content: readmeContent,
-        isDirty: false,
-        frontmatter: undefined,
-      });
-    } catch (error) {
-      console.error("Failed to open README:", error);
-      addNotification("Failed to open README", "error");
+  const handleViewReadme = () => {
+    const isMac = navigator.platform.toUpperCase().indexOf("MAC") >= 0;
+    const mod = isMac ? "⌘" : "⌃";
+    let content = readmeRaw.replace(/\{mod\}/g, mod);
+    if (isMac) {
+      content = content.replace(/^\{macos\}/gm, "");
+    } else {
+      content = content.replace(/^\{macos\}.*\n/gm, "");
     }
+    openEditorFile({
+      id: "readme",
+      filePath: "", // Empty path means it's not a real file
+      fileName: "README.md",
+      content,
+      isDirty: false,
+      frontmatter: undefined,
+    });
   };
 
   // Register global keyboard shortcuts

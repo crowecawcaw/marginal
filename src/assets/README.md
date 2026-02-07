@@ -2,38 +2,21 @@
 
 ## Keyboard Shortcuts
 
-### File Operations
-
-| Shortcut     | Action    |
-| ------------ | --------- |
-| `Cmd/Ctrl+N` | New File  |
-| `Cmd/Ctrl+O` | Open File |
-| `Cmd/Ctrl+S` | Save File |
-| `Cmd/Ctrl+W` | Close Tab |
-
-### View
-
-| Shortcut      | Action                        |
-| ------------- | ----------------------------- |
-| `Cmd/Ctrl+B`  | Toggle Sidebar (files)        |
-| `Cmd/Ctrl+\`  | Toggle Outline                |
-| `Cmd/Ctrl+/`  | Toggle Presentation/Code View |
-| `Cmd/Ctrl++`  | Increase Text Size            |
-| `Cmd/Ctrl+-`  | Decrease Text Size            |
-
-### Editing
-
-| Shortcut      | Action                           |
-| ------------- | -------------------------------- |
-| `Cmd/Ctrl+F`  | Find in Document                 |
-| `Cmd/Ctrl+Shift+F` | Format Document (code view only) |
-
-### macOS
-
-| Shortcut | Action        |
-| -------- | ------------- |
-| `Cmd+H`  | Hide marginal |
-| `Cmd+Q`  | Quit marginal |
+| Shortcut | Action |
+| -------- | ------ |
+| `{mod} N` | New File |
+| `{mod} O` | Open File |
+| `{mod} S` | Save File |
+| `{mod} W` | Close Tab |
+| `{mod} B` | Toggle Sidebar (files) |
+| `{mod} \` | Toggle Outline |
+| `{mod} /` | Toggle Presentation/Code View |
+| `{mod} +` | Increase Text Size |
+| `{mod} -` | Decrease Text Size |
+| `{mod} F` | Find in Document |
+| `{mod} ⇧ F` | Format Document (code view only) |
+{macos}| `{mod} H` | Hide marginal |
+{macos}| `{mod} Q` | Quit marginal |
 
 ## Features
 
@@ -41,7 +24,7 @@
 
 - **Rendered View**: See your markdown rendered in real-time
 - **Code View**: Edit raw markdown with syntax support
-- Toggle between views with `Cmd/Ctrl+/`
+- Toggle between views with `{mod} /`
 
 ### Sidebars
 
@@ -74,11 +57,11 @@ In rendered view, click a link to edit it. A tooltip appears with:
 - **Remove button** (X icon): Remove the link, keeping the text
 - **Open button** (external arrow): Open the link in your default browser
 
-You can also `Cmd+Click` (Mac) or `Ctrl+Click` (Windows/Linux) a link to open it directly.
+You can also `{mod} Click` a link to open it directly.
 
 ### Document Formatting
 
-Use **Edit > Format Document** (or Cmd/Ctrl+Shift+F) to format your markdown, especially useful for tables.
+Use **Edit > Format Document** (or `{mod} ⇧ F`) to format your markdown, especially useful for tables.
 
 ### Unsaved Changes
 
