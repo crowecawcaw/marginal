@@ -15,7 +15,7 @@ const OutlineSidebar: React.FC = () => {
   if (!outlineVisible) return null;
 
   return (
-    <div className="sidebar outline-sidebar" style={{ '--outline-width': `${outlineWidth}px` } as React.CSSProperties}>
+    <div className="sidebar outline-sidebar" style={{ width: `${outlineWidth}px` }}>
       <div className="sidebar-content">
         <Outline content={activeContent} />
       </div>

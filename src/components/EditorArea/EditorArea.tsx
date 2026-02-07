@@ -11,7 +11,7 @@ import prettierMarkdown from "prettier/plugins/markdown";
 
 const EditorArea: React.FC = () => {
   const { files, activeFileId, updateFileContent, markFileDirty } = useEditorStore();
-  const { viewMode, codeZoom, renderedZoom } = useUIStore();
+  const { viewMode, codeZoom, renderedZoom, outlineVisible, outlineWidth } = useUIStore();
   const zoom = viewMode === "code" ? codeZoom : renderedZoom;
   const { addNotification } = useNotificationStore();
   const [findVisible, setFindVisible] = useState(false);
@@ -86,7 +86,7 @@ const EditorArea: React.FC = () => {
   }, [activeFile, viewMode, updateFileContent, markFileDirty, addNotification]);
 
   return (
-    <div className="editor-area">
+    <div className="editor-area" style={outlineVisible ? { '--outline-offset': `${outlineWidth + 24}px` } as React.CSSProperties : undefined}>
       <div className="editor-content">
         {activeFile && (
           <>

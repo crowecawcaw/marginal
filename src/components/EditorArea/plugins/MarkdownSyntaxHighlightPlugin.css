@@ -1,12 +1,17 @@
+/* Grid stacking: overlay and input occupy the same cell, scroll together */
+.markdown-code-view {
+  display: grid;
+  grid-template: 1fr / 1fr;
+  overflow-y: auto;
+}
+
 .markdown-syntax-highlight-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  grid-row: 1;
+  grid-column: 1;
   pointer-events: none;
   /* CRITICAL: Must match editable input padding in MarkdownEditor.css for proper alignment */
   padding: var(--size-editor-padding);
+  padding-left: calc(var(--size-editor-padding) + var(--outline-offset, 0px));
   margin: 0;
   font-family:
     "SF Mono", "Monaco", "Menlo", "Consolas", "Courier New", monospace;
@@ -14,15 +19,14 @@
   line-height: 1.6;
   white-space: pre-wrap;
   word-wrap: break-word;
-  overflow: hidden;
-  z-index: 0;
-  /* Default text color - white for regular text */
+  /* Default text color */
   color: var(--color-text-primary, #ffffff);
 }
 
 /* Make the contentEditable sit on top with transparent text */
 .markdown-code-view .markdown-editor-input {
-  position: relative;
+  grid-row: 1;
+  grid-column: 1;
   z-index: 1;
   color: transparent;
   caret-color: var(--color-text-primary, #ffffff);
