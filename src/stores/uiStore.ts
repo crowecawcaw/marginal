@@ -29,8 +29,6 @@ interface UIState {
   codeZoom: number;
   renderedZoom: number;
   theme: Theme;
-  isLoading: boolean;
-  loadingMessage: string;
   setTheme: (theme: Theme) => void;
   toggleSidebar: () => void;
   toggleOutline: () => void;
@@ -42,7 +40,6 @@ interface UIState {
   zoomIn: () => void;
   zoomOut: () => void;
   resetZoom: () => void;
-  setLoading: (isLoading: boolean, message?: string) => void;
 }
 
 // Load initial settings from localStorage
@@ -58,8 +55,6 @@ export const useUIStore = create<UIState>((set) => ({
   codeZoom: settings.codeZoom,
   renderedZoom: settings.renderedZoom,
   theme: settings.theme,
-  isLoading: false,
-  loadingMessage: "",
   setTheme: (theme) => {
     void saveSettings({ theme });
     set({ theme });
@@ -132,8 +127,6 @@ export const useUIStore = create<UIState>((set) => ({
         return { renderedZoom: defaultZoom };
       }
     }),
-  setLoading: (isLoading, message = "") =>
-    set({ isLoading, loadingMessage: message }),
 }));
 
 // Emit initial view mode to Tauri so menu text matches persisted state

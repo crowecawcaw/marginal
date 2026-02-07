@@ -54,7 +54,6 @@ vi.mock("../../platform/eventAdapter", async () => {
 vi.mock("../Sidebar/Sidebar", () => ({ default: () => null }));
 vi.mock("../Sidebar/OutlineSidebar", () => ({ default: () => null }));
 vi.mock("../Toast/Toast", () => ({ default: () => null }));
-vi.mock("../LoadingOverlay/LoadingOverlay", () => ({ default: () => null }));
 vi.mock("../SettingsDialog/SettingsDialog", () => ({ default: () => null }));
 
 // Mock Layout dependencies

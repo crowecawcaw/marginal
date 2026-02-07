@@ -7,7 +7,7 @@ import FileTree from "./FileTree/FileTree";
 import "./Sidebar.css";
 
 const Sidebar: React.FC = () => {
-  const { sidebarVisible, sidebarWidth, setLoading } = useUIStore();
+  const { sidebarVisible, sidebarWidth } = useUIStore();
   const { fileTree, rootPath } = useFileStore();
   const { addNotification } = useNotificationStore();
   const { openFolder, openFile } = useFileSystem();
@@ -17,26 +17,20 @@ const Sidebar: React.FC = () => {
 
   const handleOpenFolder = async () => {
     try {
-      setLoading(true, "Opening folder...");
       await openFolder();
       addNotification("Folder opened successfully", "success");
     } catch (error) {
       console.error("Error opening folder:", error);
       addNotification("Failed to open folder", "error");
-    } finally {
-      setLoading(false);
     }
   };
 
   const handleFileClick = async (filePath: string) => {
     try {
-      setLoading(true, "Opening file...");
       await openFile(filePath);
     } catch (error) {
       console.error("Error opening file:", error);
       addNotification("Failed to open file", "error");
-    } finally {
-      setLoading(false);
     }
   };
 
