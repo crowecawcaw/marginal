@@ -1,5 +1,9 @@
 import { describe, it, expect, afterEach } from "vitest";
+import { act } from "@testing-library/react";
+import { $getRoot } from "lexical";
+import { $isTableNode } from "@lexical/table";
 import { EditorTestHarness } from "../../../test/EditorTestHarness";
+import { getWebEventEmitter } from "../../../platform/eventAdapter";
 
 describe("Table Tests", () => {
   let h: EditorTestHarness;
@@ -147,5 +151,51 @@ describe("Table Tests", () => {
     // First data cell should be empty or whitespace
     expect(data[1][0].trim()).toBe("");
     expect(data[1][1]).toBe("val");
+  });
+
+  it("inserting a table with cursor in a table cell places new table after the existing table, not nested", async () => {
+    h = await EditorTestHarness.create(`| A | B |
+|---|---|
+| 1 | 2 |`);
+
+    expect(h.query.hasTable()).toBe(true);
+
+    // Access the Lexical editor from the contentEditable DOM element
+    const rootEl = document.querySelector(
+      ".markdown-editor-input"
+    ) as HTMLElement & { __lexicalEditor: any };
+    const editor = rootEl.__lexicalEditor;
+    expect(editor).toBeTruthy();
+
+    // Set cursor inside a table cell using Lexical's API
+    await act(async () => {
+      editor.update(() => {
+        const root = $getRoot();
+        const tableNode = root
+          .getChildren()
+          .find((child: any) => $isTableNode(child));
+        expect(tableNode).toBeTruthy();
+        // Navigate to first data row, first cell, paragraph
+        const dataRow = tableNode.getChildAtIndex(1);
+        const cell = dataRow.getChildAtIndex(0);
+        const paragraph = cell.getFirstChild();
+        // Set selection at the start of the paragraph inside the cell
+        paragraph.selectStart();
+      });
+    });
+
+    // Trigger insert-table via the event system
+    await act(async () => {
+      getWebEventEmitter().emit("menu:insert-table");
+    });
+
+    // There should be two separate tables, not nested
+    const tables = document.querySelectorAll(".editor-table");
+    expect(tables.length).toBe(2);
+
+    // Verify no table is nested inside another table
+    for (const table of tables) {
+      expect(table.querySelector(".editor-table")).toBeNull();
+    }
   });
 });
