@@ -17,7 +17,7 @@ const mockedRender = vi.mocked(mermaid.render);
 describe("MermaidBlock", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockedRender.mockResolvedValue({ svg: '<svg class="mermaid-svg">diagram</svg>' });
+    mockedRender.mockResolvedValue({ svg: '<svg class="mermaid-svg">diagram</svg>', diagramType: 'flowchart' });
   });
 
   it("renders a container with proper class names", () => {
@@ -44,6 +44,7 @@ describe("MermaidBlock", () => {
   it("displays rendered SVG on successful render", async () => {
     mockedRender.mockResolvedValue({
       svg: '<svg class="test-diagram">rendered</svg>',
+      diagramType: 'flowchart',
     });
 
     render(<MermaidBlock code="graph TD; A-->B;" />);
@@ -122,8 +123,8 @@ describe("MermaidBlock", () => {
 
   it("re-renders when code prop changes", async () => {
     mockedRender
-      .mockResolvedValueOnce({ svg: "<svg>first</svg>" })
-      .mockResolvedValueOnce({ svg: "<svg>second</svg>" });
+      .mockResolvedValueOnce({ svg: "<svg>first</svg>", diagramType: 'flowchart' })
+      .mockResolvedValueOnce({ svg: "<svg>second</svg>", diagramType: 'flowchart' });
 
     const { rerender } = render(<MermaidBlock code="graph TD; A-->B;" />);
 

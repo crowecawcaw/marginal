@@ -2,10 +2,10 @@ import { describe, it, expect, beforeEach, vi } from "vitest";
 import { renderHook, act } from "@testing-library/react";
 
 // Queue of deferred resolvers for controlling async timing
-let listenResolvers: Array<(unlisten: () => void) => void> = [];
+let listenResolvers: Array<() => void> = [];
 let mockUnlistens: Array<ReturnType<typeof vi.fn>> = [];
 
-let setupResolvers: Array<(unlisten: () => void) => void> = [];
+let setupResolvers: Array<() => void> = [];
 let setupMockUnlistens: Array<ReturnType<typeof vi.fn>> = [];
 
 vi.mock("./eventAdapter", () => ({
@@ -54,7 +54,7 @@ describe("useEventListener", () => {
 
     // Resolve the listen promise so cleanup is stored
     await act(async () => {
-      listenResolvers[0](mockUnlistens[0]);
+      listenResolvers[0]();
     });
 
     // Unlisten should not have been called yet
@@ -79,7 +79,7 @@ describe("useEventListener", () => {
 
     // Now resolve the listen promise — the cancelled flag should trigger immediate unlisten
     await act(async () => {
-      listenResolvers[0](mockUnlistens[0]);
+      listenResolvers[0]();
     });
 
     expect(mockUnlistens[0]).toHaveBeenCalledTimes(1);
@@ -100,7 +100,7 @@ describe("useEventListener", () => {
 
     // Resolve first listen — should be cleaned up because cancelled=true
     await act(async () => {
-      listenResolvers[0](mockUnlistens[0]);
+      listenResolvers[0]();
     });
     expect(mockUnlistens[0]).toHaveBeenCalledTimes(1);
 
@@ -113,7 +113,7 @@ describe("useEventListener", () => {
 
     // Resolve second listen
     await act(async () => {
-      listenResolvers[1](mockUnlistens[1]);
+      listenResolvers[1]();
     });
 
     // Should NOT be cleaned up yet (still mounted)
@@ -133,7 +133,7 @@ describe("useEventListener", () => {
 
     // Resolve first listen
     await act(async () => {
-      listenResolvers[0](mockUnlistens[0]);
+      listenResolvers[0]();
     });
 
     expect(listen).toHaveBeenCalledTimes(1);
@@ -149,7 +149,7 @@ describe("useEventListener", () => {
 
     // Resolve second listen
     await act(async () => {
-      listenResolvers[1](mockUnlistens[1]);
+      listenResolvers[1]();
     });
 
     expect(mockUnlistens[1]).not.toHaveBeenCalled();
@@ -180,7 +180,7 @@ describe("useEventListeners", () => {
     const { unmount } = renderHook(() => useEventListeners(events, []));
 
     await act(async () => {
-      setupResolvers[0](setupMockUnlistens[0]);
+      setupResolvers[0]();
     });
 
     expect(setupMockUnlistens[0]).not.toHaveBeenCalled();
@@ -201,7 +201,7 @@ describe("useEventListeners", () => {
 
     // Resolve — should trigger immediate cleanup
     await act(async () => {
-      setupResolvers[0](setupMockUnlistens[0]);
+      setupResolvers[0]();
     });
 
     expect(setupMockUnlistens[0]).toHaveBeenCalledTimes(1);
@@ -215,7 +215,7 @@ describe("useEventListeners", () => {
     unmount();
 
     await act(async () => {
-      setupResolvers[0](setupMockUnlistens[0]);
+      setupResolvers[0]();
     });
     expect(setupMockUnlistens[0]).toHaveBeenCalledTimes(1);
 
@@ -225,7 +225,7 @@ describe("useEventListeners", () => {
     );
 
     await act(async () => {
-      setupResolvers[1](setupMockUnlistens[1]);
+      setupResolvers[1]();
     });
     expect(setupMockUnlistens[1]).not.toHaveBeenCalled();
 

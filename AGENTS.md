@@ -1,5 +1,22 @@
 # Agent Rules
 
+## Build Verification
+
+Run these commands to verify changes before committing:
+
+```bash
+npm run build        # TypeScript check + Vite production build
+npx vitest run       # Run all tests (316 tests across 26 files)
+```
+
+The `build` script runs `tsc && vite build`, so it catches both type errors and bundling issues.
+
+CI workflows (in `.github/workflows/`):
+- **deploy-pages.yml** (runs on push to main): `npm ci` → `npm run build:web` (web build with `WEB_BUILD=true`)
+- **build.yml** (manual dispatch): `npm ci` → `npm run tauri build` (desktop app build, requires Rust)
+
+Note: `npm run build:web` sets `WEB_BUILD=true` for both `tsc` and `vite build`. Neither CI workflow runs tests, so always run `npx vitest run` locally.
+
 ## App Naming
 
 The app name is **marginal** (lowercase). Always use lowercase when referring to the app in code, documentation, UI, and file names.
