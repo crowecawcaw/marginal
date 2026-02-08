@@ -1,4 +1,4 @@
-import { render, waitFor, RenderResult } from "@testing-library/react";
+import { render, waitFor, act, RenderResult } from "@testing-library/react";
 import { vi } from "vitest";
 import React from "react";
 
@@ -86,6 +86,10 @@ class HarnessQuery {
 
   hasTable(): boolean {
     return document.querySelector(".editor-table") !== null;
+  }
+
+  tableCount(): number {
+    return document.querySelectorAll(".editor-table").length;
   }
 
   hasBlockquote(): boolean {
@@ -273,6 +277,43 @@ export class EditorTestHarness {
     await this.pressKey(String(level), { meta: true });
   }
 
+  async selectText(text: string): Promise<void> {
+    const { $getRoot, $isTextNode, $isElementNode } = await import("lexical");
+
+    const editor = this.getEditor();
+
+    // DFS through the Lexical tree to find a text node containing the string
+    function $find(node: any): any {
+      if ($isTextNode(node) && node.getTextContent().includes(text)) {
+        return node;
+      }
+      if ($isElementNode(node)) {
+        for (const child of node.getChildren()) {
+          const found = $find(child);
+          if (found) return found;
+        }
+      }
+      return null;
+    }
+
+    await act(async () => {
+      editor.update(() => {
+        const textNode = $find($getRoot());
+        if (!textNode) throw new Error(`Text "${text}" not found in editor`);
+        const offset = textNode.getTextContent().indexOf(text);
+        textNode.select(offset, offset);
+      });
+    });
+  }
+
+  async emitEvent(event: string): Promise<void> {
+    const { getWebEventEmitter } = await import("../platform/eventAdapter");
+
+    await act(async () => {
+      getWebEventEmitter().emit(event);
+    });
+  }
+
   async clickCell(row: number, col: number): Promise<void> {
     const cell = this.query.tableCell(row, col);
     if (!cell) throw new Error(`No cell at (${row}, ${col})`);
@@ -332,6 +373,13 @@ export class EditorTestHarness {
   }
 
   // --- Private helpers ---
+
+  private getEditor(): any {
+    const el = this.getEditorElement();
+    const editor = (el as any).__lexicalEditor;
+    if (!editor) throw new Error("Lexical editor not found on DOM element");
+    return editor;
+  }
 
   private getEditorElement(): HTMLElement {
     if (this.currentViewMode === "rendered") {
