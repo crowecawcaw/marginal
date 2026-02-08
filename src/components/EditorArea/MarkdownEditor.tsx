@@ -32,6 +32,7 @@ import {
   MarkdownSyntaxHighlightPlugin,
   RichTextFormattingPlugin,
   BracketPairingPlugin,
+  CodeViewFormattingPlugin,
 } from "./plugins";
 import { renderedEditorTheme, codeEditorTheme } from "./editorTheme";
 import "./MarkdownEditor.css";
@@ -239,6 +240,7 @@ function CodeEditor({
         <OnChangePlugin onChange={handleChange} />
         <MarkdownSyntaxHighlightPlugin />
         <BracketPairingPlugin />
+        <CodeViewFormattingPlugin />
       </div>
     </LexicalComposer>
   );

@@ -2,14 +2,8 @@ export type ViewRequirement = "code" | "rendered";
 
 export const VIEW_COMMANDS: Record<string, ViewRequirement> = {
   "format-document": "code",
-  "bold": "rendered",
-  "italic": "rendered",
-  "heading-1": "rendered",
-  "heading-2": "rendered",
-  "heading-3": "rendered",
-  "heading-4": "rendered",
-  "heading-5": "rendered",
-  "insert-table": "rendered",
+  // Bold, italic, headings, and insert-table are now available in both views
+  // They are removed from VIEW_COMMANDS so they're always available
 };
 
 export function isCommandAvailable(command: string, viewMode: string): boolean {
