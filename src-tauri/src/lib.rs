@@ -22,15 +22,18 @@ impl ViewMenuItems {
     fn apply_view_mode(&self, mode: &str) {
         let is_code = mode.contains("code");
 
+        // Format document is only available in code view
         let _ = self.format_document.set_enabled(is_code);
-        let _ = self.bold.set_enabled(!is_code);
-        let _ = self.italic.set_enabled(!is_code);
-        let _ = self.heading_1.set_enabled(!is_code);
-        let _ = self.heading_2.set_enabled(!is_code);
-        let _ = self.heading_3.set_enabled(!is_code);
-        let _ = self.heading_4.set_enabled(!is_code);
-        let _ = self.heading_5.set_enabled(!is_code);
-        let _ = self.insert_table.set_enabled(!is_code);
+
+        // Bold, italic, headings, and insert-table are now available in both views
+        let _ = self.bold.set_enabled(true);
+        let _ = self.italic.set_enabled(true);
+        let _ = self.heading_1.set_enabled(true);
+        let _ = self.heading_2.set_enabled(true);
+        let _ = self.heading_3.set_enabled(true);
+        let _ = self.heading_4.set_enabled(true);
+        let _ = self.heading_5.set_enabled(true);
+        let _ = self.insert_table.set_enabled(true);
 
         let new_text = if is_code {
             "View document"
