@@ -9,6 +9,7 @@ import {
   $getRoot,
   $createTextNode,
   $createParagraphNode,
+  $isTextNode,
   LexicalEditor,
 } from "lexical";
 import { CodeViewFormattingPlugin } from "./plugins/CodeViewFormattingPlugin";
@@ -94,7 +95,7 @@ function selectText(editor: LexicalEditor, start: number, end: number) {
       () => {
         const root = $getRoot();
         const textNode = root.getFirstDescendant();
-        if (textNode) {
+        if (textNode && $isTextNode(textNode)) {
           textNode.select(start, end);
         }
       },

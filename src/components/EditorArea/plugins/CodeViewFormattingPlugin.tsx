@@ -4,6 +4,7 @@ import {
   $getSelection,
   $isRangeSelection,
   $createTextNode,
+  $isTextNode,
 } from "lexical";
 import { useEventListeners } from "../../../platform/useEventListener";
 
@@ -35,6 +36,8 @@ export function CodeViewFormattingPlugin() {
       if (!$isRangeSelection(selection)) return;
 
       const anchor = selection.anchor.getNode();
+      if (!$isTextNode(anchor)) return;
+
       const text = anchor.getTextContent();
       const offset = selection.anchor.offset;
 
@@ -75,6 +78,8 @@ export function CodeViewFormattingPlugin() {
       if (!$isRangeSelection(selection)) return;
 
       const anchor = selection.anchor.getNode();
+      if (!$isTextNode(anchor)) return;
+
       const text = anchor.getTextContent();
       const offset = selection.anchor.offset;
 
