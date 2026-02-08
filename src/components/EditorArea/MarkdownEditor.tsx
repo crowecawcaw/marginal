@@ -19,14 +19,13 @@ import { $createHeadingNode, HeadingNode, QuoteNode } from "@lexical/rich-text";
 import { ListItemNode, ListNode } from "@lexical/list";
 import { LinkNode, AutoLinkNode } from "@lexical/link";
 import { TableNode, TableCellNode, TableRowNode } from "@lexical/table";
-import { EditorState, $getRoot } from "lexical";
+import { EditorState, $getRoot, $createParagraphNode, $createTextNode } from "lexical";
 import { $convertFromMarkdownString, $convertToMarkdownString, TRANSFORMERS } from "@lexical/markdown";
 import { TABLE, $createTableFromMarkdown } from "./tableTransformer";
 import { TableContextMenuPlugin } from "./TableContextMenuPlugin";
 import { InsertTablePlugin } from "./InsertTablePlugin";
 import { TableResizePlugin } from "./TableResizePlugin";
 import {
-  CodeContentSyncPlugin,
   CodeHighlightPlugin,
   LinkEditPlugin,
   ListExitPlugin,
@@ -194,6 +193,15 @@ function CodeEditor({
     namespace: "MarkdownEditor-Code",
     theme: codeEditorTheme,
     nodes: [],
+    editorState: () => {
+      if (initialContent) {
+        const root = $getRoot();
+        root.clear();
+        const paragraph = $createParagraphNode();
+        paragraph.append($createTextNode(initialContent));
+        root.append(paragraph);
+      }
+    },
     onError: (error: Error) => {
       console.error("Lexical Error:", error);
     },
@@ -229,7 +237,6 @@ function CodeEditor({
         />
         <HistoryPlugin />
         <OnChangePlugin onChange={handleChange} />
-        <CodeContentSyncPlugin content={initialContent} />
         <MarkdownSyntaxHighlightPlugin />
         <BracketPairingPlugin />
       </div>

@@ -17,6 +17,41 @@ Write effective tests that are simple and give high confidence:
 
 The README.md contains a comprehensive Specs section that lists all implemented behaviors with test coverage indicators. When implementing features, check off items in this list and ensure they have solid test coverage.
 
+## React useEffect Guidelines
+
+### Prefer derived values over useEffect
+
+If a value can be computed from existing props or state, use `useMemo` instead of `useEffect` + `setState`. The useEffect pattern causes an extra render cycle on every change.
+
+```tsx
+// BAD: extra render per keystroke
+const [total, setTotal] = useState(0);
+useEffect(() => {
+  setTotal(items.filter(predicate).length);
+}, [items, predicate]);
+
+// GOOD: computed in the same render
+const total = useMemo(() => items.filter(predicate).length, [items, predicate]);
+```
+
+### Prefer editorState initializer over useEffect for Lexical
+
+Set initial editor content via the `editorState` callback in `initialConfig`, not via a useEffect that runs after mount. The initializer runs synchronously during construction, before any plugin useEffect fires, which eliminates race conditions with transform registration.
+
+```tsx
+// BAD: race condition with plugins that register transforms
+useEffect(() => { editor.update(() => { ... }); setInitialized(true); }, []);
+
+// GOOD: runs before any useEffect
+const initialConfig = { editorState: () => { /* populate root */ }, ... };
+```
+
+### Legitimate useEffect uses
+
+- Subscribing to external events (keyboard, resize, media queries)
+- Focusing a DOM element on mount
+- Syncing with browser APIs (IntersectionObserver, etc.)
+
 ## CSS Patterns
 
 ### No CSS in JavaScript

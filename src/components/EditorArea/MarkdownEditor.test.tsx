@@ -87,7 +87,7 @@ describe("MarkdownEditor", () => {
       });
     });
 
-    it("calls onChange when content changes in code view", async () => {
+    it("does not fire onChange on initial mount with empty content in code view", async () => {
       const onChange = vi.fn();
 
       render(
@@ -104,8 +104,9 @@ describe("MarkdownEditor", () => {
         expect(editor).toBeInTheDocument();
       });
 
-      // onChange is called during initialization
-      expect(onChange).toHaveBeenCalled();
+      // editorState initializer runs before OnChangePlugin mounts,
+      // so no spurious onChange on initial render
+      expect(onChange).not.toHaveBeenCalled();
     });
 
     it("disables auto-corrections in code view to prevent -- becoming em dash", () => {

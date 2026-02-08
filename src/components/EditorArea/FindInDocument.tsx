@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useMemo, useEffect, useRef } from "react";
 import "./FindInDocument.css";
 
 interface FindInDocumentProps {
@@ -14,8 +14,22 @@ const FindInDocument: React.FC<FindInDocumentProps> = ({
   const [searchQuery, setSearchQuery] = useState("");
   const [caseSensitive, setCaseSensitive] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [totalMatches, setTotalMatches] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  const totalMatches = useMemo(() => {
+    if (!searchQuery) return 0;
+
+    const text = caseSensitive ? content : content.toLowerCase();
+    const query = caseSensitive ? searchQuery : searchQuery.toLowerCase();
+
+    let count = 0;
+    let pos = 0;
+    while ((pos = text.indexOf(query, pos)) !== -1) {
+      count++;
+      pos += query.length;
+    }
+    return count;
+  }, [searchQuery, content, caseSensitive]);
 
   // Focus input on mount
   useEffect(() => {
@@ -34,28 +48,6 @@ const FindInDocument: React.FC<FindInDocumentProps> = ({
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [onClose]);
 
-  // Calculate matches when search query or content changes
-  useEffect(() => {
-    if (!searchQuery) {
-      setTotalMatches(0);
-      setCurrentIndex(0);
-      return;
-    }
-
-    const text = caseSensitive ? content : content.toLowerCase();
-    const query = caseSensitive ? searchQuery : searchQuery.toLowerCase();
-
-    let count = 0;
-    let pos = 0;
-    while ((pos = text.indexOf(query, pos)) !== -1) {
-      count++;
-      pos += query.length;
-    }
-
-    setTotalMatches(count);
-    setCurrentIndex(count > 0 ? 1 : 0);
-  }, [searchQuery, content, caseSensitive]);
-
   // For code view (textarea), we can use native browser find
   // For rendered view, we would need to implement Lexical-based highlighting
   // For now, this provides the UI - actual highlighting in Lexical would require
@@ -63,18 +55,25 @@ const FindInDocument: React.FC<FindInDocumentProps> = ({
 
   const handleNext = () => {
     if (totalMatches > 0) {
-      setCurrentIndex((prev) => (prev % totalMatches) + 1);
+      setCurrentIndex((prev) => {
+        const clamped = Math.min(prev, totalMatches);
+        return (clamped % totalMatches) + 1;
+      });
     }
   };
 
   const handlePrevious = () => {
     if (totalMatches > 0) {
-      setCurrentIndex((prev) => (prev - 1 <= 0 ? totalMatches : prev - 1));
+      setCurrentIndex((prev) => {
+        const clamped = Math.min(prev, totalMatches);
+        return clamped - 1 <= 0 ? totalMatches : clamped - 1;
+      });
     }
   };
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value);
+    setCurrentIndex(e.target.value ? 1 : 0);
   };
 
   return (
@@ -91,7 +90,7 @@ const FindInDocument: React.FC<FindInDocumentProps> = ({
         <div className="find-match-count">
           {searchQuery &&
             (totalMatches > 0
-              ? `${currentIndex} of ${totalMatches}`
+              ? `${Math.min(currentIndex, totalMatches)} of ${totalMatches}`
               : "No matches")}
         </div>
       </div>
@@ -132,7 +131,10 @@ const FindInDocument: React.FC<FindInDocumentProps> = ({
         </button>
         <button
           className={`find-btn ${caseSensitive ? "active" : ""}`}
-          onClick={() => setCaseSensitive(!caseSensitive)}
+          onClick={() => {
+            setCaseSensitive((prev) => !prev);
+            setCurrentIndex(1);
+          }}
           title="Case sensitive"
         >
           Aa
