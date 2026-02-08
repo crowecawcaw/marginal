@@ -249,6 +249,35 @@ describe("CodeViewFormattingPlugin - Table Insertion", () => {
     expect(text).toContain("| Column 1 | Column 2 | Column 3 |");
     expect(text).toContain("|----------|----------|----------|");
   });
+
+  it("inserting a table when cursor is inside existing table places new table after, not nested", async () => {
+    const existingTable = `| A | B |
+|---|---|
+| 1 | 2 |`;
+    const editor = renderTestEditor(existingTable);
+
+    // Place cursor inside the table (at position 20, which is in the middle of "1")
+    selectText(editor, 20, 20);
+
+    await act(async () => {
+      emit("menu:insert-table");
+      await waitForUpdates();
+    });
+
+    const text = getEditorText(editor);
+
+    // Should have the original table
+    expect(text).toContain("| A | B |");
+    expect(text).toContain("| 1 | 2 |");
+
+    // Should have the new table
+    expect(text).toContain("| Column 1 | Column 2 | Column 3 |");
+
+    // New table should come after the original table (not nested)
+    const firstTableEnd = text.indexOf("| 1 | 2 |") + "| 1 | 2 |".length;
+    const secondTableStart = text.indexOf("| Column 1 | Column 2 | Column 3 |");
+    expect(secondTableStart).toBeGreaterThan(firstTableEnd);
+  });
 });
 
 describe("CodeViewFormattingPlugin - Combined Formatting", () => {

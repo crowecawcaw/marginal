@@ -74,6 +74,10 @@ export function CodeViewFormattingPlugin() {
       const selection = $getSelection();
       if (!$isRangeSelection(selection)) return;
 
+      const anchor = selection.anchor.getNode();
+      const text = anchor.getTextContent();
+      const offset = selection.anchor.offset;
+
       // Default 3x3 table template
       const tableTemplate = `
 | Column 1 | Column 2 | Column 3 |
@@ -83,7 +87,56 @@ export function CodeViewFormattingPlugin() {
 
 `;
 
-      selection.insertNodes([$createTextNode(tableTemplate)]);
+      // Check if cursor is inside an existing table
+      const lines = text.split('\n');
+      let currentLineIndex = 0;
+      let charCount = 0;
+
+      // Find which line the cursor is on
+      for (let i = 0; i < lines.length; i++) {
+        const lineLength = lines[i].length + 1; // +1 for newline
+        if (charCount + lineLength > offset) {
+          currentLineIndex = i;
+          break;
+        }
+        charCount += lineLength;
+      }
+
+      // Check if current line is part of a table (starts with | or is a separator line)
+      const currentLine = lines[currentLineIndex];
+      const isInTable = currentLine && (
+        currentLine.trimStart().startsWith('|') ||
+        /^\s*\|[\s\-:|]+\|\s*$/.test(currentLine)
+      );
+
+      if (isInTable) {
+        // Find the end of the current table
+        let tableEndLine = currentLineIndex;
+        for (let i = currentLineIndex + 1; i < lines.length; i++) {
+          const line = lines[i];
+          if (line.trimStart().startsWith('|') || /^\s*\|[\s\-:|]+\|\s*$/.test(line)) {
+            tableEndLine = i;
+          } else {
+            break;
+          }
+        }
+
+        // Calculate the position after the table
+        let insertPosition = 0;
+        for (let i = 0; i <= tableEndLine; i++) {
+          insertPosition += lines[i].length + 1; // +1 for newline
+        }
+
+        // Insert table after the existing table
+        const beforeTable = text.substring(0, insertPosition);
+        const afterTable = text.substring(insertPosition);
+        const newText = beforeTable + tableTemplate + afterTable;
+
+        anchor.setTextContent(newText);
+      } else {
+        // Not in a table, insert at cursor position
+        selection.insertNodes([$createTextNode(tableTemplate)]);
+      }
     });
   };
 
