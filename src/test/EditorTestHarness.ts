@@ -97,6 +97,16 @@ class HarnessQuery {
       (el) => el.textContent ?? ""
     );
   }
+
+  hasCodeBlock(): boolean {
+    return document.querySelector(".editor-code") !== null;
+  }
+
+  codeBlockTexts(): string[] {
+    return Array.from(document.querySelectorAll(".editor-code")).map(
+      (el) => el.textContent ?? ""
+    );
+  }
 }
 
 // Lexical's updateDOMSelection calls getBoundingClientRect on Range objects
