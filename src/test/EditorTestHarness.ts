@@ -99,6 +99,14 @@ class HarnessQuery {
   }
 }
 
+// Lexical's updateDOMSelection calls getBoundingClientRect on Range objects
+// (domSelection.getRangeAt(0)) via queueMicrotask. jsdom doesn't implement
+// Range.prototype.getBoundingClientRect, so we stub it for the harness lifetime.
+const stubRect = () =>
+  ({ x: 0, y: 0, width: 100, height: 20, top: 0, right: 100, bottom: 20, left: 0, toJSON() {} }) as DOMRect;
+let activeHarnessCount = 0;
+let origRangeGetBCR: typeof Range.prototype.getBoundingClientRect | undefined;
+
 export class EditorTestHarness {
   private renderResult: RenderResult;
   private currentViewMode: ViewMode;
@@ -153,6 +161,13 @@ export class EditorTestHarness {
         capturedContent = v;
       },
     });
+
+    // Install Range.prototype.getBoundingClientRect stub for Lexical's selection handling
+    if (activeHarnessCount === 0) {
+      origRangeGetBCR = Range.prototype.getBoundingClientRect;
+      Range.prototype.getBoundingClientRect = stubRect;
+    }
+    activeHarnessCount++;
 
     // Wait for initial render to settle
     if (initialViewMode === "rendered") {
@@ -309,6 +324,11 @@ export class EditorTestHarness {
 
   destroy(): void {
     this.renderResult.unmount();
+    activeHarnessCount--;
+    if (activeHarnessCount === 0 && origRangeGetBCR !== undefined) {
+      Range.prototype.getBoundingClientRect = origRangeGetBCR;
+      origRangeGetBCR = undefined;
+    }
   }
 
   // --- Private helpers ---

@@ -72,8 +72,20 @@ describe("Formatting Tests", () => {
     expect(h.query.heading(5)).toBe("Minor");
   });
 
-  // Note: Cmd+B, Cmd+I, Cmd+1..5 shortcut tests are omitted here because
-  // Lexical's selection handling triggers getBoundingClientRect in jsdom,
-  // which is not supported. These shortcuts are covered by
-  // EditorArea.shortcuts.test.tsx at the routing level.
+  it("Cmd+B dispatches bold formatting without error", async () => {
+    h = await EditorTestHarness.create("# Hello");
+    await h.bold();
+  });
+
+  it("Cmd+I dispatches italic formatting without error", async () => {
+    h = await EditorTestHarness.create("# Hello");
+    await h.italic();
+  });
+
+  it("Cmd+1..5 heading shortcuts dispatch without error", async () => {
+    h = await EditorTestHarness.create("# Hello");
+    for (let level = 1; level <= 5; level++) {
+      await h.heading(level);
+    }
+  });
 });
