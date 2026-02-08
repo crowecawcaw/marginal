@@ -2,8 +2,15 @@ import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import MarkdownEditor from "./MarkdownEditor";
 
+// Stub for Range.prototype.getBoundingClientRect which jsdom doesn't implement.
+// Lexical calls this via queueMicrotask during selection updates after key events.
+const stubRect = () =>
+  ({ x: 0, y: 0, width: 100, height: 20, top: 0, right: 100, bottom: 20, left: 0, toJSON() {} }) as DOMRect;
+
 // Helper to simulate keyboard events in Lexical
 const simulateKeyDown = (element: Element, key: string) => {
+  const origGetBCR = Range.prototype.getBoundingClientRect;
+  Range.prototype.getBoundingClientRect = stubRect;
   const event = new KeyboardEvent("keydown", {
     key,
     code: key === "Enter" ? "Enter" : key === "Backspace" ? "Backspace" : key,
@@ -11,6 +18,10 @@ const simulateKeyDown = (element: Element, key: string) => {
     cancelable: true,
   });
   element.dispatchEvent(event);
+  // Restore after microtask queue drains (Lexical schedules via queueMicrotask)
+  queueMicrotask(() => {
+    Range.prototype.getBoundingClientRect = origGetBCR;
+  });
 };
 
 describe("MarkdownEditor", () => {

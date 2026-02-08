@@ -2,15 +2,16 @@ import { describe, it, expect, beforeEach, vi } from "vitest";
 import { renderHook, act } from "@testing-library/react";
 
 // Queue of deferred resolvers for controlling async timing
-let listenResolvers: Array<(unlisten: () => void) => void> = [];
-let mockUnlistens: Array<ReturnType<typeof vi.fn>> = [];
+type UnlistenFn = () => void;
+let listenResolvers: Array<(unlisten: UnlistenFn) => void> = [];
+let mockUnlistens: Array<ReturnType<typeof vi.fn<UnlistenFn>>> = [];
 
-let setupResolvers: Array<(unlisten: () => void) => void> = [];
-let setupMockUnlistens: Array<ReturnType<typeof vi.fn>> = [];
+let setupResolvers: Array<(unlisten: UnlistenFn) => void> = [];
+let setupMockUnlistens: Array<ReturnType<typeof vi.fn<UnlistenFn>>> = [];
 
 vi.mock("./eventAdapter", () => ({
   listen: vi.fn((_event: string, _callback: unknown) => {
-    const unlisten = vi.fn();
+    const unlisten = vi.fn<UnlistenFn>();
     mockUnlistens.push(unlisten);
     return new Promise<() => void>((resolve) => {
       listenResolvers.push(() => resolve(unlisten));
@@ -18,7 +19,7 @@ vi.mock("./eventAdapter", () => ({
   }),
   setupEventListeners: vi.fn(
     (_events: Array<{ event: string; callback: unknown }>) => {
-      const unlisten = vi.fn();
+      const unlisten = vi.fn<UnlistenFn>();
       setupMockUnlistens.push(unlisten);
       return new Promise<() => void>((resolve) => {
         setupResolvers.push(() => resolve(unlisten));
