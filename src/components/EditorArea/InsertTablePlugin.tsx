@@ -3,9 +3,10 @@ import {
   $createTableNode,
   $createTableRowNode,
   $createTableCellNode,
+  $isTableNode,
   TableCellHeaderStates,
 } from "@lexical/table";
-import { $getSelection, $isRangeSelection, $createParagraphNode } from "lexical";
+import { $getSelection, $isRangeSelection, $createParagraphNode, type LexicalNode } from "lexical";
 import { useEventListener } from "../../platform/useEventListener";
 
 export function InsertTablePlugin() {
@@ -41,11 +42,25 @@ export function InsertTablePlugin() {
         table.append(tableRow);
       }
 
-      // Insert table at current selection
+      // Insert table at current selection.
+      // If the cursor is inside a table cell, getTopLevelElement() returns
+      // the element within the cell (shadow root), not the TableNode itself.
+      // Walk up to find any enclosing TableNode so the new table is placed
+      // after it rather than nested inside.
       const anchorNode = selection.anchor.getNode();
-      const element = anchorNode.getTopLevelElement();
-      if (element) {
-        element.insertAfter(table);
+      let insertionPoint: LexicalNode | null = anchorNode.getTopLevelElement();
+
+      let node: LexicalNode | null = anchorNode;
+      while (node !== null) {
+        if ($isTableNode(node)) {
+          insertionPoint = node;
+          break;
+        }
+        node = node.getParent();
+      }
+
+      if (insertionPoint) {
+        insertionPoint.insertAfter(table);
       } else {
         selection.insertNodes([table]);
       }

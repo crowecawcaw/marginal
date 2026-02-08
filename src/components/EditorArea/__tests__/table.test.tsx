@@ -148,4 +148,24 @@ describe("Table Tests", () => {
     expect(data[1][0].trim()).toBe("");
     expect(data[1][1]).toBe("val");
   });
+
+  it("inserting a table with cursor in a table cell places new table after the existing table, not nested", async () => {
+    h = await EditorTestHarness.create(`| A | B |
+|---|---|
+| 1 | 2 |`);
+
+    expect(h.query.hasTable()).toBe(true);
+
+    // Place cursor inside a table cell, then insert a new table
+    await h.selectText("1");
+    await h.emitEvent("menu:insert-table");
+
+    // There should be two separate tables, not nested
+    expect(h.query.tableCount()).toBe(2);
+
+    const tables = document.querySelectorAll(".editor-table");
+    for (const table of tables) {
+      expect(table.querySelector(".editor-table")).toBeNull();
+    }
+  });
 });
