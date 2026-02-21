@@ -9,6 +9,75 @@ import {
 import { useEventListeners } from "../../../platform/useEventListener";
 
 /**
+ * Toggle markdown format markers around the current selection.
+ * Must be called inside an editor.update() callback.
+ *
+ * Uses star-counting to correctly handle overlapping bold (**) and italic (*):
+ *   1 star = italic, 2 stars = bold, 3 stars = bold+italic
+ */
+export function $toggleFormat(prefix: string, suffix: string = prefix) {
+  const selection = $getSelection();
+  if (!$isRangeSelection(selection)) return;
+
+  const selectedText = selection.getTextContent();
+  const anchor = selection.anchor.getNode();
+  if (!$isTextNode(anchor)) return;
+
+  const fullText = anchor.getTextContent();
+  const start = Math.min(selection.anchor.offset, selection.focus.offset);
+  const end = Math.max(selection.anchor.offset, selection.focus.offset);
+  const markerChar = prefix[0];
+  const markerLen = prefix.length;
+
+  // Count consecutive marker chars outside the selection
+  let outerBefore = 0;
+  for (let i = start - 1; i >= 0 && fullText[i] === markerChar; i--) outerBefore++;
+  let outerAfter = 0;
+  for (let i = end; i < fullText.length && fullText[i] === markerChar; i++) outerAfter++;
+
+  // Count leading/trailing marker chars inside the selection
+  let innerBefore = 0;
+  for (let i = 0; i < selectedText.length && selectedText[i] === markerChar; i++) innerBefore++;
+  let innerAfter = 0;
+  for (let i = selectedText.length - 1; i >= innerBefore && selectedText[i] === markerChar; i--) innerAfter++;
+
+  const totalBefore = outerBefore + innerBefore;
+  const totalAfter = outerAfter + innerAfter;
+
+  // Bold (markerLen=2): present when total stars >= 2
+  // Italic (markerLen=1): present when total stars is odd
+  const isPresent = markerLen === 1
+    ? totalBefore % 2 === 1 && totalAfter % 2 === 1
+    : totalBefore >= markerLen && totalAfter >= markerLen;
+
+  if (isPresent) {
+    // Remove markers: take markerLen stars, preferring inner then outer
+    const removeInnerBefore = Math.min(innerBefore, markerLen);
+    const removeOuterBefore = markerLen - removeInnerBefore;
+    const removeInnerAfter = Math.min(innerAfter, markerLen);
+    const removeOuterAfter = markerLen - removeInnerAfter;
+
+    const trimmedStart = start - removeOuterBefore;
+    const trimmedEnd = end + removeOuterAfter;
+    const innerText = selectedText.substring(removeInnerBefore, selectedText.length - removeInnerAfter);
+
+    const newText = fullText.substring(0, trimmedStart) + innerText + fullText.substring(trimmedEnd);
+    anchor.setTextContent(newText);
+    selection.anchor.set(anchor.getKey(), trimmedStart, 'text');
+    selection.focus.set(anchor.getKey(), trimmedStart + innerText.length, 'text');
+  } else {
+    // Add markers and preserve selection on the inner text
+    const wrappedText = `${prefix}${selectedText}${suffix}`;
+    const newText = fullText.substring(0, start) + wrappedText + fullText.substring(end);
+    anchor.setTextContent(newText);
+    const newStart = start + prefix.length;
+    const newEnd = newStart + selectedText.length;
+    selection.anchor.set(anchor.getKey(), newStart, 'text');
+    selection.focus.set(anchor.getKey(), newEnd, 'text');
+  }
+}
+
+/**
  * Plugin to handle formatting in code view by wrapping text with markdown syntax
  * - Cmd+B: Wraps selected text with ** ** (bold)
  * - Cmd+I: Wraps selected text with * * (italic)
@@ -20,13 +89,7 @@ export function CodeViewFormattingPlugin() {
 
   const wrapSelection = (prefix: string, suffix: string = prefix) => {
     editor.update(() => {
-      const selection = $getSelection();
-      if (!$isRangeSelection(selection)) return;
-
-      const selectedText = selection.getTextContent();
-      const wrappedText = `${prefix}${selectedText}${suffix}`;
-
-      selection.insertNodes([$createTextNode(wrappedText)]);
+      $toggleFormat(prefix, suffix);
     });
   };
 

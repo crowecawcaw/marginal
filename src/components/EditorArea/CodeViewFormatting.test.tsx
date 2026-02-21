@@ -7,12 +7,14 @@ import { LexicalErrorBoundary } from "@lexical/react/LexicalErrorBoundary";
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
 import {
   $getRoot,
+  $getSelection,
+  $isRangeSelection,
   $createTextNode,
   $createParagraphNode,
   $isTextNode,
   LexicalEditor,
 } from "lexical";
-import { CodeViewFormattingPlugin } from "./plugins/CodeViewFormattingPlugin";
+import { CodeViewFormattingPlugin, $toggleFormat } from "./plugins/CodeViewFormattingPlugin";
 import { emit } from "../../platform/eventAdapter";
 
 // jsdom doesn't implement getBoundingClientRect on text nodes,
@@ -89,6 +91,7 @@ function getEditorText(editor: LexicalEditor): string {
   return text;
 }
 
+
 function selectText(editor: LexicalEditor, start: number, end: number) {
   act(() => {
     editor.update(
@@ -101,6 +104,32 @@ function selectText(editor: LexicalEditor, start: number, end: number) {
       },
       { discrete: true },
     );
+  });
+}
+
+function getSelection(editor: LexicalEditor): { anchor: number; focus: number } {
+  let anchor = 0;
+  let focus = 0;
+  editor.getEditorState().read(() => {
+    const selection = $getSelection();
+    if ($isRangeSelection(selection)) {
+      anchor = selection.anchor.offset;
+      focus = selection.focus.offset;
+    }
+  });
+  return { anchor, focus };
+}
+
+async function selectAndFormat(editor: LexicalEditor, start: number, end: number, prefix: string) {
+  act(() => {
+    editor.update(() => {
+      const root = $getRoot();
+      const textNode = root.getFirstDescendant();
+      if (textNode && $isTextNode(textNode)) {
+        textNode.select(start, end);
+      }
+      $toggleFormat(prefix);
+    }, { discrete: true });
   });
 }
 
@@ -320,5 +349,181 @@ describe("CodeViewFormattingPlugin - Combined Formatting", () => {
       await waitForUpdates();
     });
     expect(getEditorText(editor)).toBe("# **My** Heading");
+  });
+});
+
+describe("CodeViewFormattingPlugin - Selection Preservation", () => {
+  it("bold preserves selection around the wrapped text", async () => {
+    const editor = renderTestEditor("hello world");
+    selectText(editor, 0, 5); // Select "hello"
+
+    await act(async () => {
+      emit("menu:bold");
+      await waitForUpdates();
+    });
+
+    expect(getEditorText(editor)).toBe("**hello** world");
+    const sel = getSelection(editor);
+    // Selection should cover "hello" inside the ** markers (offsets 2-7)
+    expect(sel.anchor).toBe(2);
+    expect(sel.focus).toBe(7);
+  });
+
+  it("italic preserves selection around the wrapped text", async () => {
+    const editor = renderTestEditor("hello world");
+    selectText(editor, 0, 5); // Select "hello"
+
+    await act(async () => {
+      emit("menu:italic");
+      await waitForUpdates();
+    });
+
+    expect(getEditorText(editor)).toBe("*hello* world");
+    const sel = getSelection(editor);
+    // Selection should cover "hello" inside the * markers (offsets 1-6)
+    expect(sel.anchor).toBe(1);
+    expect(sel.focus).toBe(6);
+  });
+});
+
+describe("CodeViewFormattingPlugin - Toggle", () => {
+  it("bolding already-bold selected text removes the ** markers", async () => {
+    const editor = renderTestEditor("**hello** world");
+    selectText(editor, 0, 9); // Select "**hello**"
+
+    await act(async () => {
+      emit("menu:bold");
+      await waitForUpdates();
+    });
+
+    expect(getEditorText(editor)).toBe("hello world");
+  });
+
+  it("italicizing already-italic selected text removes the * markers", async () => {
+    const editor = renderTestEditor("*hello* world");
+    selectText(editor, 0, 7); // Select "*hello*"
+
+    await act(async () => {
+      emit("menu:italic");
+      await waitForUpdates();
+    });
+
+    expect(getEditorText(editor)).toBe("hello world");
+  });
+
+  it("bolding text with surrounding ** context removes the markers", async () => {
+    const editor = renderTestEditor("**hello** world");
+    selectText(editor, 2, 7); // Select "hello" (inner text only)
+
+    await act(async () => {
+      emit("menu:bold");
+      await waitForUpdates();
+    });
+
+    expect(getEditorText(editor)).toBe("hello world");
+  });
+
+  it("italicizing text with surrounding * context removes the markers", async () => {
+    const editor = renderTestEditor("*hello* world");
+    selectText(editor, 1, 6); // Select "hello" (inner text only)
+
+    await act(async () => {
+      emit("menu:italic");
+      await waitForUpdates();
+    });
+
+    expect(getEditorText(editor)).toBe("hello world");
+  });
+
+  it("toggle bold preserves selection on the unwrapped text", async () => {
+    const editor = renderTestEditor("**hello** world");
+    selectText(editor, 0, 9); // Select "**hello**"
+
+    await act(async () => {
+      emit("menu:bold");
+      await waitForUpdates();
+    });
+
+    expect(getEditorText(editor)).toBe("hello world");
+    const sel = getSelection(editor);
+    // Selection should cover "hello" (offsets 0-5)
+    expect(sel.anchor).toBe(0);
+    expect(sel.focus).toBe(5);
+  });
+});
+
+describe("CodeViewFormattingPlugin - Combined Bold/Italic Toggle", () => {
+  it("bold then italic on same text produces ***text***", async () => {
+    const editor = renderTestEditor("hello world");
+
+    await selectAndFormat(editor, 0, 5, "**");
+    expect(getEditorText(editor)).toBe("**hello** world");
+
+    await selectAndFormat(editor, 2, 7, "*");
+    expect(getEditorText(editor)).toBe("***hello*** world");
+  });
+
+  it("italic then bold on same text produces ***text***", async () => {
+    const editor = renderTestEditor("hello world");
+
+    await selectAndFormat(editor, 0, 5, "*");
+    expect(getEditorText(editor)).toBe("*hello* world");
+
+    await selectAndFormat(editor, 1, 6, "**");
+    expect(getEditorText(editor)).toBe("***hello*** world");
+  });
+
+  it("remove bold from bold+italic leaves italic", async () => {
+    const editor = renderTestEditor("***hello*** world");
+
+    await selectAndFormat(editor, 3, 8, "**");
+    expect(getEditorText(editor)).toBe("*hello* world");
+  });
+
+  it("remove italic from bold+italic leaves bold", async () => {
+    const editor = renderTestEditor("***hello*** world");
+
+    await selectAndFormat(editor, 3, 8, "*");
+    expect(getEditorText(editor)).toBe("**hello** world");
+  });
+
+  it("full cycle: plain → bold → bold+italic → remove italic → remove bold → plain", async () => {
+    const editor = renderTestEditor("hello world");
+
+    // Plain → Bold
+    await selectAndFormat(editor, 0, 5, "**");
+    expect(getEditorText(editor)).toBe("**hello** world");
+
+    // Bold → Bold+Italic
+    await selectAndFormat(editor, 2, 7, "*");
+    expect(getEditorText(editor)).toBe("***hello*** world");
+
+    // Bold+Italic → Bold (remove italic)
+    await selectAndFormat(editor, 3, 8, "*");
+    expect(getEditorText(editor)).toBe("**hello** world");
+
+    // Bold → Plain (remove bold)
+    await selectAndFormat(editor, 2, 7, "**");
+    expect(getEditorText(editor)).toBe("hello world");
+  });
+
+  it("full cycle: plain → italic → bold+italic → remove bold → remove italic → plain", async () => {
+    const editor = renderTestEditor("hello world");
+
+    // Plain → Italic
+    await selectAndFormat(editor, 0, 5, "*");
+    expect(getEditorText(editor)).toBe("*hello* world");
+
+    // Italic → Bold+Italic
+    await selectAndFormat(editor, 1, 6, "**");
+    expect(getEditorText(editor)).toBe("***hello*** world");
+
+    // Bold+Italic → Italic (remove bold)
+    await selectAndFormat(editor, 3, 8, "**");
+    expect(getEditorText(editor)).toBe("*hello* world");
+
+    // Italic → Plain (remove italic)
+    await selectAndFormat(editor, 1, 6, "*");
+    expect(getEditorText(editor)).toBe("hello world");
   });
 });
