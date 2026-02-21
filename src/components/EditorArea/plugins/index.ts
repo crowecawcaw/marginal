@@ -6,3 +6,4 @@ export { RichTextFormattingPlugin } from "./RichTextFormattingPlugin";
 export { BracketPairingPlugin } from "./BracketPairingPlugin";
 export { CodeViewFormattingPlugin } from "./CodeViewFormattingPlugin";
 export { CodeBlockShortcutPlugin } from "./CodeBlockShortcutPlugin";
+export { CodeIndentPlugin } from "./CodeIndentPlugin";

@@ -34,6 +34,7 @@ import {
   BracketPairingPlugin,
   CodeViewFormattingPlugin,
   CodeBlockShortcutPlugin,
+  CodeIndentPlugin,
 } from "./plugins";
 import { renderedEditorTheme, codeEditorTheme } from "./editorTheme";
 import "./MarkdownEditor.css";
@@ -179,6 +180,7 @@ function RenderedEditor({
         <InsertTablePlugin />
         <TableResizePlugin />
         <CodeBlockShortcutPlugin />
+        <CodeIndentPlugin />
       </div>
     </LexicalComposer>
   );
