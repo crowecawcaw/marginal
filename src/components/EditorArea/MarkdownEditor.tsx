@@ -33,6 +33,7 @@ import {
   RichTextFormattingPlugin,
   BracketPairingPlugin,
   CodeViewFormattingPlugin,
+  CodeBlockShortcutPlugin,
 } from "./plugins";
 import { renderedEditorTheme, codeEditorTheme } from "./editorTheme";
 import "./MarkdownEditor.css";
@@ -177,6 +178,7 @@ function RenderedEditor({
         <TableContextMenuPlugin />
         <InsertTablePlugin />
         <TableResizePlugin />
+        <CodeBlockShortcutPlugin />
       </div>
     </LexicalComposer>
   );
