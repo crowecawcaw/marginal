@@ -8,8 +8,10 @@ import { EditorView as CMEditorView } from "@codemirror/view";
 import { EditorState as CMEditorState } from "@codemirror/state";
 import { markdown as cmMarkdown } from "@codemirror/lang-markdown";
 import { languages } from "@codemirror/language-data";
-import { defaultKeymap, historyKeymap, history as cmHistory } from "@codemirror/commands";
+import { defaultKeymap, historyKeymap, history as cmHistory, indentWithTab } from "@codemirror/commands";
 import { keymap } from "@codemirror/view";
+import { closeBrackets, closeBracketsKeymap } from "@codemirror/autocomplete";
+import { indentOnInput } from "@codemirror/language";
 import "./MarkdownEditor.css";
 
 interface MarkdownEditorProps {
@@ -101,8 +103,10 @@ function CodeEditor({
     const state = CMEditorState.create({
       doc: initialContent,
       extensions: [
-        keymap.of([...defaultKeymap, ...historyKeymap]),
+        keymap.of([...closeBracketsKeymap, ...defaultKeymap, ...historyKeymap, indentWithTab]),
         cmHistory(),
+        closeBrackets(),
+        indentOnInput(),
         cmMarkdown({ codeLanguages: languages }),
         CMEditorView.updateListener.of((update) => {
           if (update.docChanged) {
