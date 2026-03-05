@@ -24,7 +24,7 @@ describe("Table Support", () => {
       );
 
       await waitFor(() => {
-        const codeElements = document.querySelectorAll(".editor-text-code");
+        const codeElements = document.querySelectorAll(".milkdown-editor code:not(pre code)");
         expect(codeElements.length).toBeGreaterThan(0);
       });
 
@@ -38,7 +38,7 @@ describe("Table Support", () => {
       );
 
       await waitFor(() => {
-        const codeView = document.querySelector(".markdown-code-input");
+        const codeView = document.querySelector(".markdown-code-input .cm-content");
         expect(codeView?.textContent).toContain("`foo()`");
       });
 
@@ -55,7 +55,7 @@ describe("Table Support", () => {
 
       await waitFor(() => {
         // Verify inline code is still present
-        const codeElements = document.querySelectorAll(".editor-text-code");
+        const codeElements = document.querySelectorAll(".milkdown-editor code:not(pre code)");
         expect(codeElements.length).toBeGreaterThan(0);
 
         const codeText = Array.from(codeElements)
@@ -83,11 +83,11 @@ describe("Table Support", () => {
       );
 
       await waitFor(() => {
-        const table = document.querySelector(".editor-table");
+        const table = document.querySelector(".milkdown-editor table");
         expect(table).toBeTruthy();
 
         // Check for inline code formatting
-        const codeElements = document.querySelectorAll(".editor-text-code");
+        const codeElements = document.querySelectorAll(".milkdown-editor code:not(pre code)");
         expect(codeElements.length).toBeGreaterThan(0);
 
         // Verify the code content
@@ -114,7 +114,7 @@ describe("Table Support", () => {
       );
 
       await waitFor(() => {
-        const codeElements = document.querySelectorAll(".editor-text-code");
+        const codeElements = document.querySelectorAll(".milkdown-editor code:not(pre code)");
         expect(codeElements.length).toBe(2);
 
         const codeTags = Array.from(codeElements).map((el) => el.textContent);
@@ -139,7 +139,7 @@ describe("Table Support", () => {
       );
 
       await waitFor(() => {
-        const codeElement = document.querySelector(".editor-text-code");
+        const codeElement = document.querySelector(".milkdown-editor code:not(pre code)");
         expect(codeElement?.textContent).toBe("x => x + 1");
       });
     });
@@ -161,10 +161,9 @@ describe("Table Support", () => {
 
       await waitFor(() => {
         // Get the data cell (not header)
-        const cells = document.querySelectorAll(".editor-table-cell");
+        const cells = document.querySelectorAll(".milkdown-editor td");
         const dataCell = Array.from(cells).find(
           (cell) =>
-            !cell.classList.contains("editor-table-cell-header") &&
             cell.textContent?.includes("useState")
         );
 
@@ -173,7 +172,7 @@ describe("Table Support", () => {
         expect(dataCell?.textContent).toContain("hook is useful");
 
         // Check that useState is formatted as code
-        const codeElement = document.querySelector(".editor-text-code");
+        const codeElement = document.querySelector(".milkdown-editor code:not(pre code)");
         expect(codeElement?.textContent).toBe("useState");
       });
     });
@@ -196,17 +195,17 @@ describe("Table Support", () => {
       );
 
       await waitFor(() => {
-        const table = document.querySelector(".editor-table");
+        const table = document.querySelector(".milkdown-editor table");
         expect(table).toBeTruthy();
       });
 
       // Check for header cells
-      const headerCells = document.querySelectorAll(".editor-table-cell-header");
+      const headerCells = document.querySelectorAll(".milkdown-editor th");
       expect(headerCells.length).toBe(2);
 
       // Check for data cells
       const dataCells = document.querySelectorAll(
-        ".editor-table-cell:not(.editor-table-cell-header)"
+        ".milkdown-editor td"
       );
       expect(dataCells.length).toBe(2);
     });
@@ -229,12 +228,12 @@ describe("Table Support", () => {
       );
 
       await waitFor(() => {
-        const table = document.querySelector(".editor-table");
+        const table = document.querySelector(".milkdown-editor table");
         expect(table).toBeTruthy();
 
         // 3 header cells + 9 data cells = 12 total cells
         const allCells = document.querySelectorAll(
-          ".editor-table-cell, .editor-table-cell-header"
+          ".milkdown-editor td, .milkdown-editor th"
         );
         expect(allCells.length).toBe(12);
       });
@@ -256,11 +255,11 @@ describe("Table Support", () => {
       );
 
       await waitFor(() => {
-        const table = document.querySelector(".editor-table");
+        const table = document.querySelector(".milkdown-editor table");
         expect(table).toBeTruthy();
 
         // Check that the pipe character is rendered (check the data cell, not header)
-        const cells = document.querySelectorAll(".editor-table-cell");
+        const cells = document.querySelectorAll(".milkdown-editor td");
         const dataCell = Array.from(cells).find(cell =>
           cell.textContent?.includes("pipe")
         );
@@ -291,15 +290,15 @@ Some text after the table.`;
 
       await waitFor(() => {
         // Check for heading
-        const heading = document.querySelector(".editor-heading-h1");
+        const heading = document.querySelector(".milkdown-editor h1");
         expect(heading).toBeTruthy();
 
         // Check for table
-        const table = document.querySelector(".editor-table");
+        const table = document.querySelector(".milkdown-editor table");
         expect(table).toBeTruthy();
 
         // Check for paragraphs
-        const paragraphs = document.querySelectorAll(".editor-paragraph");
+        const paragraphs = document.querySelectorAll(".milkdown-editor p");
         expect(paragraphs.length).toBeGreaterThan(0);
       });
     });
@@ -325,7 +324,7 @@ Some text after the table.`;
       );
 
       await waitFor(() => {
-        const table = document.querySelector(".editor-table");
+        const table = document.querySelector(".milkdown-editor table");
         expect(table).toBeTruthy();
       });
 
@@ -352,7 +351,7 @@ Some text after the table.`;
 
       // Wait for table to render
       await waitFor(() => {
-        const table = document.querySelector(".editor-table");
+        const table = document.querySelector(".milkdown-editor table");
         expect(table).toBeTruthy();
       });
 
@@ -367,7 +366,7 @@ Some text after the table.`;
 
       // Check that markdown is preserved
       await waitFor(() => {
-        const codeView = document.querySelector(".markdown-code-input");
+        const codeView = document.querySelector(".markdown-code-input .cm-content");
         expect(codeView?.textContent).toContain("|");
         expect(codeView?.textContent).toContain("A");
         expect(codeView?.textContent).toContain("B");
@@ -396,7 +395,7 @@ Some text after the table.`;
 
       // Wait for initial render
       await waitFor(() => {
-        const table = document.querySelector(".editor-table");
+        const table = document.querySelector(".milkdown-editor table");
         expect(table).toBeTruthy();
       });
 
@@ -441,11 +440,11 @@ Some text after the table.`;
 
       // Wait for table to render
       await waitFor(() => {
-        const table = document.querySelector(".editor-table");
+        const table = document.querySelector(".milkdown-editor table");
         expect(table).toBeTruthy();
 
         const cells = document.querySelectorAll(
-          ".editor-table-cell, .editor-table-cell-header"
+          ".milkdown-editor td, .milkdown-editor th"
         );
         expect(cells.length).toBe(4); // 2 headers + 2 data cells
       });
@@ -472,7 +471,7 @@ Some text after the table.`;
 
       // Wait for initial render
       await waitFor(() => {
-        const table = document.querySelector(".editor-table");
+        const table = document.querySelector(".milkdown-editor table");
         expect(table).toBeTruthy();
       });
 
@@ -500,7 +499,7 @@ Some text after the table.`;
       );
 
       await waitFor(() => {
-        const table = document.querySelector(".editor-table");
+        const table = document.querySelector(".milkdown-editor table");
         expect(table).toBeTruthy();
 
         // Verify content is still present

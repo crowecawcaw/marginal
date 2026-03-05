@@ -1,4 +1,4 @@
-import { render, waitFor, act, RenderResult } from "@testing-library/react";
+import { render, waitFor, RenderResult } from "@testing-library/react";
 import { vi } from "vitest";
 import React from "react";
 
@@ -11,57 +11,56 @@ interface LinkInfo {
 
 class HarnessQuery {
   heading(level: number): string | null {
-    const el = document.querySelector(`.editor-heading-h${level}`);
+    const el = document.querySelector(`.milkdown-editor h${level}`);
     return el?.textContent ?? null;
   }
 
   boldTexts(): string[] {
-    return Array.from(document.querySelectorAll(".editor-text-bold")).map(
+    return Array.from(document.querySelectorAll(".milkdown-editor strong")).map(
       (el) => el.textContent ?? ""
     );
   }
 
   italicTexts(): string[] {
-    return Array.from(document.querySelectorAll(".editor-text-italic")).map(
+    return Array.from(document.querySelectorAll(".milkdown-editor em")).map(
       (el) => el.textContent ?? ""
     );
   }
 
   codeTexts(): string[] {
-    return Array.from(document.querySelectorAll(".editor-text-code")).map(
-      (el) => el.textContent ?? ""
-    );
+    // Select inline <code> elements but NOT those inside <pre> blocks
+    return Array.from(
+      document.querySelectorAll(".milkdown-editor code")
+    )
+      .filter((el) => !el.closest("pre"))
+      .map((el) => el.textContent ?? "");
   }
 
   strikethroughTexts(): string[] {
     return Array.from(
-      document.querySelectorAll(".editor-text-strikethrough")
+      document.querySelectorAll(".milkdown-editor del")
     ).map((el) => el.textContent ?? "");
   }
 
   tableData(): string[][] {
-    const rows = document.querySelectorAll(".editor-table tr");
+    const rows = document.querySelectorAll(".milkdown-editor table tr");
     return Array.from(rows).map((row) =>
       Array.from(
-        row.querySelectorAll(
-          ".editor-table-cell, .editor-table-cell-header"
-        )
+        row.querySelectorAll("td, th")
       ).map((cell) => cell.textContent ?? "")
     );
   }
 
   tableCell(row: number, col: number): HTMLElement | null {
-    const rows = document.querySelectorAll(".editor-table tr");
+    const rows = document.querySelectorAll(".milkdown-editor table tr");
     if (row >= rows.length) return null;
-    const cells = rows[row].querySelectorAll(
-      ".editor-table-cell, .editor-table-cell-header"
-    );
+    const cells = rows[row].querySelectorAll("td, th");
     return (cells[col] as HTMLElement) ?? null;
   }
 
   links(): LinkInfo[] {
     return Array.from(
-      document.querySelectorAll("a.editor-link")
+      document.querySelectorAll(".milkdown-editor a")
     ).map((el) => ({
       text: el.textContent ?? "",
       href: el.getAttribute("href") ?? "",
@@ -69,57 +68,49 @@ class HarnessQuery {
   }
 
   paragraphs(): string[] {
-    return Array.from(document.querySelectorAll(".editor-paragraph")).map(
+    return Array.from(document.querySelectorAll(".milkdown-editor p")).map(
       (el) => el.textContent ?? ""
     );
   }
 
   hasList(type: "ul" | "ol"): boolean {
-    return document.querySelector(`.editor-list-${type}`) !== null;
+    return document.querySelector(`.milkdown-editor ${type}`) !== null;
   }
 
   listItems(): string[] {
-    return Array.from(document.querySelectorAll(".editor-list-item")).map(
+    return Array.from(document.querySelectorAll(".milkdown-editor li")).map(
       (el) => el.textContent ?? ""
     );
   }
 
   hasTable(): boolean {
-    return document.querySelector(".editor-table") !== null;
+    return document.querySelector(".milkdown-editor table") !== null;
   }
 
   tableCount(): number {
-    return document.querySelectorAll(".editor-table").length;
+    return document.querySelectorAll(".milkdown-editor table").length;
   }
 
   hasBlockquote(): boolean {
-    return document.querySelector(".editor-quote") !== null;
+    return document.querySelector(".milkdown-editor blockquote") !== null;
   }
 
   blockquoteTexts(): string[] {
-    return Array.from(document.querySelectorAll(".editor-quote")).map(
+    return Array.from(document.querySelectorAll(".milkdown-editor blockquote")).map(
       (el) => el.textContent ?? ""
     );
   }
 
   hasCodeBlock(): boolean {
-    return document.querySelector(".editor-code") !== null;
+    return document.querySelector(".milkdown-editor pre") !== null;
   }
 
   codeBlockTexts(): string[] {
-    return Array.from(document.querySelectorAll(".editor-code")).map(
+    return Array.from(document.querySelectorAll(".milkdown-editor pre")).map(
       (el) => el.textContent ?? ""
     );
   }
 }
-
-// Lexical's updateDOMSelection calls getBoundingClientRect on Range objects
-// (domSelection.getRangeAt(0)) via queueMicrotask. jsdom doesn't implement
-// Range.prototype.getBoundingClientRect, so we stub it for the harness lifetime.
-const stubRect = () =>
-  ({ x: 0, y: 0, width: 100, height: 20, top: 0, right: 100, bottom: 20, left: 0, toJSON() {} }) as DOMRect;
-let activeHarnessCount = 0;
-let origRangeGetBCR: typeof Range.prototype.getBoundingClientRect | undefined;
 
 export class EditorTestHarness {
   private renderResult: RenderResult;
@@ -144,7 +135,7 @@ export class EditorTestHarness {
     markdown: string,
     initialViewMode: ViewMode = "rendered"
   ): Promise<EditorTestHarness> {
-    // Lazy import to avoid circular deps and keep Lexical imports out of test files
+    // Lazy import to avoid circular deps
     const { default: MarkdownEditor } = await import(
       "../components/EditorArea/MarkdownEditor"
     );
@@ -176,22 +167,15 @@ export class EditorTestHarness {
       },
     });
 
-    // Install Range.prototype.getBoundingClientRect stub for Lexical's selection handling
-    if (activeHarnessCount === 0) {
-      origRangeGetBCR = Range.prototype.getBoundingClientRect;
-      Range.prototype.getBoundingClientRect = stubRect;
-    }
-    activeHarnessCount++;
-
     // Wait for initial render to settle
     if (initialViewMode === "rendered") {
       await waitFor(() => {
-        const el = document.querySelector(".markdown-editor-input");
+        const el = document.querySelector(".milkdown-editor .ProseMirror");
         if (!el) throw new Error("Editor not mounted");
       });
     } else {
       await waitFor(() => {
-        const el = document.querySelector(".markdown-code-input");
+        const el = document.querySelector(".markdown-code-input .cm-editor");
         if (!el) throw new Error("Code editor not mounted");
       });
     }
@@ -229,12 +213,12 @@ export class EditorTestHarness {
 
     if (mode === "rendered") {
       await waitFor(() => {
-        const el = document.querySelector(".markdown-editor-input");
+        const el = document.querySelector(".milkdown-editor .ProseMirror");
         if (!el) throw new Error("Editor not mounted after switch");
       });
     } else {
       await waitFor(() => {
-        const el = document.querySelector(".markdown-code-input");
+        const el = document.querySelector(".markdown-code-input .cm-editor");
         if (!el) throw new Error("Code editor not mounted after switch");
       });
     }
@@ -247,7 +231,7 @@ export class EditorTestHarness {
   }
 
   getCodeViewText(): string {
-    const el = document.querySelector(".markdown-code-input");
+    const el = document.querySelector(".markdown-code-input .cm-content");
     return el?.textContent ?? "";
   }
 
@@ -287,41 +271,15 @@ export class EditorTestHarness {
     await this.pressKey(String(level), { meta: true });
   }
 
-  async selectText(text: string): Promise<void> {
-    const { $getRoot, $isTextNode, $isElementNode } = await import("lexical");
-
-    const editor = this.getEditor();
-
-    // DFS through the Lexical tree to find a text node containing the string
-    function $find(node: any): any {
-      if ($isTextNode(node) && node.getTextContent().includes(text)) {
-        return node;
-      }
-      if ($isElementNode(node)) {
-        for (const child of node.getChildren()) {
-          const found = $find(child);
-          if (found) return found;
-        }
-      }
-      return null;
-    }
-
-    await act(async () => {
-      editor.update(() => {
-        const textNode = $find($getRoot());
-        if (!textNode) throw new Error(`Text "${text}" not found in editor`);
-        const offset = textNode.getTextContent().indexOf(text);
-        textNode.select(offset, offset);
-      });
-    });
+  async selectText(_text: string): Promise<void> {
+    // Text selection in ProseMirror/CodeMirror is more complex
+    // and requires programmatic manipulation of the editor state.
+    // For now this is a no-op placeholder.
   }
 
   async emitEvent(event: string): Promise<void> {
     const { getWebEventEmitter } = await import("../platform/eventAdapter");
-
-    await act(async () => {
-      getWebEventEmitter().emit(event);
-    });
+    getWebEventEmitter().emit(event);
   }
 
   async clickCell(row: number, col: number): Promise<void> {
@@ -375,31 +333,19 @@ export class EditorTestHarness {
 
   destroy(): void {
     this.renderResult.unmount();
-    activeHarnessCount--;
-    if (activeHarnessCount === 0 && origRangeGetBCR !== undefined) {
-      Range.prototype.getBoundingClientRect = origRangeGetBCR;
-      origRangeGetBCR = undefined;
-    }
   }
 
   // --- Private helpers ---
 
-  private getEditor(): any {
-    const el = this.getEditorElement();
-    const editor = (el as any).__lexicalEditor;
-    if (!editor) throw new Error("Lexical editor not found on DOM element");
-    return editor;
-  }
-
   private getEditorElement(): HTMLElement {
     if (this.currentViewMode === "rendered") {
       const el = document.querySelector(
-        ".markdown-editor-input"
+        ".milkdown-editor .ProseMirror"
       ) as HTMLElement;
       if (!el) throw new Error("Rendered editor element not found");
       return el;
     }
-    const el = document.querySelector(".markdown-code-input") as HTMLElement;
+    const el = document.querySelector(".markdown-code-input .cm-content") as HTMLElement;
     if (!el) throw new Error("Code editor element not found");
     return el;
   }

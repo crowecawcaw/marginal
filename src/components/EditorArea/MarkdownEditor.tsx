@@ -1,46 +1,16 @@
-// Prism setup must be imported first (before @lexical/code)
-import "../../lib/prismSetup";
-
-import React, { useCallback } from "react";
-import { LexicalComposer } from "@lexical/react/LexicalComposer";
-import { RichTextPlugin } from "@lexical/react/LexicalRichTextPlugin";
-import { PlainTextPlugin } from "@lexical/react/LexicalPlainTextPlugin";
-import { ContentEditable } from "@lexical/react/LexicalContentEditable";
-import { HistoryPlugin } from "@lexical/react/LexicalHistoryPlugin";
-import { OnChangePlugin } from "@lexical/react/LexicalOnChangePlugin";
-import { MarkdownShortcutPlugin } from "@lexical/react/LexicalMarkdownShortcutPlugin";
-import { ListPlugin } from "@lexical/react/LexicalListPlugin";
-import { LinkPlugin } from "@lexical/react/LexicalLinkPlugin";
-import { TabIndentationPlugin } from "@lexical/react/LexicalTabIndentationPlugin";
-import { TablePlugin } from "@lexical/react/LexicalTablePlugin";
-import { LexicalErrorBoundary } from "@lexical/react/LexicalErrorBoundary";
-import { CodeNode, CodeHighlightNode } from "@lexical/code";
-import { $createHeadingNode, HeadingNode, QuoteNode } from "@lexical/rich-text";
-import { ListItemNode, ListNode } from "@lexical/list";
-import { LinkNode, AutoLinkNode } from "@lexical/link";
-import { TableNode, TableCellNode, TableRowNode } from "@lexical/table";
-import { EditorState, $getRoot, $createParagraphNode, $createTextNode } from "lexical";
-import { $convertFromMarkdownString, $convertToMarkdownString, TRANSFORMERS } from "@lexical/markdown";
-import { TABLE, $createTableFromMarkdown } from "./tableTransformer";
-import { TableContextMenuPlugin } from "./TableContextMenuPlugin";
-import { InsertTablePlugin } from "./InsertTablePlugin";
-import { TableResizePlugin } from "./TableResizePlugin";
-import {
-  CodeHighlightPlugin,
-  LinkEditPlugin,
-  ListExitPlugin,
-  MarkdownSyntaxHighlightPlugin,
-  RichTextFormattingPlugin,
-  BracketPairingPlugin,
-  CodeViewFormattingPlugin,
-  CodeBlockShortcutPlugin,
-  CodeIndentPlugin,
-} from "./plugins";
-import { renderedEditorTheme, codeEditorTheme } from "./editorTheme";
+import React, { useEffect, useRef } from "react";
+import { Editor, rootCtx, defaultValueCtx } from "@milkdown/kit/core";
+import { commonmark } from "@milkdown/kit/preset/commonmark";
+import { gfm } from "@milkdown/kit/preset/gfm";
+import { history } from "@milkdown/kit/plugin/history";
+import { listener, listenerCtx } from "@milkdown/kit/plugin/listener";
+import { EditorView as CMEditorView } from "@codemirror/view";
+import { EditorState as CMEditorState } from "@codemirror/state";
+import { markdown as cmMarkdown } from "@codemirror/lang-markdown";
+import { languages } from "@codemirror/language-data";
+import { defaultKeymap, historyKeymap, history as cmHistory } from "@codemirror/commands";
+import { keymap } from "@codemirror/view";
 import "./MarkdownEditor.css";
-
-// Custom transformers array that includes table support
-const CUSTOM_TRANSFORMERS = [...TRANSFORMERS, TABLE];
 
 interface MarkdownEditorProps {
   initialContent: string;
@@ -49,83 +19,7 @@ interface MarkdownEditorProps {
   onChange: (content: string) => void;
 }
 
-// Shared nodes for rendered editor
-const RENDERED_EDITOR_NODES = [
-  HeadingNode,
-  QuoteNode,
-  ListNode,
-  ListItemNode,
-  CodeNode,
-  CodeHighlightNode,
-  LinkNode,
-  AutoLinkNode,
-  TableNode,
-  TableCellNode,
-  TableRowNode,
-];
-
-// Build the editorState initializer for the rendered editor.
-// Runs synchronously during editor construction, before any plugin
-// useEffect fires — which eliminates the race between content population
-// and transform registration (e.g. CodeHighlightPlugin).
-function buildEditorState(content: string): () => void {
-  return () => {
-    if (!content || content.trim() === "") {
-      const root = $getRoot();
-      root.clear();
-      const heading = $createHeadingNode("h1");
-      root.append(heading);
-      return;
-    }
-
-    // Extract table blocks and process them separately
-    const tableRegex = /(\|.+\|\n\|[-:\s|]+\|\n(?:\|.+\|\n?)*)/g;
-    const tables: { text: string; index: number }[] = [];
-    let match;
-
-    while ((match = tableRegex.exec(content)) !== null) {
-      tables.push({ text: match[1], index: match.index });
-    }
-
-    // If there are tables, replace them with placeholders
-    let processedContent = content;
-    const placeholder = "<!--TABLE_PLACEHOLDER-->";
-
-    if (tables.length > 0) {
-      for (let i = tables.length - 1; i >= 0; i--) {
-        const table = tables[i];
-        processedContent =
-          processedContent.slice(0, table.index) +
-          placeholder +
-          processedContent.slice(table.index + table.text.length);
-      }
-    }
-
-    // Convert the processed markdown
-    $convertFromMarkdownString(processedContent, CUSTOM_TRANSFORMERS);
-
-    // Now insert tables where placeholders are
-    if (tables.length > 0) {
-      const root = $getRoot();
-      const children = root.getChildren();
-      let tableIndex = 0;
-
-      children.forEach((child) => {
-        const text = child.getTextContent();
-        if (text.includes(placeholder) && tableIndex < tables.length) {
-          const tableNode = $createTableFromMarkdown(tables[tableIndex].text);
-          if (tableNode) {
-            child.insertAfter(tableNode);
-            child.remove();
-            tableIndex++;
-          }
-        }
-      });
-    }
-  };
-}
-
-// Rendered view editor (WYSIWYG markdown)
+// Rendered view editor (WYSIWYG markdown via Milkdown)
 function RenderedEditor({
   initialContent,
   onChange,
@@ -133,60 +27,62 @@ function RenderedEditor({
   initialContent: string;
   onChange: (content: string) => void;
 }) {
-  const initialConfig = {
-    namespace: "MarkdownEditor-Rendered",
-    theme: renderedEditorTheme,
-    nodes: RENDERED_EDITOR_NODES,
-    editorState: buildEditorState(initialContent),
-    onError: (error: Error) => {
-      console.error("Lexical Error:", error);
-    },
-  };
+  const editorRef = useRef<HTMLDivElement>(null);
+  const milkdownRef = useRef<Editor | null>(null);
+  const onChangeRef = useRef(onChange);
+  onChangeRef.current = onChange;
 
-  const handleChange = useCallback(
-    (editorState: EditorState) => {
-      editorState.read(() => {
-        const markdown = $convertToMarkdownString(CUSTOM_TRANSFORMERS);
-        onChange(markdown);
-      });
-    },
-    [onChange]
-  );
+  useEffect(() => {
+    if (!editorRef.current) return;
+
+    let destroyed = false;
+    const el = editorRef.current;
+
+    const create = async () => {
+      const editor = await Editor.make()
+        .config((ctx) => {
+          ctx.set(rootCtx, el);
+          ctx.set(defaultValueCtx, initialContent);
+          ctx.get(listenerCtx).markdownUpdated((_ctx, md) => {
+            if (!destroyed) {
+              onChangeRef.current(md);
+            }
+          });
+        })
+        .use(commonmark)
+        .use(gfm)
+        .use(history)
+        .use(listener)
+        .create();
+
+      if (destroyed) {
+        editor.destroy();
+        return;
+      }
+
+      milkdownRef.current = editor;
+    };
+
+    create();
+
+    return () => {
+      destroyed = true;
+      milkdownRef.current?.destroy();
+      milkdownRef.current = null;
+    };
+  }, [initialContent]);
 
   return (
-    <LexicalComposer initialConfig={initialConfig}>
-      <div className="markdown-editor-container">
-        <RichTextPlugin
-          contentEditable={
-            <ContentEditable className="markdown-editor-input" />
-          }
-          placeholder={
-            <div className="markdown-editor-placeholder">Untitled</div>
-          }
-          ErrorBoundary={LexicalErrorBoundary}
-        />
-        <HistoryPlugin />
-        <OnChangePlugin onChange={handleChange} />
-        <MarkdownShortcutPlugin transformers={CUSTOM_TRANSFORMERS} />
-        <ListPlugin />
-        <LinkPlugin />
-        <LinkEditPlugin />
-        <TablePlugin hasCellMerge={false} hasCellBackgroundColor={false} />
-        <TabIndentationPlugin />
-        <CodeHighlightPlugin />
-        <ListExitPlugin />
-        <RichTextFormattingPlugin />
-        <TableContextMenuPlugin />
-        <InsertTablePlugin />
-        <TableResizePlugin />
-        <CodeBlockShortcutPlugin />
-        <CodeIndentPlugin />
-      </div>
-    </LexicalComposer>
+    <div className="markdown-editor-container">
+      <div
+        ref={editorRef}
+        className="markdown-editor-input milkdown-editor"
+      />
+    </div>
   );
 }
 
-// Code view editor (plain text markdown source with syntax highlighting)
+// Code view editor (plain text markdown source via CodeMirror 6)
 function CodeEditor({
   initialContent,
   onChange,
@@ -194,59 +90,53 @@ function CodeEditor({
   initialContent: string;
   onChange: (content: string) => void;
 }) {
-  const initialConfig = {
-    namespace: "MarkdownEditor-Code",
-    theme: codeEditorTheme,
-    nodes: [],
-    editorState: () => {
-      if (initialContent) {
-        const root = $getRoot();
-        root.clear();
-        const paragraph = $createParagraphNode();
-        paragraph.append($createTextNode(initialContent));
-        root.append(paragraph);
-      }
-    },
-    onError: (error: Error) => {
-      console.error("Lexical Error:", error);
-    },
-  };
+  const editorRef = useRef<HTMLDivElement>(null);
+  const cmRef = useRef<CMEditorView | null>(null);
+  const onChangeRef = useRef(onChange);
+  onChangeRef.current = onChange;
 
-  const handleChange = useCallback(
-    (editorState: EditorState) => {
-      editorState.read(() => {
-        const root = $getRoot();
-        const text = root.getTextContent();
-        onChange(text);
-      });
-    },
-    [onChange]
-  );
+  useEffect(() => {
+    if (!editorRef.current) return;
+
+    const state = CMEditorState.create({
+      doc: initialContent,
+      extensions: [
+        keymap.of([...defaultKeymap, ...historyKeymap]),
+        cmHistory(),
+        cmMarkdown({ codeLanguages: languages }),
+        CMEditorView.updateListener.of((update) => {
+          if (update.docChanged) {
+            onChangeRef.current(update.state.doc.toString());
+          }
+        }),
+        CMEditorView.contentAttributes.of({
+          "autocorrect": "off",
+          "autocapitalize": "off",
+          "spellcheck": "false",
+        }),
+      ],
+    });
+
+    const view = new CMEditorView({
+      state,
+      parent: editorRef.current,
+    });
+
+    cmRef.current = view;
+
+    return () => {
+      view.destroy();
+      cmRef.current = null;
+    };
+  }, [initialContent]);
 
   return (
-    <LexicalComposer initialConfig={initialConfig}>
-      <div className="markdown-editor-container markdown-code-view">
-        <PlainTextPlugin
-          contentEditable={
-            <ContentEditable
-              className="markdown-editor-input markdown-code-input"
-              autoCorrect="off"
-              autoCapitalize="off"
-              spellCheck={false}
-            />
-          }
-          placeholder={
-            <div className="markdown-editor-placeholder"># Untitled</div>
-          }
-          ErrorBoundary={LexicalErrorBoundary}
-        />
-        <HistoryPlugin />
-        <OnChangePlugin onChange={handleChange} />
-        <MarkdownSyntaxHighlightPlugin />
-        <BracketPairingPlugin />
-        <CodeViewFormattingPlugin />
-      </div>
-    </LexicalComposer>
+    <div className="markdown-editor-container markdown-code-view">
+      <div
+        ref={editorRef}
+        className="markdown-code-input"
+      />
+    </div>
   );
 }
 
