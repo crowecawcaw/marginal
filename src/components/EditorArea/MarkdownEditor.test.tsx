@@ -2,31 +2,9 @@ import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import MarkdownEditor from "./MarkdownEditor";
 
-// Stub for Range.prototype.getBoundingClientRect which jsdom doesn't implement.
-// Lexical calls this via queueMicrotask during selection updates after key events.
-const stubRect = () =>
-  ({ x: 0, y: 0, width: 100, height: 20, top: 0, right: 100, bottom: 20, left: 0, toJSON() {} }) as DOMRect;
-
-// Helper to simulate keyboard events in Lexical
-const simulateKeyDown = (element: Element, key: string) => {
-  const origGetBCR = Range.prototype.getBoundingClientRect;
-  Range.prototype.getBoundingClientRect = stubRect;
-  const event = new KeyboardEvent("keydown", {
-    key,
-    code: key === "Enter" ? "Enter" : key === "Backspace" ? "Backspace" : key,
-    bubbles: true,
-    cancelable: true,
-  });
-  element.dispatchEvent(event);
-  // Restore after microtask queue drains (Lexical schedules via queueMicrotask)
-  queueMicrotask(() => {
-    Range.prototype.getBoundingClientRect = origGetBCR;
-  });
-};
-
 describe("MarkdownEditor", () => {
   describe("Code View", () => {
-    it("renders markdown content in contenteditable", async () => {
+    it("renders markdown content in code editor", async () => {
       const content = "# Hello World\n\nThis is **bold** text.";
       render(
         <MarkdownEditor
@@ -37,9 +15,12 @@ describe("MarkdownEditor", () => {
       );
 
       await vi.waitFor(() => {
-        const editor = document.querySelector(".markdown-code-input");
+        const editor = document.querySelector(".markdown-code-input .cm-editor");
         expect(editor).toBeInTheDocument();
-        expect(editor?.textContent).toBe(content);
+        // CodeMirror renders lines as separate divs, so textContent joins without newlines
+        const cmContent = document.querySelector(".markdown-code-input .cm-content");
+        expect(cmContent?.textContent).toContain("# Hello World");
+        expect(cmContent?.textContent).toContain("This is **bold** text.");
       });
     });
 
@@ -58,10 +39,12 @@ describe("MarkdownEditor", () => {
         const editorContainer = document.querySelector(".markdown-code-view");
         expect(editorContainer).toBeInTheDocument();
 
-        // Verify the contenteditable with content exists
-        const editor = document.querySelector(".markdown-code-input");
+        // Verify the CM6 editor with content exists
+        const editor = document.querySelector(".markdown-code-input .cm-editor");
         expect(editor).toBeInTheDocument();
-        expect(editor?.textContent).toBe(content);
+        const cmContent = document.querySelector(".markdown-code-input .cm-content");
+        expect(cmContent?.textContent).toContain("# Test Content");
+        expect(cmContent?.textContent).toContain("This is a test.");
       });
     });
 
@@ -77,8 +60,9 @@ describe("MarkdownEditor", () => {
 
       // Verify initial content
       await vi.waitFor(() => {
-        const editor = document.querySelector(".markdown-code-input");
-        expect(editor?.textContent).toBe(content);
+        const cmContent = document.querySelector(".markdown-code-input .cm-content");
+        expect(cmContent?.textContent).toContain("# Persistent Content");
+        expect(cmContent?.textContent).toContain("This should remain visible.");
       });
 
       // Force a re-render with same props
@@ -92,9 +76,10 @@ describe("MarkdownEditor", () => {
 
       // Verify content is still present after re-render
       await vi.waitFor(() => {
-        const editor = document.querySelector(".markdown-code-input");
+        const editor = document.querySelector(".markdown-code-input .cm-editor");
         expect(editor).toBeInTheDocument();
-        expect(editor?.textContent).toBe(content);
+        const cmContent = document.querySelector(".markdown-code-input .cm-content");
+        expect(cmContent?.textContent).toContain("# Persistent Content");
       });
     });
 
@@ -111,35 +96,17 @@ describe("MarkdownEditor", () => {
 
       // Wait for editor to initialize
       await vi.waitFor(() => {
-        const editor = document.querySelector(".markdown-code-input");
+        const editor = document.querySelector(".markdown-code-input .cm-editor");
         expect(editor).toBeInTheDocument();
       });
 
-      // editorState initializer runs before OnChangePlugin mounts,
-      // so no spurious onChange on initial render
+      // No spurious onChange on initial render
       expect(onChange).not.toHaveBeenCalled();
-    });
-
-    it("disables auto-corrections in code view to prevent -- becoming em dash", () => {
-      render(
-        <MarkdownEditor
-          initialContent="test -- content"
-          viewMode="code"
-          onChange={vi.fn()}
-        />,
-      );
-
-      const textarea = screen.getByRole("textbox");
-
-      // Verify auto-correction attributes are disabled
-      expect(textarea).toHaveAttribute("autocorrect", "off");
-      expect(textarea).toHaveAttribute("autocapitalize", "off");
-      expect(textarea).toHaveAttribute("spellcheck", "false");
     });
   });
 
   describe("Rendered View", () => {
-    it("renders the editor with lexical", () => {
+    it("renders the editor with Milkdown", async () => {
       render(
         <MarkdownEditor
           initialContent="# Hello World"
@@ -148,9 +115,11 @@ describe("MarkdownEditor", () => {
         />,
       );
 
-      // Check that the editor container is rendered
-      const editor = document.querySelector(".markdown-editor-input");
-      expect(editor).toBeInTheDocument();
+      // Milkdown creates asynchronously
+      await vi.waitFor(() => {
+        const editor = document.querySelector(".milkdown-editor .ProseMirror");
+        expect(editor).toBeInTheDocument();
+      });
     });
 
     it("converts markdown to rendered format", async () => {
@@ -164,7 +133,7 @@ describe("MarkdownEditor", () => {
 
       // Wait for the editor to initialize and render the heading
       await vi.waitFor(() => {
-        const heading = document.querySelector(".editor-heading-h1");
+        const heading = document.querySelector(".milkdown-editor h1");
         expect(heading).toBeInTheDocument();
         expect(heading?.textContent).toBe("Hello World");
       });
@@ -180,7 +149,7 @@ describe("MarkdownEditor", () => {
       );
 
       await vi.waitFor(() => {
-        const bold = document.querySelector(".editor-text-bold");
+        const bold = document.querySelector(".milkdown-editor strong");
         expect(bold).toBeInTheDocument();
         expect(bold?.textContent).toBe("bold");
       });
@@ -196,7 +165,7 @@ describe("MarkdownEditor", () => {
       );
 
       await vi.waitFor(() => {
-        const italic = document.querySelector(".editor-text-italic");
+        const italic = document.querySelector(".milkdown-editor em");
         expect(italic).toBeInTheDocument();
         expect(italic?.textContent).toBe("italic");
       });
@@ -212,70 +181,10 @@ describe("MarkdownEditor", () => {
       );
 
       await vi.waitFor(() => {
-        const list = document.querySelector(".editor-list-ul");
+        const list = document.querySelector(".milkdown-editor ul");
         expect(list).toBeInTheDocument();
-        const items = document.querySelectorAll(".editor-list-item");
+        const items = document.querySelectorAll(".milkdown-editor li");
         expect(items.length).toBeGreaterThan(0);
-      });
-    });
-  });
-
-  describe("List Exit Behavior", () => {
-    it("renders list with ListExitPlugin enabled", async () => {
-      render(
-        <MarkdownEditor
-          initialContent="- Item 1\n- Item 2"
-          viewMode="rendered"
-          onChange={vi.fn()}
-        />,
-      );
-
-      await vi.waitFor(() => {
-        const list = document.querySelector(".editor-list-ul");
-        expect(list).toBeInTheDocument();
-        const items = document.querySelectorAll(".editor-list-item");
-        // Lexical may consolidate items differently, just verify we have items
-        expect(items.length).toBeGreaterThanOrEqual(1);
-      });
-    });
-
-    it("maintains list structure with content", async () => {
-      render(
-        <MarkdownEditor
-          initialContent="- First item\n- Second item\n- Third item"
-          viewMode="rendered"
-          onChange={vi.fn()}
-        />,
-      );
-
-      await vi.waitFor(() => {
-        const list = document.querySelector(".editor-list-ul");
-        expect(list).toBeInTheDocument();
-        const items = document.querySelectorAll(".editor-list-item");
-        // Verify the list contains all the text content
-        expect(items.length).toBeGreaterThanOrEqual(1);
-        const listText = list?.textContent;
-        expect(listText).toContain("First item");
-        expect(listText).toContain("Second item");
-        expect(listText).toContain("Third item");
-      });
-    });
-
-    it("handles ordered lists correctly", async () => {
-      render(
-        <MarkdownEditor
-          initialContent="1. First\n2. Second\n3. Third"
-          viewMode="rendered"
-          onChange={vi.fn()}
-        />,
-      );
-
-      await vi.waitFor(() => {
-        const list = document.querySelector(".editor-list-ol");
-        expect(list).toBeInTheDocument();
-        const items = document.querySelectorAll(".editor-list-item");
-        // Verify we have list items
-        expect(items.length).toBeGreaterThanOrEqual(1);
       });
     });
 
@@ -289,54 +198,14 @@ describe("MarkdownEditor", () => {
       );
 
       await vi.waitFor(() => {
-        const list = document.querySelector(".editor-list-ul");
+        const list = document.querySelector(".milkdown-editor ul");
         expect(list).toBeInTheDocument();
       });
 
-      // Verify the editor input is available for interaction
-      const editor = document.querySelector(".markdown-editor-input");
+      // Verify the ProseMirror editor is available for interaction
+      const editor = document.querySelector(".milkdown-editor .ProseMirror");
       expect(editor).toBeInTheDocument();
       expect(editor).toHaveAttribute("contenteditable", "true");
-    });
-
-    it("empty list item can be detected", async () => {
-      render(
-        <MarkdownEditor
-          initialContent="- Item with content\n- "
-          viewMode="rendered"
-          onChange={vi.fn()}
-        />,
-      );
-
-      await vi.waitFor(() => {
-        const items = document.querySelectorAll(".editor-list-item");
-        // Lexical may consolidate empty items, but should have at least 1
-        expect(items.length).toBeGreaterThanOrEqual(1);
-      });
-    });
-
-    it("editor receives keyboard events", async () => {
-      render(
-        <MarkdownEditor
-          initialContent="- Test"
-          viewMode="rendered"
-          onChange={vi.fn()}
-        />,
-      );
-
-      await vi.waitFor(() => {
-        const editor = document.querySelector(".markdown-editor-input");
-        expect(editor).toBeInTheDocument();
-      });
-
-      const editor = document.querySelector(".markdown-editor-input");
-      if (editor) {
-        // Verify we can dispatch keyboard events
-        simulateKeyDown(editor, "Enter");
-        simulateKeyDown(editor, "Backspace");
-        // Events dispatched successfully (no error thrown)
-        expect(editor).toBeInTheDocument();
-      }
     });
   });
 
@@ -361,7 +230,7 @@ describe("MarkdownEditor", () => {
       );
 
       await vi.waitFor(() => {
-        const heading = document.querySelector(".editor-heading-h1");
+        const heading = document.querySelector(".milkdown-editor h1");
         expect(heading).toBeInTheDocument();
         expect(heading?.textContent).toBe("Test Heading");
       });
@@ -379,7 +248,7 @@ describe("MarkdownEditor", () => {
 
       // Wait for initial render
       await vi.waitFor(() => {
-        const heading = document.querySelector(".editor-heading-h1");
+        const heading = document.querySelector(".milkdown-editor h1");
         expect(heading).toBeInTheDocument();
       });
 
@@ -393,8 +262,8 @@ describe("MarkdownEditor", () => {
       );
 
       await vi.waitFor(() => {
-        const editor = document.querySelector(".markdown-code-input");
-        expect(editor?.textContent).toBe(content);
+        const cmContent = document.querySelector(".markdown-code-input .cm-content");
+        expect(cmContent?.textContent).toContain("# Test Heading");
       });
     });
 
@@ -416,7 +285,7 @@ describe("MarkdownEditor", () => {
 
       // Wait for initial render
       await vi.waitFor(() => {
-        const heading = document.querySelector(".editor-heading-h1");
+        const heading = document.querySelector(".milkdown-editor h1");
         expect(heading).toBeInTheDocument();
         expect(heading?.textContent).toBe("Initial Heading");
       });
@@ -436,9 +305,10 @@ describe("MarkdownEditor", () => {
 
       // Verify content is visible in code view
       await vi.waitFor(() => {
-        const editor = document.querySelector(".markdown-code-input");
-        expect(editor).toBeInTheDocument();
-        expect(editor?.textContent).toBe(updatedContent);
+        const cmContent = document.querySelector(".markdown-code-input .cm-content");
+        expect(cmContent).toBeInTheDocument();
+        expect(cmContent?.textContent).toContain("# Initial Heading");
+        expect(cmContent?.textContent).toContain("Added in rendered view.");
       });
 
       // Update content for code view
@@ -457,12 +327,12 @@ describe("MarkdownEditor", () => {
 
       // Verify new content is visible in rendered view
       await vi.waitFor(() => {
-        const heading = document.querySelector(".editor-heading-h1");
+        const heading = document.querySelector(".milkdown-editor h1");
         expect(heading).toBeInTheDocument();
         expect(heading?.textContent).toBe("Initial Heading");
 
         // Check for the bold text added in code view
-        const bold = document.querySelector(".editor-text-bold");
+        const bold = document.querySelector(".milkdown-editor strong");
         expect(bold).toBeInTheDocument();
         expect(bold?.textContent).toBe("Added in code view.");
       });

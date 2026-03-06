@@ -133,9 +133,12 @@ describe("EditorArea E2E", () => {
 
     // Step 1: Verify we're in code view (default) and content is displayed
     await waitFor(() => {
-      const editor = document.querySelector(".markdown-code-input");
+      const editor = document.querySelector(".markdown-code-input .cm-editor");
       expect(editor).toBeInTheDocument();
-      expect(editor?.textContent).toBe(testContent);
+      const cmContent = document.querySelector(".markdown-code-input .cm-content");
+      // CodeMirror renders lines as separate divs, textContent joins without newlines
+      expect(cmContent?.textContent).toContain("# Hello World");
+      expect(cmContent?.textContent).toContain("This is **bold** text.");
     });
 
     // Step 2: Toggle to rendered view
@@ -143,13 +146,13 @@ describe("EditorArea E2E", () => {
 
     // Step 3: Verify content is rendered correctly in rendered view
     await waitFor(() => {
-      const heading = document.querySelector(".editor-heading-h1");
+      const heading = document.querySelector(".milkdown-editor h1");
       expect(heading).toBeInTheDocument();
       expect(heading?.textContent).toBe("Hello World");
     });
 
     await waitFor(() => {
-      const bold = document.querySelector(".editor-text-bold");
+      const bold = document.querySelector(".milkdown-editor strong");
       expect(bold).toBeInTheDocument();
       expect(bold?.textContent).toBe("bold");
     });
@@ -239,8 +242,10 @@ describe("EditorArea E2E", () => {
 
     // Verify first file content is shown (ContentEditable uses textContent, not value)
     await waitFor(() => {
-      const editor = document.querySelector(".markdown-code-input");
-      expect(editor?.textContent).toBe("# File 1");
+      const editor = document.querySelector(".markdown-code-input .cm-editor");
+      expect(editor).toBeInTheDocument();
+      const cmContent = document.querySelector(".markdown-code-input .cm-content");
+      expect(cmContent?.textContent).toBe("# File 1");
     });
 
     // Click on second tab
