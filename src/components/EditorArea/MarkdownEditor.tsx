@@ -15,6 +15,24 @@ import { closeBrackets, closeBracketsKeymap } from "@codemirror/autocomplete";
 import { indentOnInput } from "@codemirror/language";
 import "./MarkdownEditor.css";
 
+// Milkdown GFM serializes empty cells as `<br />` and always emits colon
+// alignment markers (e.g. `:----- `). Clean both so the stored markdown is
+// plain and round-trips cleanly.
+function cleanTableMarkdown(md: string): string {
+  return md
+    .split("\n")
+    .map((line) => {
+      if (!line.trimStart().startsWith("|")) return line;
+      // Separator row: only pipes, dashes, colons, spaces
+      if (/^\s*\|[\s\-:|]+\|\s*$/.test(line)) {
+        return line.replace(/:?-+:?/g, (m) => "-".repeat(m.replace(/:/g, "").length || m.length));
+      }
+      // Data row: strip <br /> from cells
+      return line.replace(/<br\s*\/?>/g, "");
+    })
+    .join("\n");
+}
+
 interface MarkdownEditorProps {
   initialContent: string;
   viewMode: "rendered" | "code";
@@ -48,7 +66,7 @@ function RenderedEditor({
           ctx.set(defaultValueCtx, initialContent);
           ctx.get(listenerCtx).markdownUpdated((_ctx, md) => {
             if (!destroyed) {
-              onChangeRef.current(md);
+              onChangeRef.current(cleanTableMarkdown(md));
             }
           });
         })
@@ -120,7 +138,7 @@ function CodeEditor({
     const state = CMEditorState.create({
       doc: initialContent,
       extensions: [
-        keymap.of([...closeBracketsKeymap, ...defaultKeymap, ...historyKeymap, indentWithTab]),
+        keymap.of([...closeBracketsKeymap, ...defaultKeymap.filter(b => b.key !== "Mod-/"), ...historyKeymap, indentWithTab]),
         cmHistory(),
         closeBrackets(),
         indentOnInput(),
