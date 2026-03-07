@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from "react";
-import { Editor, rootCtx, defaultValueCtx } from "@milkdown/kit/core";
-import { commonmark } from "@milkdown/kit/preset/commonmark";
+import { Editor, rootCtx, defaultValueCtx, commandsCtx } from "@milkdown/kit/core";
+import { commonmark, wrapInHeadingCommand } from "@milkdown/kit/preset/commonmark";
 import { gfm } from "@milkdown/kit/preset/gfm";
 import { history } from "@milkdown/kit/plugin/history";
 import { listener, listenerCtx } from "@milkdown/kit/plugin/listener";
@@ -74,8 +74,18 @@ function RenderedEditor({
     };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps -- initialContent is used only for init; the component remounts via key when content source changes
 
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if ((e.metaKey || e.ctrlKey) && /^[1-6]$/.test(e.key)) {
+      const level = parseInt(e.key);
+      milkdownRef.current?.action((ctx) => {
+        ctx.get(commandsCtx).call(wrapInHeadingCommand.key, level);
+      });
+      e.preventDefault();
+    }
+  };
+
   return (
-    <div className="markdown-editor-container">
+    <div className="markdown-editor-container" onKeyDown={handleKeyDown}>
       <div
         ref={editorRef}
         className="markdown-editor-input milkdown-editor"
