@@ -72,7 +72,7 @@ function RenderedEditor({
       milkdownRef.current?.destroy();
       milkdownRef.current = null;
     };
-  }, [initialContent]);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps -- initialContent is used only for init; the component remounts via key when content source changes
 
   return (
     <div className="markdown-editor-container">
@@ -132,7 +132,7 @@ function CodeEditor({
       view.destroy();
       cmRef.current = null;
     };
-  }, [initialContent]);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps -- initialContent is used only for init; the component remounts via key when content source changes
 
   return (
     <div className="markdown-editor-container markdown-code-view">
