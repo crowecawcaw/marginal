@@ -1,0 +1,28 @@
+{
+  "overrides": [
+    {
+      "files": ["src/**/__tests__/*.test.{ts,tsx}"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "patterns": [
+              {
+                "group": ["@codemirror/*"],
+                "message": "E2E tests must not import CodeMirror directly. Use EditorTestHarness instead."
+              },
+              {
+                "group": ["@milkdown/*"],
+                "message": "E2E tests must not import Milkdown directly. Use EditorTestHarness instead."
+              },
+              {
+                "group": ["@testing-library/react"],
+                "message": "E2E tests must not import @testing-library/react directly. Use EditorTestHarness instead."
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}

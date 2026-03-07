@@ -332,6 +332,15 @@ export class EditorTestHarness {
     target.dispatchEvent(event);
   }
 
+  // Waits until the rendered view contains a heading at the given level.
+  // Use after h.heading() since ProseMirror applies the command asynchronously.
+  async waitForHeading(level: number): Promise<void> {
+    await waitFor(() => {
+      if (this.query.heading(level) === null)
+        throw new Error(`h${level} not found`);
+    });
+  }
+
   // selectText is not supported in jsdom: ProseMirror and CodeMirror both rely
   // on real DOM Selection APIs that jsdom does not fully implement.
   async selectText(_text: string): Promise<void> {

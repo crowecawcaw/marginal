@@ -131,7 +131,7 @@ fn write_file_content(path: String, content: String) -> Result<(), String> {
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
-    use tauri::menu::{MenuBuilder, MenuItemBuilder, PredefinedMenuItem, SubmenuBuilder};
+    use tauri::menu::{AboutMetadata, MenuBuilder, MenuItemBuilder, PredefinedMenuItem, SubmenuBuilder};
 
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
@@ -146,7 +146,14 @@ pub fn run() {
         .setup(|app| {
             // Build the menu
             // On macOS, the first submenu becomes the app menu, so we create it explicitly
-            let about = PredefinedMenuItem::about(app, None, None)?;
+            let about = PredefinedMenuItem::about(
+                app,
+                None,
+                Some(AboutMetadata {
+                    icon: app.default_window_icon().cloned(),
+                    ..Default::default()
+                }),
+            )?;
 
             let view_readme = MenuItemBuilder::with_id("view_readme", "View guide")
                 .build(app)?;

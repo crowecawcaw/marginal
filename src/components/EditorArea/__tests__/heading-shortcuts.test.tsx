@@ -1,6 +1,5 @@
 import { describe, it, expect, afterEach } from "vitest";
 import { EditorTestHarness } from "../../../test/EditorTestHarness";
-import { waitFor } from "@testing-library/react";
 
 describe("Heading keyboard shortcuts in rendered mode", () => {
   let h: EditorTestHarness;
@@ -16,11 +15,7 @@ describe("Heading keyboard shortcuts in rendered mode", () => {
       expect(h.query.heading(level)).toBeNull();
 
       await h.heading(level);
-
-      await waitFor(() => {
-        if (h.query.heading(level) === null)
-          throw new Error(`h${level} not found after Cmd+${level}`);
-      });
+      await h.waitForHeading(level);
     });
   }
 
@@ -28,14 +23,10 @@ describe("Heading keyboard shortcuts in rendered mode", () => {
     h = await EditorTestHarness.create("Some text");
 
     await h.heading(1);
-    await waitFor(() => {
-      if (h.query.heading(1) === null) throw new Error("h1 not found");
-    });
+    await h.waitForHeading(1);
 
     await h.heading(2);
-    await waitFor(() => {
-      if (h.query.heading(2) === null) throw new Error("h2 not found after Cmd+2");
-    });
+    await h.waitForHeading(2);
     expect(h.query.heading(1)).toBeNull();
   });
 });

@@ -3,7 +3,7 @@
 // configuration (bracket pairing, smart indent). They intentionally use CM
 // APIs and are not subject to the "harness-only" rule that applies to E2E tests.
 import { describe, it, expect, afterEach } from "vitest";
-import { EditorTestHarness } from "../../../test/EditorTestHarness";
+import { EditorTestHarness } from "../../../../test/EditorTestHarness";
 import { EditorView } from "@codemirror/view";
 import { closeBracketsKeymap } from "@codemirror/autocomplete";
 
