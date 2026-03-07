@@ -11,17 +11,13 @@ describe("Formatting Tests", () => {
   it("bold renders with correct element", async () => {
     h = await EditorTestHarness.create("This is **bold** text");
 
-    const boldEls = document.querySelectorAll(".milkdown-editor strong");
-    expect(boldEls.length).toBe(1);
-    expect(boldEls[0].textContent).toBe("bold");
+    expect(h.query.boldTexts()).toEqual(["bold"]);
   });
 
   it("italic renders with correct element", async () => {
     h = await EditorTestHarness.create("This is *italic* text");
 
-    const italicEls = document.querySelectorAll(".milkdown-editor em");
-    expect(italicEls.length).toBe(1);
-    expect(italicEls[0].textContent).toBe("italic");
+    expect(h.query.italicTexts()).toEqual(["italic"]);
   });
 
   it("inline code renders correctly", async () => {
@@ -39,13 +35,8 @@ describe("Formatting Tests", () => {
   it("bold+italic combined renders correctly", async () => {
     h = await EditorTestHarness.create("This is ***bolditalic*** text");
 
-    // bold+italic text should have both strong and em elements
-    const strong = document.querySelector(".milkdown-editor strong");
-    const em = document.querySelector(".milkdown-editor em");
-    expect(strong).toBeTruthy();
-    expect(em).toBeTruthy();
-    // The text "bolditalic" should appear in both bold and italic context
-    expect(strong?.textContent).toContain("bolditalic");
+    expect(h.query.boldTexts().join("")).toContain("bolditalic");
+    expect(h.query.italicTexts().join("")).toContain("bolditalic");
   });
 
   it("heading level 1 renders correctly", async () => {

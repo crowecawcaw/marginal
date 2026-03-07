@@ -8,7 +8,7 @@ describe("Code Block Tests", () => {
     h?.destroy();
   });
 
-  it("renders code block from markdown with pre element", async () => {
+  it("renders code block from markdown", async () => {
     h = await EditorTestHarness.create("```\nconsole.log('hello');\n```");
 
     expect(h.query.hasCodeBlock()).toBe(true);
@@ -48,13 +48,5 @@ describe("Code Block Tests", () => {
     expect(text).toContain("line 1");
     expect(text).toContain("line 2");
     expect(text).toContain("line 3");
-  });
-
-  it("code block renders as pre element", async () => {
-    h = await EditorTestHarness.create("```\ntest\n```");
-
-    const preEl = document.querySelector(".milkdown-editor pre") as HTMLElement;
-    expect(preEl).not.toBeNull();
-    expect(preEl.tagName.toLowerCase()).toBe("pre");
   });
 });

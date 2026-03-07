@@ -190,6 +190,14 @@ export class EditorTestHarness {
     await this.switchTo(mode);
   }
 
+  async switchToCodeView(): Promise<void> {
+    await this.setViewMode("code");
+  }
+
+  async switchToRenderedView(): Promise<void> {
+    await this.setViewMode("rendered");
+  }
+
   async toggleView(): Promise<void> {
     const next: ViewMode =
       this.currentViewMode === "rendered" ? "code" : "rendered";
@@ -239,6 +247,50 @@ export class EditorTestHarness {
     return this.currentViewMode;
   }
 
+  // Returns the current editor's root DOM element. Useful for stability tests
+  // (asserting the same node is reused across re-renders).
+  getEditorElement(): HTMLElement {
+    if (this.currentViewMode === "rendered") {
+      const el = document.querySelector(
+        ".milkdown-editor .ProseMirror"
+      ) as HTMLElement;
+      if (!el) throw new Error("Rendered editor element not found");
+      return el;
+    }
+    const el = document.querySelector(".markdown-code-input .cm-content") as HTMLElement;
+    if (!el) throw new Error("Code editor element not found");
+    return el;
+  }
+
+  // Re-renders the component with a new initialContent value while keeping the
+  // current view mode. Use this to simulate upstream prop changes (e.g. from the
+  // Zustand store) and verify that the editor does not recreate itself.
+  async rerenderWithContent(content: string): Promise<void> {
+    const { default: MarkdownEditor } = await import(
+      "../components/EditorArea/MarkdownEditor"
+    );
+
+    this.renderResult.rerender(
+      React.createElement(MarkdownEditor, {
+        initialContent: content,
+        viewMode: this.currentViewMode,
+        onChange: this.onChange,
+      })
+    );
+
+    if (this.currentViewMode === "rendered") {
+      await waitFor(() => {
+        const el = document.querySelector(".milkdown-editor .ProseMirror");
+        if (!el) throw new Error("Editor not mounted after rerender");
+      });
+    } else {
+      await waitFor(() => {
+        const el = document.querySelector(".markdown-code-input .cm-editor");
+        if (!el) throw new Error("Code editor not mounted after rerender");
+      });
+    }
+  }
+
   // --- Interactions ---
 
   async pressKey(
@@ -268,13 +320,22 @@ export class EditorTestHarness {
   }
 
   async heading(level: number): Promise<void> {
-    await this.pressKey(String(level), { meta: true });
+    // Heading shortcuts use Digit codes, not letter codes
+    const target = this.getEditorElement();
+    const event = new KeyboardEvent("keydown", {
+      key: String(level),
+      code: `Digit${level}`,
+      bubbles: true,
+      cancelable: true,
+      metaKey: true,
+    });
+    target.dispatchEvent(event);
   }
 
+  // selectText is not supported in jsdom: ProseMirror and CodeMirror both rely
+  // on real DOM Selection APIs that jsdom does not fully implement.
   async selectText(_text: string): Promise<void> {
-    // Text selection in ProseMirror/CodeMirror is more complex
-    // and requires programmatic manipulation of the editor state.
-    // For now this is a no-op placeholder.
+    // no-op
   }
 
   async emitEvent(event: string): Promise<void> {
@@ -333,20 +394,5 @@ export class EditorTestHarness {
 
   destroy(): void {
     this.renderResult.unmount();
-  }
-
-  // --- Private helpers ---
-
-  private getEditorElement(): HTMLElement {
-    if (this.currentViewMode === "rendered") {
-      const el = document.querySelector(
-        ".milkdown-editor .ProseMirror"
-      ) as HTMLElement;
-      if (!el) throw new Error("Rendered editor element not found");
-      return el;
-    }
-    const el = document.querySelector(".markdown-code-input .cm-content") as HTMLElement;
-    if (!el) throw new Error("Code editor element not found");
-    return el;
   }
 }
