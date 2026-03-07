@@ -1,7 +1,8 @@
 import React, { useEffect, useRef } from "react";
 import { Editor, rootCtx, defaultValueCtx, commandsCtx } from "@milkdown/kit/core";
 import { commonmark, wrapInHeadingCommand } from "@milkdown/kit/preset/commonmark";
-import { gfm } from "@milkdown/kit/preset/gfm";
+import { gfm, insertTableCommand } from "@milkdown/kit/preset/gfm";
+import { useEventListener } from "../../platform/useEventListener";
 import { history } from "@milkdown/kit/plugin/history";
 import { listener, listenerCtx } from "@milkdown/kit/plugin/listener";
 import { EditorView as CMEditorView } from "@codemirror/view";
@@ -74,6 +75,12 @@ function RenderedEditor({
     };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps -- initialContent is used only for init; the component remounts via key when content source changes
 
+  useEventListener("menu:insert-table", () => {
+    milkdownRef.current?.action((ctx) => {
+      ctx.get(commandsCtx).call(insertTableCommand.key);
+    });
+  }, []);
+
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if ((e.metaKey || e.ctrlKey) && /^[1-6]$/.test(e.key)) {
       const level = parseInt(e.key);
@@ -143,6 +150,15 @@ function CodeEditor({
       cmRef.current = null;
     };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps -- initialContent is used only for init; the component remounts via key when content source changes
+
+  const TABLE_TEMPLATE = "\n| Column 1 | Column 2 | Column 3 |\n|----------|----------|----------|\n|          |          |          |\n";
+
+  useEventListener("menu:insert-table", () => {
+    const view = cmRef.current;
+    if (!view) return;
+    const { from } = view.state.selection.main;
+    view.dispatch({ changes: { from, to: from, insert: TABLE_TEMPLATE } });
+  }, []);
 
   return (
     <div className="markdown-editor-container markdown-code-view">

@@ -1,4 +1,5 @@
 import { describe, it, expect, afterEach } from "vitest";
+import { waitFor } from "@testing-library/react";
 import { EditorTestHarness } from "../../../test/EditorTestHarness";
 
 describe("Table Tests", () => {
@@ -149,6 +150,38 @@ describe("Table Tests", () => {
     expect(data[1][1]).toBe("val");
   });
 
-  // Table insertion via menu event is not yet implemented for Milkdown.
-  // The Milkdown editor handles table operations through its built-in GFM plugin.
+  describe("insert-table event", () => {
+    it("inserts a table in rendered view via menu:insert-table event", async () => {
+      h = await EditorTestHarness.create("Some text");
+      expect(h.query.hasTable()).toBe(false);
+
+      await h.emitEvent("menu:insert-table");
+
+      await waitFor(() => {
+        expect(h.query.hasTable()).toBe(true);
+      });
+    });
+
+    it("inserts a table in code view via menu:insert-table event", async () => {
+      h = await EditorTestHarness.create("Some text", "code");
+
+      await h.emitEvent("menu:insert-table");
+
+      await waitFor(() => {
+        expect(h.getCodeViewText()).toContain("Column 1");
+      });
+    });
+
+    it("inserted table in code view is valid markdown", async () => {
+      h = await EditorTestHarness.create("", "code");
+
+      await h.emitEvent("menu:insert-table");
+
+      await waitFor(() => {
+        const text = h.getCodeViewText();
+        expect(text).toContain("|");
+        expect(text).toContain("---");
+      });
+    });
+  });
 });

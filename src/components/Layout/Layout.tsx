@@ -293,6 +293,7 @@ const Layout: React.FC = () => {
     { event: "menu:zoom-out", callback: () => zoomOut() },
     { event: "menu:zoom-reset", callback: () => resetZoom() },
     { event: "menu:view-readme", callback: () => handleViewReadme() },
+    { event: "menu:settings", callback: () => setSettingsOpen(true) },
   ], []);
 
   // Close tab event with payload (from clicking X on tab)
