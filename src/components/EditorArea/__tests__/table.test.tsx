@@ -1,5 +1,4 @@
 import { describe, it, expect, afterEach } from "vitest";
-import { waitFor } from "@testing-library/react";
 import { EditorTestHarness } from "../../../test/EditorTestHarness";
 
 describe("Table Tests", () => {
@@ -157,7 +156,7 @@ describe("Table Tests", () => {
 
       await h.emitEvent("menu:insert-table");
 
-      await waitFor(() => {
+      await h.waitFor(() => {
         expect(h.query.hasTable()).toBe(true);
       });
     });
@@ -167,7 +166,7 @@ describe("Table Tests", () => {
 
       await h.emitEvent("menu:insert-table");
 
-      await waitFor(() => {
+      await h.waitFor(() => {
         expect(h.getCodeViewText()).toContain("Column 1");
       });
     });
@@ -177,11 +176,67 @@ describe("Table Tests", () => {
 
       await h.emitEvent("menu:insert-table");
 
-      await waitFor(() => {
+      await h.waitFor(() => {
         const text = h.getCodeViewText();
         expect(text).toContain("|");
         expect(text).toContain("---");
       });
+    });
+
+    it("inserted table in rendered view has clean markdown (no <br />, no :--- alignment)", async () => {
+      h = await EditorTestHarness.create("");
+
+      await h.emitEvent("menu:insert-table");
+
+      await h.waitFor(() => {
+        expect(h.getMarkdown()).toContain("|");
+      });
+
+      const md = h.getMarkdown();
+      expect(md).not.toContain("<br");
+      expect(md).not.toMatch(/\|[^|]*:-/);
+    });
+
+    it("inserted table in rendered view: code view shows clean markdown", async () => {
+      h = await EditorTestHarness.create("");
+
+      await h.emitEvent("menu:insert-table");
+
+      await h.waitFor(() => {
+        expect(h.getMarkdown()).toContain("|");
+      });
+
+      await h.toggleView(); // → code
+
+      const code = h.getCodeViewText();
+      expect(code).toContain("|");
+      expect(code).not.toContain("<br");
+      expect(code).not.toMatch(/:-+/);
+    });
+
+    it("table with cell content: switching views preserves data and keeps clean syntax", async () => {
+      h = await EditorTestHarness.create(`| Name | Value |
+|------|-------|
+| foo  | bar   |`);
+
+      expect(h.query.tableData()).toEqual([
+        ["Name", "Value"],
+        ["foo", "bar"],
+      ]);
+
+      await h.toggleView(); // → code
+      const code = h.getCodeViewText();
+      expect(code).not.toContain("<br");
+      expect(code).not.toMatch(/:-+/);
+
+      await h.toggleView(); // → rendered
+      expect(h.query.tableData()).toEqual([
+        ["Name", "Value"],
+        ["foo", "bar"],
+      ]);
+
+      await h.toggleView(); // → code again
+      expect(h.getCodeViewText()).not.toContain("<br");
     });
   });
 });

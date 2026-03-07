@@ -29,25 +29,23 @@ class HarnessQuery {
 
   codeTexts(): string[] {
     // Select inline <code> elements but NOT those inside <pre> blocks
-    return Array.from(
-      document.querySelectorAll(".milkdown-editor code")
-    )
+    return Array.from(document.querySelectorAll(".milkdown-editor code"))
       .filter((el) => !el.closest("pre"))
       .map((el) => el.textContent ?? "");
   }
 
   strikethroughTexts(): string[] {
-    return Array.from(
-      document.querySelectorAll(".milkdown-editor del")
-    ).map((el) => el.textContent ?? "");
+    return Array.from(document.querySelectorAll(".milkdown-editor del")).map(
+      (el) => el.textContent ?? ""
+    );
   }
 
   tableData(): string[][] {
     const rows = document.querySelectorAll(".milkdown-editor table tr");
     return Array.from(rows).map((row) =>
-      Array.from(
-        row.querySelectorAll("td, th")
-      ).map((cell) => cell.textContent ?? "")
+      Array.from(row.querySelectorAll("td, th")).map(
+        (cell) => cell.textContent ?? ""
+      )
     );
   }
 
@@ -59,12 +57,12 @@ class HarnessQuery {
   }
 
   links(): LinkInfo[] {
-    return Array.from(
-      document.querySelectorAll(".milkdown-editor a")
-    ).map((el) => ({
-      text: el.textContent ?? "",
-      href: el.getAttribute("href") ?? "",
-    }));
+    return Array.from(document.querySelectorAll(".milkdown-editor a")).map(
+      (el) => ({
+        text: el.textContent ?? "",
+        href: el.getAttribute("href") ?? "",
+      })
+    );
   }
 
   paragraphs(): string[] {
@@ -96,9 +94,9 @@ class HarnessQuery {
   }
 
   blockquoteTexts(): string[] {
-    return Array.from(document.querySelectorAll(".milkdown-editor blockquote")).map(
-      (el) => el.textContent ?? ""
-    );
+    return Array.from(
+      document.querySelectorAll(".milkdown-editor blockquote")
+    ).map((el) => el.textContent ?? "");
   }
 
   hasCodeBlock(): boolean {
@@ -136,9 +134,8 @@ export class EditorTestHarness {
     initialViewMode: ViewMode = "rendered"
   ): Promise<EditorTestHarness> {
     // Lazy import to avoid circular deps
-    const { default: MarkdownEditor } = await import(
-      "../components/EditorArea/MarkdownEditor"
-    );
+    const { default: MarkdownEditor } =
+      await import("../components/EditorArea/MarkdownEditor");
 
     let capturedContent = markdown;
     const onChange = vi.fn<(content: string) => void>((content: string) => {
@@ -205,9 +202,8 @@ export class EditorTestHarness {
   }
 
   private async switchTo(mode: ViewMode): Promise<void> {
-    const { default: MarkdownEditor } = await import(
-      "../components/EditorArea/MarkdownEditor"
-    );
+    const { default: MarkdownEditor } =
+      await import("../components/EditorArea/MarkdownEditor");
 
     this.renderResult.rerender(
       React.createElement(MarkdownEditor, {
@@ -257,7 +253,9 @@ export class EditorTestHarness {
       if (!el) throw new Error("Rendered editor element not found");
       return el;
     }
-    const el = document.querySelector(".markdown-code-input .cm-content") as HTMLElement;
+    const el = document.querySelector(
+      ".markdown-code-input .cm-content"
+    ) as HTMLElement;
     if (!el) throw new Error("Code editor element not found");
     return el;
   }
@@ -266,9 +264,8 @@ export class EditorTestHarness {
   // current view mode. Use this to simulate upstream prop changes (e.g. from the
   // Zustand store) and verify that the editor does not recreate itself.
   async rerenderWithContent(content: string): Promise<void> {
-    const { default: MarkdownEditor } = await import(
-      "../components/EditorArea/MarkdownEditor"
-    );
+    const { default: MarkdownEditor } =
+      await import("../components/EditorArea/MarkdownEditor");
 
     this.renderResult.rerender(
       React.createElement(MarkdownEditor, {
@@ -295,7 +292,12 @@ export class EditorTestHarness {
 
   async pressKey(
     key: string,
-    modifiers: { meta?: boolean; ctrl?: boolean; shift?: boolean; alt?: boolean } = {}
+    modifiers: {
+      meta?: boolean;
+      ctrl?: boolean;
+      shift?: boolean;
+      alt?: boolean;
+    } = {}
   ): Promise<void> {
     const target = this.getEditorElement();
     const event = new KeyboardEvent("keydown", {
@@ -347,6 +349,10 @@ export class EditorTestHarness {
     // no-op
   }
 
+  async waitFor(callback: () => void | Promise<void>): Promise<void> {
+    await waitFor(callback);
+  }
+
   async emitEvent(event: string): Promise<void> {
     const { getWebEventEmitter } = await import("../platform/eventAdapter");
     getWebEventEmitter().emit(event);
@@ -369,17 +375,13 @@ export class EditorTestHarness {
   }
 
   async type(text: string): Promise<void> {
-    const { default: userEvent } = await import(
-      "@testing-library/user-event"
-    );
+    const { default: userEvent } = await import("@testing-library/user-event");
     const target = this.getEditorElement();
     await userEvent.setup().type(target, text);
   }
 
   async keyboard(keys: string): Promise<void> {
-    const { default: userEvent } = await import(
-      "@testing-library/user-event"
-    );
+    const { default: userEvent } = await import("@testing-library/user-event");
     await userEvent.setup().keyboard(keys);
   }
 
