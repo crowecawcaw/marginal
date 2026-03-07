@@ -42,17 +42,17 @@ Tauri 2 • React 19 • TypeScript • Lexical • Vite • Zustand
 
 Comprehensive list of implemented behaviors for agent reference. Check of each item as it's implemented and has solid tests.
 
-- [ ] File Operations
-  - [ ] Open files via dialog (markdown files only)
-  - [ ] Open folders and display file tree
-  - [ ] Save existing files
-  - [ ] Save As for untitled files with dialog
+- [x] File Operations
+  - [x] Open files via dialog (markdown files only)
+  - [x] Open folders and display file tree
+  - [x] Save existing files
+  - [x] Save As for untitled files with dialog
   - [x] Create new files with automatic Untitled numbering (Untitled.md, Untitled2.md, etc.)
-  - [ ] Track recent files (up to 10)
+  - [x] Track recent files (up to 10)
   - [x] Persist last opened folder across sessions
-  - [ ] Hidden files and folders (starting with `.`) are excluded from file tree
+  - [x] Hidden files and folders (starting with `.`) are excluded from file tree
   - [x] Frontmatter in markdown files is parsed on open and preserved on save
-  - [ ] File tree displays folders first, then files, both sorted alphabetically
+  - [x] File tree displays folders first, then files, both sorted alphabetically
   - [ ] Print document via File menu
 - [x] Editor Views
   - [x] Two view modes: rendered (presentation/WYSIWYG) and code (plain text)
@@ -65,10 +65,10 @@ Comprehensive list of implemented behaviors for agent reference. Check of each i
   - [x] Switch between tabs by clicking tab headers
   - [x] Close tabs with close button or Cmd/Ctrl+W
   - [x] Dirty indicator (•) appears when tab has unsaved changes
-  - [ ] Unsaved tabs show "Unsaved" in document title
+  - [x] Unsaved tabs show "Unsaved" in document title
   - [x] When closing a tab, the previous tab becomes active
   - [ ] When no tabs exist, a blank Untitled file is created automatically
-  - [ ] For untitled files, tab name updates to first heading when user types one
+  - [x] For untitled files, tab name updates to first heading when user types one
 - [x] Markdown Features
   - [x] Headings (H1-H6) render with proper styling
   - [x] Lists (ordered and unordered) with proper indentation
@@ -76,9 +76,9 @@ Comprehensive list of implemented behaviors for agent reference. Check of each i
   - [ ] Links render as clickable in rendered view
   - [x] Inline code with backticks renders with monospace styling
   - [ ] Code blocks with language syntax highlighting (Prism.js)
-  - [ ] Block quotes render with left border styling
+  - [x] Block quotes render with left border styling
   - [x] Tables render with proper grid layout
-  - [ ] Mermaid code blocks render as diagrams in rendered view
+  - [x] Mermaid code blocks render as diagrams in rendered view
   - [ ] Images support URLs, absolute file paths, and relative file paths
 - [x] Table Editing
   - [x] Tables are editable in rendered view
@@ -93,17 +93,17 @@ Comprehensive list of implemented behaviors for agent reference. Check of each i
     - [ ] Delete row
     - [ ] Delete column
   - [ ] Tables can be resized by dragging column edges
-  - [ ] Insert table via Cmd/Ctrl+Shift+T shortcut
+  - [x] Insert table via Cmd/Ctrl+Shift+T shortcut
   - [x] Tables convert to/from markdown format when switching views
   - [x] Inline formatting persists when switching between views
-- [ ] Outline
-  - [ ] Outline auto-generates from markdown headings (H1-H6)
-  - [ ] Outline displays hierarchically with indentation based on heading level
-  - [ ] Clicking outline item scrolls to that heading in rendered view
-  - [ ] Outline shows "No headings found" when document has no headings
-  - [ ] Toggle outline visibility with Cmd/Ctrl+\
-  - [ ] Outline width is resizable and persists across sessions
-  - [ ] Outline view is open by default on app launch
+- [x] Outline
+  - [x] Outline auto-generates from markdown headings (H1-H6)
+  - [x] Outline displays hierarchically with indentation based on heading level
+  - [x] Clicking outline item scrolls to that heading in rendered view
+  - [x] Outline shows "No headings found" when document has no headings
+  - [x] Toggle outline visibility with Cmd/Ctrl+\
+  - [x] Outline width is resizable and persists across sessions
+  - [x] Outline view is open by default on app launch
 - [x] Find in Document
   - [x] Open find dialog with Cmd/Ctrl+F
   - [x] Search is case-insensitive by default
@@ -114,6 +114,11 @@ Comprehensive list of implemented behaviors for agent reference. Check of each i
   - [x] Navigation buttons disabled when no matches
   - [x] Close find dialog with Escape or close button
   - [x] Match count updates as content changes
+- [ ] Find and Replace
+  - [ ] Open find and replace panel with Cmd/Ctrl+H
+  - [ ] Replace current match with replacement text
+  - [ ] Replace all matches at once
+  - [ ] Find and replace respects case-sensitive toggle
 - [x] Document Formatting
   - [x] Format document with Cmd/Ctrl+Shift+F (Prettier)
   - [x] Formatting only available in code view (error shown if in rendered view)
@@ -140,17 +145,17 @@ Comprehensive list of implemented behaviors for agent reference. Check of each i
   - [x] Hides hints when Cmd/Ctrl is released
   - [x] Hides hints when window loses focus
   - [x] Displays shortcuts for: New File, Open File, Save, Close Tab, Find, Format, Toggle View, Toggle Outline, Zoom In, Zoom Out, Actual Size, Bold, Italic, and Headings
-- [ ] UI/UX
+- [x] UI/UX
   - [ ] Loading overlay with message during long operations
-  - [ ] Toast notifications for success/error messages
-  - [ ] File tree with expandable/collapsible folders
-  - [ ] File tree shows emoji icons (📁 folder, 📂 open folder, 📝 markdown, 📄 other)
-  - [ ] Icon bar for switching between file tree and outline views
-  - [ ] Sidebar is resizable by dragging edge
-  - [ ] Document title in browser/window updates based on active tab name
+  - [x] Toast notifications for success/error messages
+  - [x] File tree with expandable/collapsible folders
+  - [x] File tree shows emoji icons (📁 folder, 📂 open folder, 📝 markdown, 📄 other)
+  - [x] Icon bar for switching between file tree and outline views
+  - [x] Sidebar is resizable by dragging edge
+  - [x] Document title in browser/window updates based on active tab name
   - [ ] Empty state messages when no files/folders opened
-- [ ] Platform Support
-  - [ ] Desktop app via Tauri (macOS, Windows, Linux)
-  - [ ] Web compatibility mode (with download instead of save)
-  - [ ] Native file dialogs on desktop
-  - [ ] File download functionality in web mode
+- [x] Platform Support
+  - [x] Desktop app via Tauri (macOS, Windows, Linux)
+  - [x] Web compatibility mode (with download instead of save)
+  - [x] Native file dialogs on desktop
+  - [x] File download functionality in web mode
