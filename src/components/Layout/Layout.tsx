@@ -6,13 +6,17 @@ import OutlineSidebar from "../Sidebar/OutlineSidebar";
 import EditorArea from "../EditorArea/EditorArea";
 import Toast from "../Toast/Toast";
 import SettingsDialog from "../SettingsDialog/SettingsDialog";
+import ExternalChangeDialog from "../ExternalChangeDialog/ExternalChangeDialog";
+import OverwriteConfirmDialog from "../OverwriteConfirmDialog/OverwriteConfirmDialog";
 import { useUIStore } from "../../stores/uiStore";
 import { useEditorStore } from "../../stores/editorStore";
 import { useNotificationStore } from "../../stores/notificationStore";
 import { useFileSystem } from "../../hooks/useFileSystem";
+import { useFileWatcher } from "../../hooks/useFileWatcher";
 import {
   showMessage,
   confirmUnsavedChanges,
+  getFileMtime,
 } from "../../platform/fileSystemAdapter";
 import { useKeyboardShortcuts } from "../../hooks/useKeyboardShortcuts";
 import { loadSettings } from "../../utils/settings";
@@ -25,14 +29,64 @@ import "./Layout.css";
 
 const Layout: React.FC = () => {
   const { toggleOutline, toggleViewMode, zoomIn, zoomOut, resetZoom, outlineVisible } = useUIStore();
-  const { files, activeFileId, removeFile, markFileDirty, openFile: openEditorFile } =
+  const { files, activeFileId, removeFile, markFileDirty, openFile: openEditorFile,
+    setBaseContent, setDiskMtime, clearIgnoredAt, setPendingExternalContent } =
     useEditorStore();
   const { addNotification } = useNotificationStore();
   const { openFile, saveFile, saveFileAs, newFile, restoreFiles } = useFileSystem();
   const [settingsOpen, setSettingsOpen] = useState(false);
 
+  // External change dialog state
+  const [externalChangeFileId, setExternalChangeFileId] = useState<string | null>(null);
+  // Overwrite confirm dialog state
+  const [overwriteFileId, setOverwriteFileId] = useState<string | null>(null);
+
   // Get active file for save functionality
   const activeFile = files.find((file) => file.id === activeFileId);
+
+  // File to show in external change dialog
+  const externalChangeFile = externalChangeFileId
+    ? files.find((f) => f.id === externalChangeFileId)
+    : null;
+  const overwriteFile = overwriteFileId
+    ? files.find((f) => f.id === overwriteFileId)
+    : null;
+
+  // Mount file watcher (Tauri only)
+  useFileWatcher((fileId) => {
+    setExternalChangeFileId(fileId);
+  });
+
+  // Perform the actual save (no ignoredAt check — caller has already confirmed)
+  const performSave = async (
+    file: NonNullable<typeof activeFile>,
+  ): Promise<boolean> => {
+    const finalContent = file.content;
+    try {
+      const { serializeFrontmatter } = await import("../../utils/frontmatter");
+      const { writeFileContent } = await import("../../platform/fileSystemAdapter");
+      const content = file.frontmatter
+        ? serializeFrontmatter(finalContent, file.frontmatter)
+        : finalContent;
+      await writeFileContent(file.filePath, content);
+
+      markFileDirty(file.id, false);
+      removeAutosaveEntry(file.id);
+      setBaseContent(file.id, file.content);
+      // Update diskMtime after save so watcher doesn't re-trigger
+      const newMtime = await getFileMtime(file.filePath);
+      setDiskMtime(file.id, newMtime);
+      showMessage(`Saved ${file.fileName}`, { title: "File Saved" });
+      return true;
+    } catch (error) {
+      console.error("Failed to save file:", error);
+      showMessage("Failed to save file. Please try again.", {
+        title: "Save Error",
+        kind: "error",
+      });
+      return false;
+    }
+  };
 
   // Handle save for a specific file - returns true if save succeeded, false if cancelled or failed
   const handleSaveFile = async (file: typeof activeFile): Promise<boolean> => {
@@ -54,6 +108,11 @@ const Layout: React.FC = () => {
             fileName: result.fileName,
             content: file.content,
             isDirty: false,
+            baseContent: file.content,
+            diskMtime: null,
+            ignoredExternalChangeAt: null,
+            pendingExternalContent: null,
+            precomputedMerge: null,
             frontmatter: file.frontmatter,
           });
           removeAutosaveEntry(oldFileId);
@@ -63,10 +122,23 @@ const Layout: React.FC = () => {
         // User cancelled the save dialog
         return false;
       } else {
-        // Regular save for existing files
-        await saveFile(file.filePath, file.content, file.frontmatter);
+        // Check if we need overwrite confirmation (ignored external change)
+        const result = await saveFile(
+          file.filePath,
+          file.content,
+          file.frontmatter,
+          file.id,
+        );
+        if (result === "needs-confirm") {
+          setOverwriteFileId(file.id);
+          return false;
+        }
+        // Regular save succeeded
         markFileDirty(file.id, false);
         removeAutosaveEntry(file.id);
+        setBaseContent(file.id, file.content);
+        const newMtime = await getFileMtime(file.filePath);
+        setDiskMtime(file.id, newMtime);
         showMessage(`Saved ${file.fileName}`, { title: "File Saved" });
         return true;
       }
@@ -155,8 +227,58 @@ const Layout: React.FC = () => {
       fileName: "README.md",
       content,
       isDirty: false,
+      baseContent: content,
+      diskMtime: null,
+      ignoredExternalChangeAt: null,
+      pendingExternalContent: null,
+      precomputedMerge: null,
       frontmatter: undefined,
     });
+  };
+
+  // External change dialog handlers
+  const handleExternalMerge = () => {
+    if (!externalChangeFile) return;
+    const { precomputedMerge, pendingExternalContent, id } = externalChangeFile;
+    if (precomputedMerge !== null) {
+      emit("external-merge-content", { fileId: id, content: precomputedMerge });
+      setBaseContent(id, pendingExternalContent ?? precomputedMerge);
+    }
+    setPendingExternalContent(id, null, null);
+    setExternalChangeFileId(null);
+  };
+
+  const handleExternalUpdate = () => {
+    if (!externalChangeFile) return;
+    const { pendingExternalContent, id } = externalChangeFile;
+    if (pendingExternalContent !== null) {
+      // Import at top of file is fine, but we use the module import already
+      emit("external-merge-content", { fileId: id, content: pendingExternalContent });
+      setBaseContent(id, pendingExternalContent);
+    }
+    setPendingExternalContent(id, null, null);
+    setExternalChangeFileId(null);
+  };
+
+  const handleExternalIgnore = () => {
+    if (!externalChangeFile) return;
+    const { id } = externalChangeFile;
+    useEditorStore.getState().setIgnoredAt(id, Date.now());
+    setPendingExternalContent(id, null, null);
+    setExternalChangeFileId(null);
+  };
+
+  // Overwrite confirm dialog handlers
+  const handleOverwriteConfirm = async () => {
+    const file = overwriteFile;
+    setOverwriteFileId(null);
+    if (!file) return;
+    clearIgnoredAt(file.id);
+    await performSave(file);
+  };
+
+  const handleOverwriteCancel = () => {
+    setOverwriteFileId(null);
   };
 
   // Register global keyboard shortcuts
@@ -256,6 +378,11 @@ const Layout: React.FC = () => {
               fileName: entry.fileName,
               content: entry.content,
               isDirty: true,
+              baseContent: entry.content,
+              diskMtime: null,
+              ignoredExternalChangeAt: null,
+              pendingExternalContent: null,
+              precomputedMerge: null,
               frontmatter: entry.frontmatter,
             });
           }
@@ -339,6 +466,20 @@ const Layout: React.FC = () => {
       </div>
       <Toast />
       <SettingsDialog isOpen={settingsOpen} onClose={() => setSettingsOpen(false)} />
+      <ExternalChangeDialog
+        isOpen={externalChangeFileId !== null && externalChangeFile !== undefined}
+        fileName={externalChangeFile?.fileName ?? ""}
+        canMerge={externalChangeFile?.precomputedMerge !== null && externalChangeFile?.precomputedMerge !== undefined}
+        onMerge={handleExternalMerge}
+        onUpdate={handleExternalUpdate}
+        onIgnore={handleExternalIgnore}
+      />
+      <OverwriteConfirmDialog
+        isOpen={overwriteFileId !== null && overwriteFile !== undefined}
+        fileName={overwriteFile?.fileName ?? ""}
+        onOverwrite={handleOverwriteConfirm}
+        onCancel={handleOverwriteCancel}
+      />
     </div>
   );
 };

@@ -14,8 +14,13 @@ const themeOptions: { value: Theme; label: string }[] = [
   { value: "dark", label: "Dark" },
 ];
 
+const externalChangeOptions: { value: "merge" | "ask"; label: string }[] = [
+  { value: "ask", label: "Ask me" },
+  { value: "merge", label: "Auto-merge" },
+];
+
 const SettingsDialog: React.FC<SettingsDialogProps> = ({ isOpen, onClose }) => {
-  const { theme, setTheme } = useUIStore();
+  const { theme, setTheme, onExternalChange, setOnExternalChange } = useUIStore();
 
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
@@ -55,6 +60,20 @@ const SettingsDialog: React.FC<SettingsDialogProps> = ({ isOpen, onClose }) => {
                 key={opt.value}
                 className={`settings-theme-option ${theme === opt.value ? "active" : ""}`}
                 onClick={() => setTheme(opt.value)}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+        </div>
+        <div className="settings-dialog-section" style={{ marginTop: 16 }}>
+          <label className="settings-dialog-label">When file changes on disk</label>
+          <div className="settings-theme-picker">
+            {externalChangeOptions.map((opt) => (
+              <button
+                key={opt.value}
+                className={`settings-theme-option ${onExternalChange === opt.value ? "active" : ""}`}
+                onClick={() => setOnExternalChange(opt.value)}
               >
                 {opt.label}
               </button>

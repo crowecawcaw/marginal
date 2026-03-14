@@ -128,6 +128,14 @@ fn write_file_content(path: String, content: String) -> Result<(), String> {
         .map_err(|e| format!("Failed to write file: {}", e))
 }
 
+#[tauri::command]
+fn get_file_mtime(path: String) -> Option<u64> {
+    std::fs::metadata(&path).ok()
+        .and_then(|m| m.modified().ok())
+        .and_then(|t| t.duration_since(std::time::UNIX_EPOCH).ok())
+        .map(|d| d.as_millis() as u64)
+}
+
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -141,7 +149,8 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             read_dir_tree,
             read_file_content,
-            write_file_content
+            write_file_content,
+            get_file_mtime
         ])
         .setup(|app| {
             // Build the menu

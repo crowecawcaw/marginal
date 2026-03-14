@@ -1,0 +1,71 @@
+.ext-change-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.ext-change-dialog {
+  background-color: var(--color-bg-primary);
+  border: 1px solid var(--color-border-primary);
+  border-radius: 8px;
+  padding: 24px;
+  max-width: 420px;
+  width: 90%;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+}
+
+.ext-change-title {
+  margin: 0 0 12px;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.ext-change-message {
+  margin: 0 0 20px;
+  font-size: 14px;
+  color: var(--color-text-secondary);
+  line-height: 1.5;
+}
+
+.ext-change-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.ext-change-btn {
+  padding: 7px 16px;
+  font-size: 13px;
+  font-weight: 500;
+  border-radius: 6px;
+  border: 1px solid var(--color-border-primary);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  background-color: var(--color-bg-secondary);
+  color: var(--color-text-primary);
+}
+
+.ext-change-btn:hover:not(:disabled) {
+  background-color: var(--color-bg-hover);
+}
+
+.ext-change-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.ext-change-btn-merge {
+  background-color: var(--color-accent-primary);
+  color: white;
+  border-color: var(--color-accent-primary);
+}
+
+.ext-change-btn-merge:hover:not(:disabled) {
+  opacity: 0.9;
+  background-color: var(--color-accent-primary);
+}

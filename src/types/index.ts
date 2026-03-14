@@ -5,6 +5,11 @@ export interface EditorFile {
   content: string;
   isDirty: boolean;
   frontmatter?: Record<string, any>;
+  baseContent: string;
+  diskMtime: number | null;
+  ignoredExternalChangeAt: number | null;
+  pendingExternalContent: string | null;
+  precomputedMerge: string | null;
 }
 
 export interface FileNode {

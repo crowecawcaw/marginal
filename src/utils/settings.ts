@@ -15,6 +15,7 @@ interface AppSettings {
   openFiles: string[];
   activeFilePath: string | null;
   theme: Theme;
+  onExternalChange: "merge" | "ask";
 }
 
 const defaultSettings: AppSettings = {
@@ -30,6 +31,7 @@ const defaultSettings: AppSettings = {
   openFiles: [],
   activeFilePath: null,
   theme: "system",
+  onExternalChange: "ask",
 };
 
 const OLD_SETTINGS_KEY = "marginal-settings";

@@ -73,6 +73,11 @@ export const useFileSystem = () => {
         content: parsed.content,
         isDirty: false,
         frontmatter: parsed.frontmatter,
+        baseContent: parsed.content,
+        diskMtime: null,
+        ignoredExternalChangeAt: null,
+        pendingExternalContent: null,
+        precomputedMerge: null,
       });
 
       addRecentFile(path);
@@ -86,7 +91,18 @@ export const useFileSystem = () => {
     filePath: string,
     content: string,
     frontmatter?: Record<string, any>,
-  ) => {
+    fileId?: string,
+  ): Promise<true | "needs-confirm"> => {
+    // If the file has an ignored external change, require confirmation before overwriting
+    if (fileId) {
+      const file = useEditorStore
+        .getState()
+        .files.find((f) => f.id === fileId);
+      if (file?.ignoredExternalChangeAt !== null && file?.ignoredExternalChangeAt !== undefined) {
+        return "needs-confirm";
+      }
+    }
+
     try {
       // Serialize content with frontmatter if it exists
       const finalContent = frontmatter
@@ -142,6 +158,11 @@ export const useFileSystem = () => {
       content: "",
       isDirty: false,
       frontmatter: undefined,
+      baseContent: "",
+      diskMtime: null,
+      ignoredExternalChangeAt: null,
+      pendingExternalContent: null,
+      precomputedMerge: null,
     });
   };
 
@@ -213,6 +234,11 @@ export const useFileSystem = () => {
           content: parsed.content,
           isDirty: false,
           frontmatter: parsed.frontmatter,
+          baseContent: parsed.content,
+          diskMtime: null,
+          ignoredExternalChangeAt: null,
+          pendingExternalContent: null,
+          precomputedMerge: null,
         });
       } catch {
         // File no longer exists or can't be read — silently skip

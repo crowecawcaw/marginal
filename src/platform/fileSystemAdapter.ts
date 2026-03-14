@@ -295,6 +295,19 @@ export function downloadFile(content: string, fileName: string): void {
 }
 
 /**
+ * Get the last-modified time of a file in milliseconds since epoch.
+ * Returns null if the file doesn't exist or we're in web mode.
+ */
+export async function getFileMtime(path: string): Promise<number | null> {
+  if (isTauri()) {
+    const { invoke } = await import("@tauri-apps/api/core");
+    const result = await invoke<number | null>("get_file_mtime", { path });
+    return result ?? null;
+  }
+  return null;
+}
+
+/**
  * Get the filename from a path
  */
 export function getFileName(path: string): string {

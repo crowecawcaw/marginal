@@ -29,6 +29,7 @@ describe("settings", () => {
         openFiles: [],
         activeFilePath: null,
         theme: "system",
+        onExternalChange: "ask",
       });
     });
 
@@ -46,6 +47,7 @@ describe("settings", () => {
         openFiles: ["/path/to/file.md"],
         activeFilePath: "/path/to/file.md",
         theme: "system" as const,
+        onExternalChange: "ask" as const,
       };
 
       localStorage.setItem("marginal:settings", JSON.stringify(storedSettings));
@@ -79,6 +81,7 @@ describe("settings", () => {
         openFiles: [],
         activeFilePath: null,
         theme: "system",
+        onExternalChange: "ask",
       });
     });
 
@@ -104,6 +107,7 @@ describe("settings", () => {
         openFiles: [],
         activeFilePath: null,
         theme: "system",
+        onExternalChange: "ask",
       });
 
       consoleSpy.mockRestore();
@@ -178,6 +182,7 @@ describe("settings", () => {
         openFiles: [],
         activeFilePath: null,
         theme: "system",
+        onExternalChange: "ask",
       });
     });
   });

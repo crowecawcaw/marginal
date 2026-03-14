@@ -78,6 +78,7 @@ const EditorArea: React.FC = () => {
           <>
             <MarkdownEditor
               key={`${activeFile.id}-${viewMode}-${editorKey}`}
+              fileId={activeFile.id}
               initialContent={activeFile.content}
               viewMode={viewMode}
               zoom={zoom}

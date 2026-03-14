@@ -24,6 +24,26 @@ interface EditorState {
   setActiveFile: (id: string) => void;
   updateFileContent: (id: string, content: string) => void;
   markFileDirty: (id: string, isDirty: boolean) => void;
+  setBaseContent: (id: string, content: string) => void;
+  setDiskMtime: (id: string, mtime: number | null) => void;
+  setIgnoredAt: (id: string, ts: number) => void;
+  clearIgnoredAt: (id: string) => void;
+  setPendingExternalContent: (
+    id: string,
+    content: string | null,
+    precomputedMerge: string | null,
+  ) => void;
+}
+
+function withDefaults(file: EditorFile): EditorFile {
+  return {
+    ...file,
+    baseContent: file.baseContent ?? file.content,
+    diskMtime: file.diskMtime ?? null,
+    ignoredExternalChangeAt: file.ignoredExternalChangeAt ?? null,
+    pendingExternalContent: file.pendingExternalContent ?? null,
+    precomputedMerge: file.precomputedMerge ?? null,
+  };
 }
 
 export const useEditorStore = create<EditorState>((set) => ({
@@ -36,13 +56,13 @@ export const useEditorStore = create<EditorState>((set) => ({
         return { activeFileId: file.id };
       }
       return {
-        files: [...state.files, file],
+        files: [...state.files, withDefaults(file)],
         activeFileId: file.id,
       };
     }),
   addFile: (file) =>
     set((state) => ({
-      files: [...state.files, file],
+      files: [...state.files, withDefaults(file)],
       activeFileId: file.id,
     })),
   removeFile: (id) =>
@@ -77,6 +97,38 @@ export const useEditorStore = create<EditorState>((set) => ({
     set((state) => ({
       files: state.files.map((file) =>
         file.id === id ? { ...file, isDirty } : file,
+      ),
+    })),
+  setBaseContent: (id, content) =>
+    set((state) => ({
+      files: state.files.map((file) =>
+        file.id === id ? { ...file, baseContent: content } : file,
+      ),
+    })),
+  setDiskMtime: (id, mtime) =>
+    set((state) => ({
+      files: state.files.map((file) =>
+        file.id === id ? { ...file, diskMtime: mtime } : file,
+      ),
+    })),
+  setIgnoredAt: (id, ts) =>
+    set((state) => ({
+      files: state.files.map((file) =>
+        file.id === id ? { ...file, ignoredExternalChangeAt: ts } : file,
+      ),
+    })),
+  clearIgnoredAt: (id) =>
+    set((state) => ({
+      files: state.files.map((file) =>
+        file.id === id ? { ...file, ignoredExternalChangeAt: null } : file,
+      ),
+    })),
+  setPendingExternalContent: (id, content, precomputedMerge) =>
+    set((state) => ({
+      files: state.files.map((file) =>
+        file.id === id
+          ? { ...file, pendingExternalContent: content, precomputedMerge }
+          : file,
       ),
     })),
 }));

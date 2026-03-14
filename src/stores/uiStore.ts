@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { SidebarView, ViewMode } from "../types";
 import { loadSettings, saveSettings, Theme } from "../utils/settings";
+type OnExternalChange = "merge" | "ask";
 import { isTauri } from "../platform";
 
 // Emit view mode change to Tauri backend for menu text updates
@@ -29,7 +30,9 @@ interface UIState {
   codeZoom: number;
   renderedZoom: number;
   theme: Theme;
+  onExternalChange: OnExternalChange;
   setTheme: (theme: Theme) => void;
+  setOnExternalChange: (value: OnExternalChange) => void;
   toggleSidebar: () => void;
   toggleOutline: () => void;
   setSidebarWidth: (width: number) => void;
@@ -55,9 +58,14 @@ export const useUIStore = create<UIState>((set) => ({
   codeZoom: settings.codeZoom,
   renderedZoom: settings.renderedZoom,
   theme: settings.theme,
+  onExternalChange: settings.onExternalChange,
   setTheme: (theme) => {
     void saveSettings({ theme });
     set({ theme });
+  },
+  setOnExternalChange: (value) => {
+    void saveSettings({ onExternalChange: value });
+    set({ onExternalChange: value });
   },
   toggleSidebar: () =>
     set((state) => {

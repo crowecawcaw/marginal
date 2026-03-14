@@ -523,6 +523,86 @@ title: Restored Doc
         }),
       ).rejects.toThrow("Write failed");
     });
+
+    it("returns 'needs-confirm' when file has ignoredExternalChangeAt set", async () => {
+      const mockInvoke = (await import("@tauri-apps/api/core")).invoke as any;
+      mockInvoke.mockResolvedValue(undefined);
+
+      // Put a file with ignoredAt into the store
+      useEditorStore.setState({
+        files: [
+          {
+            id: "/path/to/save.md",
+            filePath: "/path/to/save.md",
+            fileName: "save.md",
+            content: "Content",
+            isDirty: true,
+            baseContent: "Content",
+            diskMtime: 1000,
+            ignoredExternalChangeAt: 1500,
+            pendingExternalContent: null,
+            precomputedMerge: null,
+          },
+        ],
+        activeFileId: "/path/to/save.md",
+      });
+
+      const { result } = renderHook(() => useFileSystem());
+
+      let saveResult: any;
+      await act(async () => {
+        saveResult = await result.current.saveFile(
+          "/path/to/save.md",
+          "Content",
+          undefined,
+          "/path/to/save.md",
+        );
+      });
+
+      expect(saveResult).toBe("needs-confirm");
+      expect(mockInvoke).not.toHaveBeenCalled();
+    });
+
+    it("saves normally when ignoredExternalChangeAt is null", async () => {
+      const mockInvoke = (await import("@tauri-apps/api/core")).invoke as any;
+      mockInvoke.mockResolvedValue(undefined);
+
+      useEditorStore.setState({
+        files: [
+          {
+            id: "/path/to/save.md",
+            filePath: "/path/to/save.md",
+            fileName: "save.md",
+            content: "Content",
+            isDirty: true,
+            baseContent: "Content",
+            diskMtime: 1000,
+            ignoredExternalChangeAt: null,
+            pendingExternalContent: null,
+            precomputedMerge: null,
+          },
+        ],
+        activeFileId: "/path/to/save.md",
+      });
+
+      const { result } = renderHook(() => useFileSystem());
+
+      let saveResult: any;
+      await act(async () => {
+        saveResult = await result.current.saveFile(
+          "/path/to/save.md",
+          "Content",
+          undefined,
+          "/path/to/save.md",
+        );
+      });
+
+      expect(saveResult).toBe(true);
+      expect(mockInvoke).toHaveBeenCalledWith("write_file_content", {
+        path: "/path/to/save.md",
+        content: "Content",
+      });
+    });
   });
 
   describe("saveFileAs", () => {

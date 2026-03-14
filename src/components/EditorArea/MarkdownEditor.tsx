@@ -13,6 +13,8 @@ import { defaultKeymap, historyKeymap, history as cmHistory, indentWithTab } fro
 import { keymap } from "@codemirror/view";
 import { closeBrackets, closeBracketsKeymap } from "@codemirror/autocomplete";
 import { indentOnInput } from "@codemirror/language";
+import { editorViewCtx, parserCtx } from "@milkdown/kit/core";
+import { useEditorStore } from "../../stores/editorStore";
 import "./MarkdownEditor.css";
 
 // Milkdown GFM serializes empty cells as `<br />` and always emits colon
@@ -34,6 +36,7 @@ function cleanTableMarkdown(md: string): string {
 }
 
 interface MarkdownEditorProps {
+  fileId: string;
   initialContent: string;
   viewMode: "rendered" | "code";
   zoom?: number;
@@ -42,9 +45,11 @@ interface MarkdownEditorProps {
 
 // Rendered view editor (WYSIWYG markdown via Milkdown)
 function RenderedEditor({
+  fileId,
   initialContent,
   onChange,
 }: {
+  fileId: string;
   initialContent: string;
   onChange: (content: string) => void;
 }) {
@@ -99,6 +104,33 @@ function RenderedEditor({
     });
   }, []);
 
+  useEventListener<{ fileId: string; content: string }>(
+    "external-merge-content",
+    (payload) => {
+      if (!payload || payload.fileId !== fileId) return;
+      const editor = milkdownRef.current;
+      if (!editor) return;
+      try {
+        editor.action((ctx) => {
+          const view = ctx.get(editorViewCtx);
+          const parser = ctx.get(parserCtx);
+          const doc = parser(payload.content);
+          if (!doc) return;
+          const tr = view.state.tr.replaceWith(
+            0,
+            view.state.doc.content.size,
+            doc.content,
+          );
+          view.dispatch(tr);
+        });
+      } catch {
+        // Fallback: update store so next remount picks it up
+      }
+      useEditorStore.getState().updateFileContent(payload.fileId, payload.content);
+    },
+    [fileId],
+  );
+
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if ((e.metaKey || e.ctrlKey) && /^[1-6]$/.test(e.key)) {
       const level = parseInt(e.key);
@@ -121,9 +153,11 @@ function RenderedEditor({
 
 // Code view editor (plain text markdown source via CodeMirror 6)
 function CodeEditor({
+  fileId,
   initialContent,
   onChange,
 }: {
+  fileId: string;
   initialContent: string;
   onChange: (content: string) => void;
 }) {
@@ -178,6 +212,20 @@ function CodeEditor({
     view.dispatch({ changes: { from, to: from, insert: TABLE_TEMPLATE } });
   }, []);
 
+  useEventListener<{ fileId: string; content: string }>(
+    "external-merge-content",
+    (payload) => {
+      if (!payload || payload.fileId !== fileId) return;
+      const view = cmRef.current;
+      if (!view) return;
+      view.dispatch({
+        changes: { from: 0, to: view.state.doc.length, insert: payload.content },
+      });
+      useEditorStore.getState().updateFileContent(payload.fileId, payload.content);
+    },
+    [fileId],
+  );
+
   return (
     <div className="markdown-editor-container markdown-code-view">
       <div
@@ -189,6 +237,7 @@ function CodeEditor({
 }
 
 const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
+  fileId,
   initialContent,
   viewMode,
   zoom = 100,
@@ -207,6 +256,7 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
       <div style={zoomStyle}>
         <CodeEditor
           key="code"
+          fileId={fileId}
           initialContent={initialContent}
           onChange={onChange}
         />
@@ -218,6 +268,7 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
     <div style={zoomStyle}>
       <RenderedEditor
         key="rendered"
+        fileId={fileId}
         initialContent={initialContent}
         onChange={onChange}
       />

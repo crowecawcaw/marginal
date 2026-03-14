@@ -9,6 +9,22 @@ import {
 import * as fileSystemAdapter from "../../platform/fileSystemAdapter";
 import * as useFileSystemModule from "../../hooks/useFileSystem";
 
+function makeStoredFile(overrides: Record<string, any> = {}) {
+  return {
+    id: "/file.md",
+    filePath: "/file.md",
+    fileName: "file.md",
+    content: "content",
+    isDirty: false,
+    baseContent: "content",
+    diskMtime: 1000,
+    ignoredExternalChangeAt: null,
+    pendingExternalContent: null,
+    precomputedMerge: null,
+    ...overrides,
+  };
+}
+
 // Mock localStorage
 const localStorageMock = {
   store: {} as Record<string, string>,
@@ -559,5 +575,136 @@ describe("Close tab with unsaved changes", () => {
 
     // Nothing should have changed
     expect(useEditorStore.getState().files).toHaveLength(1);
+  });
+});
+
+describe("handleSave with ignoredExternalChangeAt (overwrite confirmation)", () => {
+  let saveFileSpy: Mock;
+  let saveFileAsSpy: Mock;
+  let getFileMtimeSpy: Mock;
+
+  beforeEach(() => {
+    localStorageMock.clear();
+    useEditorStore.setState({ files: [], activeFileId: null });
+
+    saveFileSpy = vi.fn();
+    saveFileAsSpy = vi.fn();
+    getFileMtimeSpy = vi.spyOn(fileSystemAdapter, "getFileMtime") as Mock;
+    getFileMtimeSpy.mockResolvedValue(2000);
+
+    vi.spyOn(useFileSystemModule, "useFileSystem").mockReturnValue({
+      openFolder: vi.fn(),
+      openFile: vi.fn(),
+      saveFile: saveFileSpy,
+      saveFileAs: saveFileAsSpy,
+      readFile: vi.fn(),
+      newFile: vi.fn(),
+      restoreFiles: vi.fn().mockResolvedValue(undefined),
+      downloadCurrentFile: vi.fn(),
+    });
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  // Helper that mirrors Layout.tsx's handleSaveFile logic
+  const createHandleSaveFile = () => {
+    const { saveFile, saveFileAs } = useFileSystemModule.useFileSystem();
+    const { removeFile, openFile, markFileDirty, setBaseContent, setDiskMtime } =
+      useEditorStore.getState();
+
+    return async (file: ReturnType<typeof useEditorStore.getState>["files"][0]): Promise<boolean> => {
+      if (!file) return false;
+
+      try {
+        if (!file.filePath) {
+          const result = await saveFileAs(file.content, file.frontmatter);
+          if (result) {
+            removeFile(file.id);
+            openFile({
+              id: result.path,
+              filePath: result.path,
+              fileName: result.fileName,
+              content: file.content,
+              isDirty: false,
+              baseContent: file.content,
+              diskMtime: null,
+              ignoredExternalChangeAt: null,
+              pendingExternalContent: null,
+              precomputedMerge: null,
+              frontmatter: file.frontmatter,
+            });
+            return true;
+          }
+          return false;
+        } else {
+          const result = await saveFile(
+            file.filePath,
+            file.content,
+            file.frontmatter,
+            file.id,
+          );
+          if (result === "needs-confirm") {
+            return false; // caller opens dialog
+          }
+          markFileDirty(file.id, false);
+          setBaseContent(file.id, file.content);
+          const newMtime = await fileSystemAdapter.getFileMtime(file.filePath);
+          setDiskMtime(file.id, newMtime);
+          return true;
+        }
+      } catch {
+        return false;
+      }
+    };
+  };
+
+  it("saves normally when ignoredExternalChangeAt is null", async () => {
+    const file = makeStoredFile({ ignoredExternalChangeAt: null });
+    useEditorStore.setState({ files: [file], activeFileId: file.id });
+    saveFileSpy.mockResolvedValue(true);
+
+    const handleSave = createHandleSaveFile();
+    const result = await handleSave(file);
+
+    expect(result).toBe(true);
+    expect(saveFileSpy).toHaveBeenCalledWith(
+      file.filePath,
+      file.content,
+      file.frontmatter,
+      file.id,
+    );
+    // diskMtime should be updated
+    expect(useEditorStore.getState().files[0].diskMtime).toBe(2000);
+  });
+
+  it("returns false and does not save when saveFile returns needs-confirm", async () => {
+    const file = makeStoredFile({ ignoredExternalChangeAt: 1500, isDirty: true });
+    useEditorStore.setState({ files: [file], activeFileId: file.id });
+    saveFileSpy.mockResolvedValue("needs-confirm");
+
+    const handleSave = createHandleSaveFile();
+    const result = await handleSave(file);
+
+    expect(result).toBe(false);
+    // State should be unchanged — still dirty
+    expect(useEditorStore.getState().files[0].isDirty).toBe(true);
+  });
+
+  it("clears ignoredAt and saves after overwrite confirmed", async () => {
+    const file = makeStoredFile({ ignoredExternalChangeAt: 1500, isDirty: true });
+    useEditorStore.setState({ files: [file], activeFileId: file.id });
+
+    // Simulate clearing ignoredAt first (as Layout.tsx does before performSave)
+    useEditorStore.getState().clearIgnoredAt(file.id);
+    expect(useEditorStore.getState().files[0].ignoredExternalChangeAt).toBeNull();
+
+    saveFileSpy.mockResolvedValue(true);
+    const handleSave = createHandleSaveFile();
+    const result = await handleSave(useEditorStore.getState().files[0]);
+
+    expect(result).toBe(true);
+    expect(saveFileSpy).toHaveBeenCalled();
   });
 });
