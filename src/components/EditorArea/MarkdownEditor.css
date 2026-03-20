@@ -256,3 +256,54 @@
   border-top: 1px solid var(--color-border-primary);
   margin: 2em 0;
 }
+
+/* === Syntax highlighting — CodeMirror (code view) === */
+.markdown-code-input .cm-syntax-keyword { color: var(--color-syntax-keyword); }
+.markdown-code-input .cm-syntax-comment { color: var(--color-syntax-comment); font-style: italic; }
+.markdown-code-input .cm-syntax-string { color: var(--color-syntax-string); }
+.markdown-code-input .cm-syntax-number { color: var(--color-syntax-number); }
+.markdown-code-input .cm-syntax-function { color: var(--color-syntax-function); }
+.markdown-code-input .cm-syntax-class { color: var(--color-syntax-class); }
+.markdown-code-input .cm-syntax-variable { color: var(--color-syntax-variable); }
+.markdown-code-input .cm-syntax-operator { color: var(--color-syntax-operator); }
+.markdown-code-input .cm-syntax-punctuation { color: var(--color-syntax-punctuation); }
+.markdown-code-input .cm-syntax-tag { color: var(--color-syntax-tag); }
+.markdown-code-input .cm-syntax-attribute { color: var(--color-syntax-attribute); }
+.markdown-code-input .cm-syntax-property { color: var(--color-syntax-property); }
+
+/* === Syntax highlighting — highlight.js (rendered view) === */
+.milkdown-editor pre code .hljs-keyword,
+.milkdown-editor pre code .hljs-selector-tag,
+.milkdown-editor pre code .hljs-built_in { color: var(--color-syntax-keyword); }
+
+.milkdown-editor pre code .hljs-comment,
+.milkdown-editor pre code .hljs-doctag { color: var(--color-syntax-comment); font-style: italic; }
+
+.milkdown-editor pre code .hljs-string,
+.milkdown-editor pre code .hljs-regexp,
+.milkdown-editor pre code .hljs-template-variable { color: var(--color-syntax-string); }
+
+.milkdown-editor pre code .hljs-number,
+.milkdown-editor pre code .hljs-literal { color: var(--color-syntax-number); }
+
+.milkdown-editor pre code .hljs-title.function_,
+.milkdown-editor pre code .hljs-title { color: var(--color-syntax-function); }
+
+.milkdown-editor pre code .hljs-title.class_,
+.milkdown-editor pre code .hljs-type { color: var(--color-syntax-class); }
+
+.milkdown-editor pre code .hljs-variable,
+.milkdown-editor pre code .hljs-params { color: var(--color-syntax-variable); }
+
+.milkdown-editor pre code .hljs-operator { color: var(--color-syntax-operator); }
+
+.milkdown-editor pre code .hljs-punctuation { color: var(--color-syntax-punctuation); }
+
+.milkdown-editor pre code .hljs-tag { color: var(--color-syntax-tag); }
+
+.milkdown-editor pre code .hljs-attr { color: var(--color-syntax-attribute); }
+
+.milkdown-editor pre code .hljs-selector-class,
+.milkdown-editor pre code .hljs-selector-id { color: var(--color-syntax-selector); }
+
+.milkdown-editor pre code .hljs-property { color: var(--color-syntax-property); }
