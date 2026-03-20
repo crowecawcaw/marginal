@@ -1,5 +1,6 @@
 import { $prose } from "@milkdown/kit/utils";
 import { Plugin, PluginKey } from "@milkdown/kit/prose/state";
+import { Decoration, DecorationSet } from "prosemirror-view";
 import hljs from "highlight.js/lib/core";
 import javascript from "highlight.js/lib/languages/javascript";
 import typescript from "highlight.js/lib/languages/typescript";
@@ -30,35 +31,85 @@ hljs.registerLanguage("sql", sql);
 
 const highlightKey = new PluginKey("code-highlight");
 
+interface HljsToken {
+  scope?: string;
+  children: (string | HljsToken)[];
+}
+
+export function flattenTokens(
+  nodes: (string | HljsToken)[],
+  offset: number,
+  result: { from: number; to: number; class: string }[]
+): number {
+  let pos = offset;
+  for (const node of nodes) {
+    if (typeof node === "string") {
+      pos += node.length;
+    } else {
+      const start = pos;
+      pos = flattenTokens(node.children, pos, result);
+      if (node.scope) {
+        result.push({ from: start, to: pos, class: `hljs-${node.scope}` });
+      }
+    }
+  }
+  return pos;
+}
+
+export function buildDecorations(doc: any): DecorationSet {
+  const decorations: Decoration[] = [];
+
+  doc.descendants((node: any, pos: number) => {
+    if (node.type.name !== "code_block") return;
+
+    const lang = node.attrs.language;
+    if (!lang || !hljs.getLanguage(lang)) return;
+
+    const code = node.textContent;
+    if (!code) return;
+
+    const result = hljs.highlight(code, { language: lang });
+    const emitter = result._emitter as any;
+    const rootChildren: (string | HljsToken)[] =
+      emitter?.rootNode?.children ?? [];
+
+    const tokens: { from: number; to: number; class: string }[] = [];
+    flattenTokens(rootChildren, 0, tokens);
+
+    // code_block content starts at pos + 1 (after the opening of the node)
+    const contentStart = pos + 1;
+
+    for (const token of tokens) {
+      if (token.from === token.to) continue;
+      decorations.push(
+        Decoration.inline(contentStart + token.from, contentStart + token.to, {
+          class: token.class,
+        })
+      );
+    }
+  });
+
+  return DecorationSet.create(doc, decorations);
+}
+
 export const codeHighlightPlugin = $prose(() => {
   return new Plugin({
     key: highlightKey,
-    view(editorView) {
-      const highlight = () => {
-        const codeBlocks = editorView.dom.querySelectorAll("pre code");
-        codeBlocks.forEach((block) => {
-          const el = block as HTMLElement;
-          if (el.dataset.highlighted === "yes") return;
-          const lang =
-            el.getAttribute("data-language") ||
-            el.className.match(/language-(\w+)/)?.[1];
-          if (lang && hljs.getLanguage(lang)) {
-            el.innerHTML = hljs.highlight(el.textContent || "", {
-              language: lang,
-            }).value;
-          }
-          el.dataset.highlighted = "yes";
-        });
-      };
-      setTimeout(highlight, 0);
-      return {
-        update() {
-          editorView.dom.querySelectorAll("pre code").forEach((el) => {
-            delete (el as HTMLElement).dataset.highlighted;
-          });
-          setTimeout(highlight, 0);
-        },
-      };
+    state: {
+      init(_, state) {
+        return buildDecorations(state.doc);
+      },
+      apply(tr, oldDecorations, _oldState, newState) {
+        if (tr.docChanged) {
+          return buildDecorations(newState.doc);
+        }
+        return oldDecorations;
+      },
+    },
+    props: {
+      decorations(state) {
+        return highlightKey.getState(state);
+      },
     },
   });
 });
