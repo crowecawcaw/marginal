@@ -37,6 +37,7 @@
     "@tauri-apps/plugin-opener": "^2.5.3",
     "@tauri-apps/plugin-store": "^2.4.2",
     "gray-matter": "^4.0.3",
+    "highlight.js": "^11.11.1",
     "mermaid": "^11.4.1",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",

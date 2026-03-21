@@ -12,8 +12,10 @@ import { languages } from "@codemirror/language-data";
 import { defaultKeymap, historyKeymap, history as cmHistory, indentWithTab } from "@codemirror/commands";
 import { keymap } from "@codemirror/view";
 import { closeBrackets, closeBracketsKeymap } from "@codemirror/autocomplete";
-import { indentOnInput } from "@codemirror/language";
+import { indentOnInput, syntaxHighlighting, HighlightStyle } from "@codemirror/language";
+import { tags } from "@lezer/highlight";
 import { editorViewCtx, parserCtx } from "@milkdown/kit/core";
+import { codeHighlightPlugin } from "./codeHighlightPlugin";
 import { useEditorStore } from "../../stores/editorStore";
 import "./MarkdownEditor.css";
 
@@ -34,6 +36,27 @@ function cleanTableMarkdown(md: string): string {
     })
     .join("\n");
 }
+
+const marginalHighlightStyle = HighlightStyle.define([
+  { tag: tags.keyword, class: "cm-syntax-keyword" },
+  { tag: tags.comment, class: "cm-syntax-comment" },
+  { tag: tags.string, class: "cm-syntax-string" },
+  { tag: tags.number, class: "cm-syntax-number" },
+  { tag: tags.function(tags.variableName), class: "cm-syntax-function" },
+  { tag: tags.className, class: "cm-syntax-class" },
+  { tag: tags.variableName, class: "cm-syntax-variable" },
+  { tag: tags.operator, class: "cm-syntax-operator" },
+  { tag: tags.punctuation, class: "cm-syntax-punctuation" },
+  { tag: tags.tagName, class: "cm-syntax-tag" },
+  { tag: tags.attributeName, class: "cm-syntax-attribute" },
+  { tag: tags.propertyName, class: "cm-syntax-property" },
+  { tag: tags.heading, class: "cm-syntax-keyword" },
+  { tag: tags.emphasis, class: "cm-syntax-string" },
+  { tag: tags.strong, class: "cm-syntax-keyword" },
+  { tag: tags.link, class: "cm-syntax-function" },
+  { tag: tags.url, class: "cm-syntax-string" },
+  { tag: tags.processingInstruction, class: "cm-syntax-comment" },
+]);
 
 interface MarkdownEditorProps {
   fileId: string;
@@ -79,6 +102,7 @@ function RenderedEditor({
         .use(gfm)
         .use(history)
         .use(listener)
+        .use(codeHighlightPlugin)
         .create();
 
       if (destroyed) {
@@ -177,6 +201,7 @@ function CodeEditor({
         closeBrackets(),
         indentOnInput(),
         cmMarkdown({ codeLanguages: languages }),
+        syntaxHighlighting(marginalHighlightStyle),
         CMEditorView.updateListener.of((update) => {
           if (update.docChanged) {
             onChangeRef.current(update.state.doc.toString());
